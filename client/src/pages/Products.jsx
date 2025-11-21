@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { RefreshCw, Search } from "lucide-react";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/currency";
 
 const Products = () => {
   const { user } = useSelector((state) => state.auth);
@@ -9,6 +10,24 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = user.token;
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const settingsRes = await axios.get(
+          "http://localhost:5000/api/settings",
+          config
+        );
+        setSettings(settingsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, [user.token]);
 
   useEffect(() => {
     fetchProducts();
@@ -117,9 +136,7 @@ const Products = () => {
                         className="h-10 w-10 rounded object-cover"
                       />
                     ) : (
-                      <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-                        No Img
-                      </div>
+                      <div className="h-10 w-10 bg-gray-200 rounded flex items-center justify-center text-gray-400"></div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -134,14 +151,8 @@ const Products = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      ${product.price}
+                      {formatCurrency(product.price || 0, settings)}
                     </div>
-                    {product.salePrice &&
-                      product.salePrice < product.regularPrice && (
-                        <span className="text-xs text-red-500 line-through">
-                          ${product.regularPrice}
-                        </span>
-                      )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const quotationSchema = new mongoose.Schema(
   {
-    quotationNumber: { type: String, required: true, unique: true },
+    quotationNumber: { type: String, unique: true },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",

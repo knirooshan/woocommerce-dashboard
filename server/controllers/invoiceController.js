@@ -67,7 +67,7 @@ const createInvoice = async (req, res) => {
     const createdInvoice = await invoice.save();
     res.status(201).json(createdInvoice);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error });
   }
 };
 

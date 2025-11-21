@@ -29,7 +29,7 @@ const POSCart = ({
           onChange={(e) => onSelectCustomer(e.target.value)}
           className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Walk-in Customer</option>
+          <option value="0000-0000-0001">Walk-in Customer</option>
           {customers.map((c) => (
             <option key={c._id} value={c._id}>
               {c.firstName} {c.lastName}

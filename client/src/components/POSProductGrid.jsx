@@ -1,7 +1,31 @@
 import { Search } from "lucide-react";
+import { formatCurrency } from "../utils/currency";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const POSProductGrid = ({ products, onAddToCart }) => {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [settings, setSettings] = useState(null);
+
+  const { user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = user.token;
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const settingsRes = await axios.get(
+          "http://localhost:5000/api/settings",
+          config
+        );
+        setSettings(settingsRes.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, [user.token]);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -49,7 +73,9 @@ const POSProductGrid = ({ products, onAddToCart }) => {
               {product.name}
             </h3>
             <div className="flex justify-between items-center mt-2">
-              <span className="font-bold text-blue-600">${product.price}</span>
+              <span className="font-bold text-blue-600">
+                {formatCurrency(product.price || 0, settings)}
+              </span>
               <span
                 className={`text-xs px-2 py-1 rounded-full ${
                   product.stockQuantity > 0
