@@ -1,0 +1,236 @@
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import axios from "axios";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ArrowLeft, Download, Truck, Mail } from "lucide-react";
+import { useSelector } from "react-redux";
+import InvoicePDF from "../components/InvoicePDF";
+import DeliveryReceiptPDF from "../components/DeliveryReceiptPDF";
+
+const InvoiceView = () => {
+  const { id } = useParams();
+  const { user } = useSelector((state) => state.auth);
+  const [invoice, setInvoice] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sendingEmail, setSendingEmail] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = user.token;
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const [invRes, settingsRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/invoices/${id}`, config),
+          axios.get("http://localhost:5000/api/settings", config),
+        ]);
+        setInvoice(invRes.data);
+        setSettings(settingsRes.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id, user.token]);
+
+  const handleSendEmail = async () => {
+    if (!window.confirm("Send this invoice to the customer via email?")) return;
+    setSendingEmail(true);
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.post(
+        `http://localhost:5000/api/email/send-invoice/${id}`,
+        {},
+        config
+      );
+      alert("Email sent successfully!");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send email. Please check SMTP settings.");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (!invoice) return <div>Invoice not found</div>;
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex justify-between items-center">
+        <Link
+          to="/invoices"
+          className="flex items-center text-gray-600 hover:text-gray-900"
+        >
+          <ArrowLeft className="mr-2 h-5 w-5" /> Back to Invoices
+        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={handleSendEmail}
+            disabled={sendingEmail}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
+          >
+            <Mail className="mr-2 h-5 w-5" />
+            {sendingEmail ? "Sending..." : "Send Email"}
+          </button>
+          <PDFDownloadLink
+            document={<InvoicePDF invoice={invoice} settings={settings} />}
+            fileName={`${invoice.invoiceNumber}.pdf`}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            {({ blob, url, loading, error }) =>
+              loading ? (
+                "Generating PDF..."
+              ) : (
+                <>
+                  <Download className="mr-2 h-5 w-5" /> Invoice
+                </>
+              )
+            }
+          </PDFDownloadLink>
+          <PDFDownloadLink
+            document={
+              <DeliveryReceiptPDF invoice={invoice} settings={settings} />
+            }
+            fileName={`DR-${invoice.invoiceNumber}.pdf`}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+          >
+            {({ blob, url, loading, error }) =>
+              loading ? (
+                "Generating DR..."
+              ) : (
+                <>
+                  <Truck className="mr-2 h-5 w-5" /> Delivery Receipt
+                </>
+              )
+            }
+          </PDFDownloadLink>
+        </div>
+      </div>
+
+      <div className="bg-white shadow rounded-lg p-8">
+        {/* Header */}
+        <div className="flex justify-between border-b pb-8 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">INVOICE</h1>
+            <p className="text-gray-600">#{invoice.invoiceNumber}</p>
+            <p className="text-gray-600">
+              Date: {new Date(invoice.createdAt).toLocaleDateString()}
+            </p>
+            <p className="text-gray-600">
+              Due Date:{" "}
+              {invoice.dueDate
+                ? new Date(invoice.dueDate).toLocaleDateString()
+                : "-"}
+            </p>
+            <p className="text-gray-600">
+              Status:{" "}
+              <span
+                className={`font-semibold uppercase ${
+                  invoice.status === "paid"
+                    ? "text-green-600"
+                    : invoice.status === "overdue"
+                    ? "text-red-600"
+                    : "text-yellow-600"
+                }`}
+              >
+                {invoice.status}
+              </span>
+            </p>
+          </div>
+          <div className="text-right">
+            <h2 className="text-xl font-bold text-gray-800">
+              {settings?.storeName}
+            </h2>
+            <p className="text-gray-600">{settings?.address?.street}</p>
+            <p className="text-gray-600">{settings?.address?.city}</p>
+            <p className="text-gray-600">{settings?.contact?.email}</p>
+          </div>
+        </div>
+
+        {/* Customer */}
+        <div className="mb-8">
+          <h3 className="text-gray-600 font-semibold mb-2">Bill To:</h3>
+          <p className="text-gray-800 font-medium">
+            {invoice.customer?.firstName} {invoice.customer?.lastName}
+          </p>
+          <p className="text-gray-600">{invoice.customer?.email}</p>
+          <p className="text-gray-600">
+            {invoice.customer?.billing?.address_1}
+          </p>
+          <p className="text-gray-600">
+            {invoice.customer?.billing?.city},{" "}
+            {invoice.customer?.billing?.postcode}
+          </p>
+        </div>
+
+        {/* Items */}
+        <table className="min-w-full mb-8">
+          <thead>
+            <tr className="border-b-2 border-gray-200">
+              <th className="text-left py-3 text-gray-600">Item</th>
+              <th className="text-right py-3 text-gray-600">Price</th>
+              <th className="text-right py-3 text-gray-600">Qty</th>
+              <th className="text-right py-3 text-gray-600">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoice.items.map((item, index) => (
+              <tr key={index} className="border-b border-gray-100">
+                <td className="py-3 text-gray-800">{item.name}</td>
+                <td className="text-right py-3 text-gray-600">
+                  ${item.price.toFixed(2)}
+                </td>
+                <td className="text-right py-3 text-gray-600">
+                  {item.quantity}
+                </td>
+                <td className="text-right py-3 text-gray-800 font-medium">
+                  ${item.total.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Totals */}
+        <div className="flex flex-col items-end space-y-2">
+          <div className="flex justify-between w-64">
+            <span className="text-gray-600">Subtotal:</span>
+            <span className="font-medium">${invoice.subtotal.toFixed(2)}</span>
+          </div>
+          {invoice.tax > 0 && (
+            <div className="flex justify-between w-64">
+              <span className="text-gray-600">Tax:</span>
+              <span className="font-medium">${invoice.tax.toFixed(2)}</span>
+            </div>
+          )}
+          {invoice.discount > 0 && (
+            <div className="flex justify-between w-64">
+              <span className="text-gray-600">Discount:</span>
+              <span className="font-medium">
+                -${invoice.discount.toFixed(2)}
+              </span>
+            </div>
+          )}
+          <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t">
+            <span>Total:</span>
+            <span>${invoice.total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <div className="mt-8 pt-8 border-t">
+            <h3 className="text-gray-600 font-semibold mb-2">Notes:</h3>
+            <p className="text-gray-600">{invoice.notes}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceView;
