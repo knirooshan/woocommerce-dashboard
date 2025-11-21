@@ -45,4 +45,15 @@ const getWooCustomers = async (page = 1, perPage = 20) => {
   return response.data;
 };
 
-module.exports = { getWooProducts, getWooCustomers };
+const getWooOrders = async (page = 1, perPage = 20) => {
+  const woo = initWooCommerce();
+  if (!woo) throw new Error("WooCommerce not configured");
+
+  const response = await woo.get("orders", {
+    page,
+    per_page: perPage,
+  });
+  return response.data;
+};
+
+module.exports = { getWooProducts, getWooCustomers, getWooOrders };

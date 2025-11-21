@@ -29,13 +29,13 @@ const InvoiceView = () => {
         ]);
         setInvoice(invRes.data);
         setSettings(settingsRes.data);
-        
+
         // Convert logo URL to base64 for PDF
         if (settingsRes.data?.logo) {
           const base64Logo = await urlToBase64(settingsRes.data.logo, token);
           setLogoBase64(base64Logo);
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -73,7 +73,7 @@ const InvoiceView = () => {
       <div className="flex justify-between items-center">
         <Link
           to="/invoices"
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="mr-2 h-5 w-5" /> Back to Invoices
         </Link>
@@ -87,7 +87,12 @@ const InvoiceView = () => {
             {sendingEmail ? "Sending..." : "Send Email"}
           </button>
           <PDFDownloadLink
-            document={<InvoicePDF invoice={invoice} settings={{...settings, logo: logoBase64}} />}
+            document={
+              <InvoicePDF
+                invoice={invoice}
+                settings={{ ...settings, logo: logoBase64 }}
+              />
+            }
             fileName={`${invoice.invoiceNumber}.pdf`}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
@@ -103,7 +108,10 @@ const InvoiceView = () => {
           </PDFDownloadLink>
           <PDFDownloadLink
             document={
-              <DeliveryReceiptPDF invoice={invoice} settings={{...settings, logo: logoBase64}} />
+              <DeliveryReceiptPDF
+                invoice={invoice}
+                settings={{ ...settings, logo: logoBase64 }}
+              />
             }
             fileName={`DR-${invoice.invoiceNumber}.pdf`}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -121,22 +129,22 @@ const InvoiceView = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-8">
+      <div className="bg-slate-900 shadow rounded-lg p-8 border border-slate-800">
         {/* Header */}
-        <div className="flex justify-between border-b pb-8 mb-8">
+        <div className="flex justify-between border-b border-slate-800 pb-8 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">INVOICE</h1>
-            <p className="text-gray-600">#{invoice.invoiceNumber}</p>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-white mb-2">INVOICE</h1>
+            <p className="text-slate-400">#{invoice.invoiceNumber}</p>
+            <p className="text-slate-400">
               Date: {new Date(invoice.createdAt).toLocaleDateString()}
             </p>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Due Date:{" "}
               {invoice.dueDate
                 ? new Date(invoice.dueDate).toLocaleDateString()
                 : "-"}
             </p>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Status:{" "}
               <span
                 className={`font-semibold uppercase ${
@@ -153,33 +161,33 @@ const InvoiceView = () => {
           </div>
           <div className="text-right">
             {settings?.logo && (
-              <img 
-                src={settings.logo} 
-                alt={settings.storeName} 
+              <img
+                src={settings.logo}
+                alt={settings.storeName}
                 className="h-12 mb-4 ml-auto object-contain"
-                onError={(e) => e.target.style.display = 'none'}
+                onError={(e) => (e.target.style.display = "none")}
               />
             )}
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-white">
               {settings?.storeName}
             </h2>
-            <p className="text-gray-600">{settings?.address?.street}</p>
-            <p className="text-gray-600">{settings?.address?.city}</p>
-            <p className="text-gray-600">{settings?.contact?.email}</p>
+            <p className="text-slate-400">{settings?.address?.street}</p>
+            <p className="text-slate-400">{settings?.address?.city}</p>
+            <p className="text-slate-400">{settings?.contact?.email}</p>
           </div>
         </div>
 
         {/* Customer */}
         <div className="mb-8">
-          <h3 className="text-gray-600 font-semibold mb-2">Bill To:</h3>
-          <p className="text-gray-800 font-medium">
+          <h3 className="text-slate-400 font-semibold mb-2">Bill To:</h3>
+          <p className="text-white font-medium">
             {invoice.customer?.firstName} {invoice.customer?.lastName}
           </p>
-          <p className="text-gray-600">{invoice.customer?.email}</p>
-          <p className="text-gray-600">
+          <p className="text-slate-400">{invoice.customer?.email}</p>
+          <p className="text-slate-400">
             {invoice.customer?.billing?.address_1}
           </p>
-          <p className="text-gray-600">
+          <p className="text-slate-400">
             {invoice.customer?.billing?.city},{" "}
             {invoice.customer?.billing?.postcode}
           </p>
@@ -188,24 +196,24 @@ const InvoiceView = () => {
         {/* Items */}
         <table className="min-w-full mb-8">
           <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-3 text-gray-600">Item</th>
-              <th className="text-right py-3 text-gray-600">Price</th>
-              <th className="text-right py-3 text-gray-600">Qty</th>
-              <th className="text-right py-3 text-gray-600">Total</th>
+            <tr className="border-b-2 border-slate-800">
+              <th className="text-left py-3 text-slate-400">Item</th>
+              <th className="text-right py-3 text-slate-400">Price</th>
+              <th className="text-right py-3 text-slate-400">Qty</th>
+              <th className="text-right py-3 text-slate-400">Total</th>
             </tr>
           </thead>
           <tbody>
             {invoice.items.map((item, index) => (
-              <tr key={index} className="border-b border-gray-100">
-                <td className="py-3 text-gray-800">{item.name}</td>
-                <td className="text-right py-3 text-gray-600">
+              <tr key={index} className="border-b border-slate-800">
+                <td className="py-3 text-white">{item.name}</td>
+                <td className="text-right py-3 text-slate-400">
                   {formatCurrency(item.price, settings)}
                 </td>
-                <td className="text-right py-3 text-gray-600">
+                <td className="text-right py-3 text-slate-400">
                   {item.quantity}
                 </td>
-                <td className="text-right py-3 text-gray-800 font-medium">
+                <td className="text-right py-3 text-white font-medium">
                   {formatCurrency(item.total, settings)}
                 </td>
               </tr>
@@ -216,24 +224,30 @@ const InvoiceView = () => {
         {/* Totals */}
         <div className="flex flex-col items-end space-y-2">
           <div className="flex justify-between w-64">
-            <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium">{formatCurrency(invoice.subtotal, settings)}</span>
+            <span className="text-slate-400">Subtotal:</span>
+            <span className="text-white">
+              {formatCurrency(invoice.subtotal, settings)}
+            </span>
           </div>
           {invoice.tax > 0 && (
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">{settings?.tax?.label || "Tax"}:</span>
-              <span className="font-medium">{formatCurrency(invoice.tax, settings)}</span>
+              <span className="text-slate-400">
+                {settings?.tax?.label || "Tax"}:
+              </span>
+              <span className="text-white">
+                {formatCurrency(invoice.tax, settings)}
+              </span>
             </div>
           )}
           {invoice.discount > 0 && (
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">Discount:</span>
-              <span className="font-medium">
+              <span className="text-slate-400">Discount:</span>
+              <span className="text-white">
                 -{formatCurrency(invoice.discount, settings)}
               </span>
             </div>
           )}
-          <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t">
+          <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t border-slate-800">
             <span>Total:</span>
             <span>{formatCurrency(invoice.total, settings)}</span>
           </div>
@@ -241,9 +255,9 @@ const InvoiceView = () => {
 
         {/* Notes */}
         {invoice.notes && (
-          <div className="mt-8 pt-8 border-t">
-            <h3 className="text-gray-600 font-semibold mb-2">Notes:</h3>
-            <p className="text-gray-600">{invoice.notes}</p>
+          <div className="mt-8 pt-8 border-t border-slate-800">
+            <h3 className="text-slate-400 font-semibold mb-2">Notes:</h3>
+            <p className="text-slate-400">{invoice.notes}</p>
           </div>
         )}
       </div>

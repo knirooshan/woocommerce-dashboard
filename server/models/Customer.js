@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const customerSchema = new mongoose.Schema(
   {
-    wooId: { type: Number, unique: true },
+    wooId: { type: Number, unique: true, sparse: true },
     email: { type: String, required: true },
     firstName: { type: String },
     lastName: { type: String },

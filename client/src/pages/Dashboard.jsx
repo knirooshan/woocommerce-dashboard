@@ -10,6 +10,7 @@ const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [stats, setStats] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,14 +22,16 @@ const Dashboard = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // Fetch both stats and settings in parallel
-      const [statsRes, settingsRes] = await Promise.all([
+      // Fetch stats, settings, and chart data in parallel
+      const [statsRes, settingsRes, chartRes] = await Promise.all([
         axios.get("http://localhost:5000/api/dashboard/stats", config),
         axios.get("http://localhost:5000/api/settings", config),
+        axios.get("http://localhost:5000/api/dashboard/chart", config),
       ]);
 
       setStats(statsRes.data);
       setSettings(settingsRes.data);
+      setChartData(chartRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -50,7 +53,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+        <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
       </div>
 
       {/* Stats Grid */}
@@ -59,57 +62,57 @@ const Dashboard = () => {
           title="Total Sales"
           value={formatCurrency(stats?.totalSales || 0, settings)}
           icon={DollarSign}
-          color="text-green-600 bg-green-600"
+          color="text-green-500 bg-green-500"
         />
         <StatsCard
           title="Total Orders"
           value={stats?.totalOrders || 0}
           icon={ShoppingBag}
-          color="text-blue-600 bg-blue-600"
+          color="text-blue-500 bg-blue-500"
         />
         <StatsCard
           title="Customers"
           value={stats?.totalCustomers || 0}
           icon={Users}
-          color="text-purple-600 bg-purple-600"
+          color="text-purple-500 bg-purple-500"
         />
         <StatsCard
           title="Products"
           value={stats?.totalProducts || 0}
           icon={Package}
-          color="text-orange-600 bg-orange-600"
+          color="text-orange-500 bg-orange-500"
         />
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SalesChart settings={settings} />
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">
+        <SalesChart data={chartData} settings={settings} />
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
+          <h3 className="text-lg font-bold text-white mb-4">
             Financial Summary
           </h3>
           <div className="space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b">
-              <span className="text-gray-600">Monthly Sales</span>
-              <span className="font-semibold text-green-600">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span className="text-slate-400">Monthly Sales</span>
+              <span className="font-semibold text-green-500">
                 {formatCurrency(stats?.monthlySales || 0, settings)}
               </span>
             </div>
-            <div className="flex justify-between items-center pb-2 border-b">
-              <span className="text-gray-600">Monthly Expenses</span>
-              <span className="font-semibold text-red-600">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span className="text-slate-400">Monthly Expenses</span>
+              <span className="font-semibold text-red-500">
                 {formatCurrency(stats?.monthlyExpenses || 0, settings)}
               </span>
             </div>
             <div className="flex justify-between items-center pt-2">
-              <span className="text-gray-800 font-medium">
+              <span className="text-white font-medium">
                 Net Profit (Monthly)
               </span>
               <span
                 className={`font-bold text-lg ${
                   (stats?.monthlyNetProfit || 0) >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                    ? "text-green-500"
+                    : "text-red-500"
                 }`}
               >
                 {formatCurrency(stats?.monthlyNetProfit || 0, settings)}

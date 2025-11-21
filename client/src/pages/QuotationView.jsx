@@ -51,7 +51,7 @@ const QuotationView = () => {
       <div className="flex justify-between items-center">
         <Link
           to="/quotations"
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="mr-2 h-5 w-5" /> Back to Quotations
         </Link>
@@ -79,18 +79,18 @@ const QuotationView = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-8">
+      <div className="bg-slate-900 shadow rounded-lg p-8 border border-slate-800">
         {/* Header */}
-        <div className="flex justify-between border-b pb-8 mb-8">
+        <div className="flex justify-between border-b border-slate-800 pb-8 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">QUOTATION</h1>
-            <p className="text-gray-600">#{quotation.quotationNumber}</p>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-white mb-2">QUOTATION</h1>
+            <p className="text-slate-400">#{quotation.quotationNumber}</p>
+            <p className="text-slate-400">
               Date: {new Date(quotation.createdAt).toLocaleDateString()}
             </p>
-            <p className="text-gray-600">
+            <p className="text-slate-400">
               Status:{" "}
-              <span className="font-semibold uppercase">
+              <span className="font-semibold uppercase text-blue-400">
                 {quotation.status}
               </span>
             </p>
@@ -104,26 +104,26 @@ const QuotationView = () => {
                 onError={(e) => (e.target.style.display = "none")}
               />
             )}
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-white">
               {settings?.storeName}
             </h2>
-            <p className="text-gray-600">{settings?.address?.street}</p>
-            <p className="text-gray-600">{settings?.address?.city}</p>
-            <p className="text-gray-600">{settings?.contact?.email}</p>
+            <p className="text-slate-400">{settings?.address?.street}</p>
+            <p className="text-slate-400">{settings?.address?.city}</p>
+            <p className="text-slate-400">{settings?.contact?.email}</p>
           </div>
         </div>
 
         {/* Customer */}
         <div className="mb-8">
-          <h3 className="text-gray-600 font-semibold mb-2">Bill To:</h3>
-          <p className="text-gray-800 font-medium">
+          <h3 className="text-slate-400 font-semibold mb-2">Bill To:</h3>
+          <p className="text-white font-medium">
             {quotation.customer?.firstName} {quotation.customer?.lastName}
           </p>
-          <p className="text-gray-600">{quotation.customer?.email}</p>
-          <p className="text-gray-600">
+          <p className="text-slate-400">{quotation.customer?.email}</p>
+          <p className="text-slate-400">
             {quotation.customer?.billing?.address_1}
           </p>
-          <p className="text-gray-600">
+          <p className="text-slate-400">
             {quotation.customer?.billing?.city},{" "}
             {quotation.customer?.billing?.postcode}
           </p>
@@ -132,24 +132,24 @@ const QuotationView = () => {
         {/* Items */}
         <table className="min-w-full mb-8">
           <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-3 text-gray-600">Item</th>
-              <th className="text-right py-3 text-gray-600">Price</th>
-              <th className="text-right py-3 text-gray-600">Qty</th>
-              <th className="text-right py-3 text-gray-600">Total</th>
+            <tr className="border-b-2 border-slate-800">
+              <th className="text-left py-3 text-slate-400">Item</th>
+              <th className="text-right py-3 text-slate-400">Price</th>
+              <th className="text-right py-3 text-slate-400">Qty</th>
+              <th className="text-right py-3 text-slate-400">Total</th>
             </tr>
           </thead>
           <tbody>
             {quotation.items.map((item, index) => (
-              <tr key={index} className="border-b border-gray-100">
-                <td className="py-3 text-gray-800">{item.name}</td>
-                <td className="text-right py-3 text-gray-600">
+              <tr key={index} className="border-b border-slate-800">
+                <td className="py-3 text-white">{item.name}</td>
+                <td className="text-right py-3 text-slate-400">
                   {formatCurrency(item.price, settings)}
                 </td>
-                <td className="text-right py-3 text-gray-600">
+                <td className="text-right py-3 text-slate-400">
                   {item.quantity}
                 </td>
-                <td className="text-right py-3 text-gray-800 font-medium">
+                <td className="text-right py-3 text-white font-medium">
                   {formatCurrency(item.total, settings)}
                 </td>
               </tr>
@@ -160,30 +160,30 @@ const QuotationView = () => {
         {/* Totals */}
         <div className="flex flex-col items-end space-y-2">
           <div className="flex justify-between w-64">
-            <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium">
+            <span className="text-slate-400">Subtotal:</span>
+            <span className="font-medium text-white">
               {formatCurrency(quotation.subtotal, settings)}
             </span>
           </div>
           {quotation.tax > 0 && (
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">
+              <span className="text-slate-400">
                 {settings?.tax?.label || "Tax"}:
               </span>
-              <span className="font-medium">
+              <span className="font-medium text-white">
                 {formatCurrency(quotation.tax, settings)}
               </span>
             </div>
           )}
           {quotation.discount > 0 && (
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">Discount:</span>
-              <span className="font-medium">
+              <span className="text-slate-400">Discount:</span>
+              <span className="font-medium text-white">
                 -{formatCurrency(quotation.discount, settings)}
               </span>
             </div>
           )}
-          <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t">
+          <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t border-slate-800 text-white">
             <span>Total:</span>
             <span>{formatCurrency(quotation.total, settings)}</span>
           </div>
@@ -191,9 +191,9 @@ const QuotationView = () => {
 
         {/* Notes */}
         {quotation.notes && (
-          <div className="mt-8 pt-8 border-t">
-            <h3 className="text-gray-600 font-semibold mb-2">Notes:</h3>
-            <p className="text-gray-600">{quotation.notes}</p>
+          <div className="mt-8 pt-8 border-t border-slate-800">
+            <h3 className="text-slate-400 font-semibold mb-2">Notes:</h3>
+            <p className="text-slate-400">{quotation.notes}</p>
           </div>
         )}
       </div>

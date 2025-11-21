@@ -37,9 +37,9 @@ const CreateInvoice = () => {
         setCustomers(custRes.data);
         setProducts(prodRes.data);
         setSettings(settingsRes.data);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          taxRate: settingsRes.data?.tax?.rate || 0
+          taxRate: settingsRes.data?.tax?.rate || 0,
         }));
         setLoading(false);
       } catch (error) {
@@ -116,16 +116,14 @@ const CreateInvoice = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Create New Invoice
-      </h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Create New Invoice</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Customer Selection */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Select Customer
               </label>
               <select
@@ -133,7 +131,7 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, customer: e.target.value })
                 }
-                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">Select a customer...</option>
@@ -145,7 +143,7 @@ const CreateInvoice = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Due Date
               </label>
               <input
@@ -154,20 +152,20 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
-                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
         </div>
 
         {/* Items List */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Items</h2>
+            <h2 className="text-lg font-medium text-white">Items</h2>
             <button
               type="button"
               onClick={addItem}
-              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+              className="flex items-center text-sm text-blue-400 hover:text-blue-300"
             >
               <Plus className="h-4 w-4 mr-1" /> Add Item
             </button>
@@ -175,9 +173,12 @@ const CreateInvoice = () => {
 
           <div className="space-y-4">
             {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-4 items-end border-b pb-4">
+              <div
+                key={index}
+                className="flex gap-4 items-end border-b border-slate-800 pb-4"
+              >
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Product
                   </label>
                   <select
@@ -185,7 +186,7 @@ const CreateInvoice = () => {
                     onChange={(e) =>
                       handleItemChange(index, "product", e.target.value)
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                     required
                   >
                     <option value="">Select Product...</option>
@@ -197,7 +198,7 @@ const CreateInvoice = () => {
                   </select>
                 </div>
                 <div className="w-24">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Price
                   </label>
                   <input
@@ -210,11 +211,11 @@ const CreateInvoice = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                   />
                 </div>
                 <div className="w-20">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Qty
                   </label>
                   <input
@@ -227,7 +228,7 @@ const CreateInvoice = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                   />
                 </div>
                 <div className="w-24 text-right pb-2 font-medium">
@@ -236,7 +237,7 @@ const CreateInvoice = () => {
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="text-red-500 hover:text-red-700 pb-2"
+                  className="text-red-400 hover:text-red-300 pb-2"
                 >
                   <Trash className="h-5 w-5" />
                 </button>
@@ -245,13 +246,17 @@ const CreateInvoice = () => {
           </div>
 
           {/* Totals */}
-          <div className="mt-6 border-t pt-4 flex flex-col items-end space-y-2">
+          <div className="mt-6 border-t border-slate-800 pt-4 flex flex-col items-end space-y-2">
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">{formatCurrency(subtotal, settings)}</span>
+              <span className="text-slate-400">Subtotal:</span>
+              <span className="font-medium">
+                {formatCurrency(subtotal, settings)}
+              </span>
             </div>
             <div className="flex justify-between w-64 items-center">
-              <span className="text-gray-600">{settings?.tax?.label || "Tax"} Rate (%):</span>
+              <span className="text-slate-400">
+                {settings?.tax?.label || "Tax"} Rate (%):
+              </span>
               <input
                 type="number"
                 value={formData.taxRate}
@@ -261,11 +266,11 @@ const CreateInvoice = () => {
                     taxRate: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 border border-gray-300 rounded px-2 py-1 text-right"
+                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
             <div className="flex justify-between w-64 items-center">
-              <span className="text-gray-600">Discount:</span>
+              <span className="text-slate-400">Discount:</span>
               <input
                 type="number"
                 value={formData.discount}
@@ -275,7 +280,7 @@ const CreateInvoice = () => {
                     discount: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 border border-gray-300 rounded px-2 py-1 text-right"
+                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
             <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t">
@@ -286,10 +291,10 @@ const CreateInvoice = () => {
         </div>
 
         {/* Additional Info */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Payment Method
               </label>
               <select
@@ -297,7 +302,7 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, paymentMethod: e.target.value })
                 }
-                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cash">Cash</option>
@@ -306,7 +311,7 @@ const CreateInvoice = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Status
               </label>
               <select
@@ -314,7 +319,7 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value })
                 }
-                className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="draft">Draft</option>
                 <option value="sent">Sent</option>
@@ -323,7 +328,7 @@ const CreateInvoice = () => {
             </div>
           </div>
           <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Notes
             </label>
             <textarea
@@ -332,7 +337,7 @@ const CreateInvoice = () => {
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={3}
-              className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>

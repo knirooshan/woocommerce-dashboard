@@ -133,7 +133,7 @@ const Customers = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
+        <h1 className="text-2xl font-bold text-white">Customers</h1>
         <button
           onClick={() => openModal()}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -143,53 +143,53 @@ const Customers = () => {
         </button>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-slate-900 shadow rounded-lg overflow-hidden border border-slate-800">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-800">
+            <thead className="bg-slate-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Phone
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-slate-900 divide-y divide-slate-800">
               {customers.map((customer) => (
-                <tr key={customer._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                <tr key={customer._id} className="hover:bg-slate-800/50">
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
                     {customer.firstName} {customer.lastName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.email}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.billing?.phone || "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.billing?.city || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => openModal(customer)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      className="text-blue-400 hover:text-blue-300 mr-3"
                     >
                       <Edit className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(customer._id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-400 hover:text-red-300"
                     >
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -200,7 +200,7 @@ const Customers = () => {
           </table>
         </div>
         {customers.length === 0 && (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             No customers found. Add one to get started.
           </div>
         )}
@@ -208,15 +208,15 @@ const Customers = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-900 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-800 shadow-xl">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
+              <h2 className="text-xl font-bold text-white">
                 {editingCustomer ? "Edit Customer" : "Add Customer"}
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-slate-400 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -225,7 +225,7 @@ const Customers = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     First Name *
                   </label>
                   <input
@@ -235,11 +235,11 @@ const Customers = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Last Name *
                   </label>
                   <input
@@ -249,7 +249,7 @@ const Customers = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -308,7 +308,7 @@ const Customers = () => {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     City
                   </label>
                   <input
@@ -320,11 +320,11 @@ const Customers = () => {
                         billing: { ...formData.billing, city: e.target.value },
                       })
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Postcode
                   </label>
                   <input
@@ -339,11 +339,11 @@ const Customers = () => {
                         },
                       })
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
                     Country
                   </label>
                   <input
@@ -358,7 +358,7 @@ const Customers = () => {
                         },
                       })
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -367,7 +367,7 @@ const Customers = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-slate-700 rounded-md text-slate-300 hover:bg-slate-800"
                 >
                   Cancel
                 </button>

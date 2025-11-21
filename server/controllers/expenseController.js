@@ -5,7 +5,9 @@ const Expense = require("../models/Expense");
 // @access  Private
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({}).sort({ date: -1 });
+    const expenses = await Expense.find({})
+      .populate("vendor", "name")
+      .sort({ date: -1 });
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ message: error.message });

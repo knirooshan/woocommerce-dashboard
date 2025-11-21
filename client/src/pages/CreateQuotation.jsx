@@ -35,9 +35,9 @@ const CreateQuotation = () => {
         setCustomers(custRes.data);
         setProducts(prodRes.data);
         setSettings(settingsRes.data);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          taxRate: settingsRes.data?.tax?.rate || 0
+          taxRate: settingsRes.data?.tax?.rate || 0,
         }));
         setLoading(false);
       } catch (error) {
@@ -114,14 +114,14 @@ const CreateQuotation = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+      <h1 className="text-2xl font-bold text-white mb-6">
         Create New Quotation
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Customer Selection */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
             Select Customer
           </label>
           <select
@@ -129,7 +129,7 @@ const CreateQuotation = () => {
             onChange={(e) =>
               setFormData({ ...formData, customer: e.target.value })
             }
-            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
             required
           >
             <option value="">Select a customer...</option>
@@ -142,13 +142,13 @@ const CreateQuotation = () => {
         </div>
 
         {/* Items List */}
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Items</h2>
+            <h2 className="text-lg font-medium text-white">Items</h2>
             <button
               type="button"
               onClick={addItem}
-              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+              className="flex items-center text-sm text-blue-400 hover:text-blue-300"
             >
               <Plus className="h-4 w-4 mr-1" /> Add Item
             </button>
@@ -156,9 +156,12 @@ const CreateQuotation = () => {
 
           <div className="space-y-4">
             {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-4 items-end border-b pb-4">
+              <div
+                key={index}
+                className="flex gap-4 items-end border-b border-slate-800 pb-4"
+              >
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Product
                   </label>
                   <select
@@ -166,7 +169,7 @@ const CreateQuotation = () => {
                     onChange={(e) =>
                       handleItemChange(index, "product", e.target.value)
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
                     required
                   >
                     <option value="">Select Product...</option>
@@ -178,7 +181,7 @@ const CreateQuotation = () => {
                   </select>
                 </div>
                 <div className="w-24">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Price
                   </label>
                   <input
@@ -191,11 +194,11 @@ const CreateQuotation = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
                   />
                 </div>
                 <div className="w-20">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                  <label className="block text-xs font-medium text-slate-400 mb-1">
                     Qty
                   </label>
                   <input
@@ -208,16 +211,16 @@ const CreateQuotation = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full border border-gray-300 rounded-md py-1.5 px-2 text-sm"
+                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
                   />
                 </div>
-                <div className="w-24 text-right pb-2 font-medium">
+                <div className="w-24 text-right pb-2 font-medium text-white">
                   {formatCurrency(item.total, settings)}
                 </div>
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="text-red-500 hover:text-red-700 pb-2"
+                  className="text-red-400 hover:text-red-300 pb-2"
                 >
                   <Trash className="h-5 w-5" />
                 </button>
@@ -226,13 +229,17 @@ const CreateQuotation = () => {
           </div>
 
           {/* Totals */}
-          <div className="mt-6 border-t pt-4 flex flex-col items-end space-y-2">
+          <div className="mt-6 border-t border-slate-800 pt-4 flex flex-col items-end space-y-2">
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">{formatCurrency(subtotal, settings)}</span>
+              <span className="text-slate-400">Subtotal:</span>
+              <span className="font-medium text-white">
+                {formatCurrency(subtotal, settings)}
+              </span>
             </div>
             <div className="flex justify-between w-64 items-center">
-              <span className="text-gray-600">{settings?.tax?.label || "Tax"} Rate (%):</span>
+              <span className="text-slate-400">
+                {settings?.tax?.label || "Tax"} Rate (%):
+              </span>
               <input
                 type="number"
                 value={formData.taxRate}
@@ -242,11 +249,11 @@ const CreateQuotation = () => {
                     taxRate: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 border border-gray-300 rounded px-2 py-1 text-right"
+                className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
               />
             </div>
             <div className="flex justify-between w-64 items-center">
-              <span className="text-gray-600">Discount:</span>
+              <span className="text-slate-400">Discount:</span>
               <input
                 type="number"
                 value={formData.discount}
@@ -256,10 +263,10 @@ const CreateQuotation = () => {
                     discount: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 border border-gray-300 rounded px-2 py-1 text-right"
+                className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
               />
             </div>
-            <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t">
+            <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t border-slate-800 text-white">
               <span>Total:</span>
               <span>{formatCurrency(total, settings)}</span>
             </div>
@@ -269,7 +276,7 @@ const CreateQuotation = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm font-medium"
+            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm font-medium transition-colors"
           >
             <Save className="mr-2 h-5 w-5" />
             Save Quotation

@@ -20,9 +20,26 @@ const Expenses = () => {
     notes: "",
   });
 
+  const [vendors, setVendors] = useState([]);
+
   useEffect(() => {
     fetchExpenses();
+    fetchVendors();
   }, [user.token]);
+
+  const fetchVendors = async () => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.get(
+        "http://localhost:5000/api/vendors",
+        config
+      );
+      setVendors(data);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
+    }
+  };
 
   const fetchExpenses = async () => {
     try {
@@ -81,7 +98,7 @@ const Expenses = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Expenses</h1>
+        <h1 className="text-2xl font-bold text-white">Expenses</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -92,14 +109,14 @@ const Expenses = () => {
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h2 className="text-lg font-medium mb-4">New Expense</h2>
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800 mb-6">
+          <h2 className="text-lg font-medium text-white mb-4">New Expense</h2>
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Description
               </label>
               <input
@@ -108,12 +125,12 @@ const Expenses = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Amount
               </label>
               <input
@@ -122,12 +139,12 @@ const Expenses = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, amount: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Category
               </label>
               <select
@@ -135,7 +152,7 @@ const Expenses = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, category: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
               >
                 <option value="General">General</option>
                 <option value="Rent">Rent</option>
@@ -146,7 +163,7 @@ const Expenses = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Date
               </label>
               <input
@@ -155,24 +172,30 @@ const Expenses = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Vendor
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.vendor}
                 onChange={(e) =>
                   setFormData({ ...formData, vendor: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
-              />
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
+              >
+                <option value="">Select Vendor</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor._id} value={vendor._id}>
+                    {vendor.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Reference
               </label>
               <input
@@ -181,7 +204,7 @@ const Expenses = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, reference: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded px-3 py-2"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
               />
             </div>
             <div className="md:col-span-2">
@@ -196,46 +219,46 @@ const Expenses = () => {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-slate-900 shadow rounded-lg overflow-hidden border border-slate-800">
+        <table className="min-w-full divide-y divide-slate-800">
+          <thead className="bg-slate-950">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Description
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Vendor
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-slate-900 divide-y divide-slate-800">
             {expenses.map((expense) => (
-              <tr key={expense._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <tr key={expense._id} className="hover:bg-slate-800/50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                   {new Date(expense.date).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                   {expense.description}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700">
                     {expense.category}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {expense.vendor || "-"}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                  {expense.vendor?.name || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
                   -{formatCurrency(expense.amount, settings)}
@@ -243,7 +266,7 @@ const Expenses = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
                     onClick={() => handleDelete(expense._id)}
-                    className="text-red-600 hover:text-red-900"
+                    className="text-red-400 hover:text-red-300"
                   >
                     <Trash className="h-5 w-5" />
                   </button>
@@ -253,7 +276,7 @@ const Expenses = () => {
           </tbody>
         </table>
         {expenses.length === 0 && (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             No expenses recorded.
           </div>
         )}

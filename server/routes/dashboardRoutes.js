@@ -84,4 +84,48 @@ router.get("/stats", protect, async (req, res) => {
   }
 });
 
+// @desc    Get weekly sales for chart
+// @route   GET /api/dashboard/chart
+// @access  Private
+router.get("/chart", protect, async (req, res) => {
+  try {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 6); // Last 7 days
+
+    const sales = await Invoice.aggregate([
+      {
+        $match: {
+          status: "paid",
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          sales: { $sum: "$total" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Fill in missing days
+    const chartData = [];
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split("T")[0];
+      const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+      const dayData = sales.find((s) => s._id === dateStr);
+      chartData.push({
+        name: dayName,
+        date: dateStr,
+        sales: dayData ? dayData.sales : 0,
+      });
+    }
+
+    res.json(chartData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

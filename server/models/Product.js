@@ -2,12 +2,13 @@ const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
-    wooId: { type: Number, required: true, unique: true },
+    wooId: { type: Number, unique: true, sparse: true },
     name: { type: String, required: true },
     sku: { type: String },
     price: { type: Number },
     regularPrice: { type: Number },
     salePrice: { type: Number },
+    costPrice: { type: Number },
     stockQuantity: { type: Number },
     images: [{ type: String }],
     categories: [

@@ -19,12 +19,14 @@ app.use("/api/settings", require("./routes/settingsRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/customers", require("./routes/customerRoutes"));
+app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/quotations", require("./routes/quotationRoutes"));
 app.use("/api/invoices", require("./routes/invoiceRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/email", require("./routes/emailRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/images", require("./routes/imageRoutes"));
+app.use("/api/vendors", require("./routes/vendorRoutes"));
 
 app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");

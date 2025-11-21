@@ -77,13 +77,13 @@ const Settings = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Store Settings</h1>
+        <h1 className="text-2xl font-bold text-white">Store Settings</h1>
         {message && (
           <span
             className={`px-4 py-2 rounded text-sm ${
               message.includes("Error")
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
+                ? "bg-red-900/50 text-red-200 border border-red-800"
+                : "bg-green-900/50 text-green-200 border border-green-800"
             }`}
           >
             {message}
@@ -93,13 +93,13 @@ const Settings = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* General Info */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
             General Information
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Store Name
               </label>
               <input
@@ -107,11 +107,11 @@ const Settings = () => {
                 name="storeName"
                 value={formData.storeName}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Logo URL
               </label>
               <input
@@ -119,20 +119,20 @@ const Settings = () => {
                 name="logo"
                 value={formData.logo}
                 onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Address & Contact */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
             Address & Contact
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Street Address
               </label>
               <input
@@ -140,11 +140,11 @@ const Settings = () => {
                 name="street"
                 value={formData.address.street}
                 onChange={(e) => handleChange(e, "address")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 City
               </label>
               <input
@@ -152,11 +152,11 @@ const Settings = () => {
                 name="city"
                 value={formData.address.city}
                 onChange={(e) => handleChange(e, "address")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Phone
               </label>
               <input
@@ -164,11 +164,11 @@ const Settings = () => {
                 name="phone"
                 value={formData.contact.phone}
                 onChange={(e) => handleChange(e, "contact")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Email
               </label>
               <input
@@ -176,20 +176,20 @@ const Settings = () => {
                 name="email"
                 value={formData.contact.email}
                 onChange={(e) => handleChange(e, "contact")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
           </div>
         </div>
 
         {/* SMTP Settings */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
             SMTP Configuration (Email)
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Host
               </label>
               <input
@@ -197,11 +197,11 @@ const Settings = () => {
                 name="host"
                 value={formData.smtp.host}
                 onChange={(e) => handleChange(e, "smtp")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Port
               </label>
               <input
@@ -209,11 +209,11 @@ const Settings = () => {
                 name="port"
                 value={formData.smtp.port}
                 onChange={(e) => handleChange(e, "smtp")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 User
               </label>
               <input
@@ -221,11 +221,11 @@ const Settings = () => {
                 name="user"
                 value={formData.smtp.user}
                 onChange={(e) => handleChange(e, "smtp")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Password
               </label>
               <input
@@ -233,20 +233,20 @@ const Settings = () => {
                 name="pass"
                 value={formData.smtp.pass}
                 onChange={(e) => handleChange(e, "smtp")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Tax Settings */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
             Tax Configuration
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Tax Rate (%)
               </label>
               <input
@@ -257,15 +257,15 @@ const Settings = () => {
                 step="0.01"
                 value={formData.tax.rate}
                 onChange={(e) => handleChange(e, "tax")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
                 placeholder="0"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-400">
                 Enter 0 for no tax. Default tax rate applied to transactions.
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Tax Label
               </label>
               <input
@@ -273,10 +273,10 @@ const Settings = () => {
                 name="label"
                 value={formData.tax.label}
                 onChange={(e) => handleChange(e, "tax")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
                 placeholder="Tax"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-400">
                 Label shown on invoices (e.g., VAT, GST, Sales Tax)
               </p>
             </div>
@@ -284,20 +284,20 @@ const Settings = () => {
         </div>
 
         {/* Currency Settings */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
             Currency Configuration
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Currency Code
               </label>
               <select
                 name="code"
                 value={formData.currency.code}
                 onChange={(e) => handleChange(e, "currency")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               >
                 <option value="USD">USD - US Dollar</option>
                 <option value="EUR">EUR - Euro</option>
@@ -312,7 +312,7 @@ const Settings = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Currency Symbol
               </label>
               <input
@@ -320,19 +320,19 @@ const Settings = () => {
                 name="symbol"
                 value={formData.currency.symbol}
                 onChange={(e) => handleChange(e, "currency")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
                 placeholder="$"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-300">
                 Symbol Position
               </label>
               <select
                 name="position"
                 value={formData.currency.position}
                 onChange={(e) => handleChange(e, "currency")}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               >
                 <option value="before">Before (e.g., $100)</option>
                 <option value="after">After (e.g., 100$)</option>

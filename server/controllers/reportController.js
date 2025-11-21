@@ -45,18 +45,56 @@ const getDashboardStats = async (req, res) => {
 // @access  Private
 const getSalesReport = async (req, res) => {
   try {
+    // 1. Get Monthly Sales
     const sales = await Invoice.aggregate([
       { $match: { status: "paid" } },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-          total: { $sum: "$total" },
+          sales: { $sum: "$total" },
           count: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
-    res.json(sales);
+
+    // 2. Get Monthly Expenses
+    const expenses = await Expense.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+          expenses: { $sum: "$amount" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // 3. Merge Data
+    const mergedData = {};
+
+    sales.forEach((item) => {
+      if (!mergedData[item._id]) {
+        mergedData[item._id] = { name: item._id, sales: 0, expenses: 0 };
+      }
+      mergedData[item._id].sales = item.sales;
+    });
+
+    expenses.forEach((item) => {
+      if (!mergedData[item._id]) {
+        mergedData[item._id] = { name: item._id, sales: 0, expenses: 0 };
+      }
+      mergedData[item._id].expenses = item.expenses;
+    });
+
+    // Convert to array and calculate profit
+    const reportData = Object.values(mergedData)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((item) => ({
+        ...item,
+        profit: item.sales - item.expenses,
+      }));
+
+    res.json(reportData);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -61,4 +61,120 @@ const syncProducts = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, syncProducts };
+// @desc    Create a product
+// @route   POST /api/products
+// @access  Private/Admin
+const createProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      sku,
+      price,
+      regularPrice,
+      salePrice,
+      costPrice,
+      stockQuantity,
+      images,
+      categories,
+      description,
+      shortDescription,
+      status,
+    } = req.body;
+
+    const product = new Product({
+      name,
+      sku,
+      price,
+      regularPrice,
+      salePrice,
+      costPrice,
+      stockQuantity,
+      images,
+      categories,
+      description,
+      shortDescription,
+      status,
+    });
+
+    const createdProduct = await product.save();
+    res.status(201).json(createdProduct);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Update a product
+// @route   PUT /api/products/:id
+// @access  Private/Admin
+const updateProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      sku,
+      price,
+      regularPrice,
+      salePrice,
+      costPrice,
+      stockQuantity,
+      images,
+      categories,
+      description,
+      shortDescription,
+      status,
+    } = req.body;
+
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      product.name = name || product.name;
+      product.sku = sku || product.sku;
+      product.price = price !== undefined ? price : product.price;
+      product.regularPrice =
+        regularPrice !== undefined ? regularPrice : product.regularPrice;
+      product.salePrice =
+        salePrice !== undefined ? salePrice : product.salePrice;
+      product.costPrice =
+        costPrice !== undefined ? costPrice : product.costPrice;
+      product.stockQuantity =
+        stockQuantity !== undefined ? stockQuantity : product.stockQuantity;
+      product.images = images || product.images;
+      product.categories = categories || product.categories;
+      product.description = description || product.description;
+      product.shortDescription = shortDescription || product.shortDescription;
+      product.status = status || product.status;
+
+      const updatedProduct = await product.save();
+      res.json(updatedProduct);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a product
+// @route   DELETE /api/products/:id
+// @access  Private/Admin
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      await product.deleteOne();
+      res.json({ message: "Product removed" });
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  getProducts,
+  syncProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+};

@@ -26,6 +26,7 @@ import POS from "./pages/POS";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Vendors from "./pages/Vendors";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
@@ -105,6 +106,7 @@ function App() {
               <Route path="/invoices/create" element={<CreateInvoice />} />
               <Route path="/invoices/:id" element={<InvoiceView />} />
               <Route path="/expenses" element={<Expenses />} />
+              <Route path="/vendors" element={<Vendors />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
             </Route>

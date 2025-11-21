@@ -32,6 +32,7 @@ const Layout = () => {
     { name: "Invoices", href: "/invoices", icon: FileText },
     { name: "Orders", href: "/orders", icon: ShoppingCart },
     { name: "Customers", href: "/customers", icon: Users },
+    { name: "Vendors", href: "/vendors", icon: Users },
     { name: "Expenses", href: "/expenses", icon: DollarSign },
     { name: "Reports", href: "/reports", icon: BarChart3 },
     { name: "Settings", href: "/settings", icon: Settings },
@@ -43,11 +44,11 @@ const Layout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-slate-950 flex">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-gray-900 bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900 bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
@@ -58,13 +59,14 @@ const Layout = () => {
                 fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
                 lg:relative lg:translate-x-0
+                border-r border-slate-800
             `}
       >
-        <div className="flex items-center justify-between h-16 px-6 bg-slate-950">
-          <span className="text-xl font-bold">WooDashboard</span>
+        <div className="flex items-center justify-between h-16 px-6 bg-slate-950 border-b border-slate-800">
+          <span className="text-xl font-bold text-white">WooDashboard</span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-400 hover:text-white"
+            className="lg:hidden text-slate-400 hover:text-white"
           >
             <X size={24} />
           </button>
@@ -82,7 +84,7 @@ const Layout = () => {
                                     ${
                                       isActive
                                         ? "bg-blue-600 text-white"
-                                        : "text-gray-300 hover:bg-slate-800 hover:text-white"
+                                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
                                     }
                                 `}
               >
@@ -96,7 +98,7 @@ const Layout = () => {
         <div className="absolute bottom-0 w-full p-4 border-t border-slate-800">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-md hover:bg-slate-800 hover:text-white transition-colors"
+            className="flex items-center w-full px-4 py-3 text-sm font-medium text-slate-400 rounded-md hover:bg-slate-800 hover:text-white transition-colors"
           >
             <LogOut className="mr-3 h-5 w-5" />
             Logout
@@ -107,19 +109,20 @@ const Layout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 lg:px-8">
+        <header className="bg-slate-900 shadow-sm h-16 flex items-center justify-between px-6 lg:px-8 border-b border-slate-800">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-gray-500 hover:text-gray-700"
+            className="lg:hidden text-slate-400 hover:text-white"
           >
             <Menu size={24} />
           </button>
 
           <div className="flex items-center ml-auto">
-            <span className="text-sm text-gray-700 mr-4">
-              Welcome, <span className="font-semibold">{user?.name}</span>
+            <span className="text-sm text-slate-300 mr-4">
+              Welcome,{" "}
+              <span className="font-semibold text-white">{user?.name}</span>
             </span>
-            <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold ring-2 ring-slate-800">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
           </div>
