@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Plus, Trash, DollarSign } from "lucide-react";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/currency";
 
 const Expenses = () => {
   const { user } = useSelector((state) => state.auth);
   const [expenses, setExpenses] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,11 +28,12 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/expenses",
-        config
-      );
-      setExpenses(data);
+      const [expensesRes, settingsRes] = await Promise.all([
+        axios.get("http://localhost:5000/api/expenses", config),
+        axios.get("http://localhost:5000/api/settings", config),
+      ]);
+      setExpenses(expensesRes.data);
+      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching expenses:", error);
@@ -235,7 +238,7 @@ const Expenses = () => {
                   {expense.vendor || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
-                  -${expense.amount.toFixed(2)}
+                  -{formatCurrency(expense.amount, settings)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button

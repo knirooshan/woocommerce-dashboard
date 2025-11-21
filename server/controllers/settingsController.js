@@ -32,6 +32,7 @@ const updateSettings = async (req, res) => {
       settings.smtp = req.body.smtp || settings.smtp;
       settings.bank = req.body.bank || settings.bank;
       settings.currency = req.body.currency || settings.currency;
+      settings.tax = req.body.tax || settings.tax;
 
       const updatedSettings = await settings.save();
       res.json(updatedSettings);

@@ -73,7 +73,8 @@ const POS = () => {
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.1; // Assuming 10% tax for now
+    const taxRate = settings?.tax?.rate || 0;
+    const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax - discount;
     return { subtotal, tax, total };
   };

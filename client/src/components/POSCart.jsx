@@ -99,7 +99,7 @@ const POSCart = ({
             <span>{formatCurrency(subtotal, settings)}</span>
           </div>
           <div className="flex justify-between text-gray-600">
-            <span>Tax</span>
+            <span>{settings?.tax?.label || "Tax"} {settings?.tax?.rate > 0 && `(${settings.tax.rate}%)`}</span>
             <span>{formatCurrency(tax, settings)}</span>
           </div>
           <div className="flex justify-between items-center text-gray-600">

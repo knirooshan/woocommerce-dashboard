@@ -151,6 +151,13 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => (
       {/* Header */}
       <View style={styles.header}>
         <View>
+          <Text style={styles.title}>DELIVERY RECEIPT</Text>
+          <Text style={styles.text}>Ref: {invoice.invoiceNumber}</Text>
+          <Text style={styles.text}>
+            Date: {new Date().toLocaleDateString()}
+          </Text>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
           {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
           <Text style={styles.companyInfo}>{settings?.storeName}</Text>
           <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
@@ -159,13 +166,6 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => (
           </Text>
           <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
           <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.title}>DELIVERY RECEIPT</Text>
-          <Text style={styles.text}>Ref: {invoice.invoiceNumber}</Text>
-          <Text style={styles.text}>
-            Date: {new Date().toLocaleDateString()}
-          </Text>
         </View>
       </View>
 

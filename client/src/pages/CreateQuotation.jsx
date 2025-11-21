@@ -3,12 +3,14 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/currency";
 
 const CreateQuotation = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
@@ -25,12 +27,18 @@ const CreateQuotation = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [custRes, prodRes] = await Promise.all([
+        const [custRes, prodRes, settingsRes] = await Promise.all([
           axios.get("http://localhost:5000/api/customers", config),
           axios.get("http://localhost:5000/api/products", config),
+          axios.get("http://localhost:5000/api/settings", config),
         ]);
         setCustomers(custRes.data);
         setProducts(prodRes.data);
+        setSettings(settingsRes.data);
+        setFormData(prev => ({
+          ...prev,
+          taxRate: settingsRes.data?.tax?.rate || 0
+        }));
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -204,7 +212,7 @@ const CreateQuotation = () => {
                   />
                 </div>
                 <div className="w-24 text-right pb-2 font-medium">
-                  ${item.total.toFixed(2)}
+                  {formatCurrency(item.total, settings)}
                 </div>
                 <button
                   type="button"
@@ -221,10 +229,10 @@ const CreateQuotation = () => {
           <div className="mt-6 border-t pt-4 flex flex-col items-end space-y-2">
             <div className="flex justify-between w-64">
               <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">${subtotal.toFixed(2)}</span>
+              <span className="font-medium">{formatCurrency(subtotal, settings)}</span>
             </div>
             <div className="flex justify-between w-64 items-center">
-              <span className="text-gray-600">Tax Rate (%):</span>
+              <span className="text-gray-600">{settings?.tax?.label || "Tax"} Rate (%):</span>
               <input
                 type="number"
                 value={formData.taxRate}
@@ -253,7 +261,7 @@ const CreateQuotation = () => {
             </div>
             <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t">
               <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatCurrency(total, settings)}</span>
             </div>
           </div>
         </div>

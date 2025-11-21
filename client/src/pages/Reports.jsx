@@ -11,11 +11,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/currency";
 
 const Reports = () => {
   const { user } = useSelector((state) => state.auth);
   const [stats, setStats] = useState(null);
   const [salesData, setSalesData] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,11 +25,13 @@ const Reports = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [statsRes, salesRes] = await Promise.all([
+        const [statsRes, salesRes, settingsRes] = await Promise.all([
           axios.get("http://localhost:5000/api/reports/dashboard", config),
           axios.get("http://localhost:5000/api/reports/sales", config),
+          axios.get("http://localhost:5000/api/settings", config),
         ]);
         setStats(statsRes.data);
+        setSettings(settingsRes.data);
 
         // Format sales data for chart
         const formattedSales = salesRes.data.map((item) => ({
@@ -56,13 +60,13 @@ const Reports = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm font-medium">Total Sales</h3>
           <p className="text-3xl font-bold text-gray-900">
-            ${stats.totalSales.toFixed(2)}
+            {formatCurrency(stats.totalSales, settings)}
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-gray-500 text-sm font-medium">Total Expenses</h3>
           <p className="text-3xl font-bold text-red-600">
-            ${stats.totalExpenses.toFixed(2)}
+            {formatCurrency(stats.totalExpenses, settings)}
           </p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
@@ -72,7 +76,7 @@ const Reports = () => {
               stats.netProfit >= 0 ? "text-green-600" : "text-red-600"
             }`}
           >
-            ${stats.netProfit.toFixed(2)}
+            {formatCurrency(stats.netProfit, settings)}
           </p>
         </div>
       </div>

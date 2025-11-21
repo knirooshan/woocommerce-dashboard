@@ -6,12 +6,15 @@ import { ArrowLeft, Download, Truck, Mail } from "lucide-react";
 import { useSelector } from "react-redux";
 import InvoicePDF from "../components/InvoicePDF";
 import DeliveryReceiptPDF from "../components/DeliveryReceiptPDF";
+import { formatCurrency } from "../utils/currency";
+import { urlToBase64 } from "../utils/imageUtils";
 
 const InvoiceView = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
   const [invoice, setInvoice] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [logoBase64, setLogoBase64] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
 
@@ -26,6 +29,13 @@ const InvoiceView = () => {
         ]);
         setInvoice(invRes.data);
         setSettings(settingsRes.data);
+        
+        // Convert logo URL to base64 for PDF
+        if (settingsRes.data?.logo) {
+          const base64Logo = await urlToBase64(settingsRes.data.logo, token);
+          setLogoBase64(base64Logo);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -77,7 +87,7 @@ const InvoiceView = () => {
             {sendingEmail ? "Sending..." : "Send Email"}
           </button>
           <PDFDownloadLink
-            document={<InvoicePDF invoice={invoice} settings={settings} />}
+            document={<InvoicePDF invoice={invoice} settings={{...settings, logo: logoBase64}} />}
             fileName={`${invoice.invoiceNumber}.pdf`}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
@@ -93,7 +103,7 @@ const InvoiceView = () => {
           </PDFDownloadLink>
           <PDFDownloadLink
             document={
-              <DeliveryReceiptPDF invoice={invoice} settings={settings} />
+              <DeliveryReceiptPDF invoice={invoice} settings={{...settings, logo: logoBase64}} />
             }
             fileName={`DR-${invoice.invoiceNumber}.pdf`}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -142,6 +152,14 @@ const InvoiceView = () => {
             </p>
           </div>
           <div className="text-right">
+            {settings?.logo && (
+              <img 
+                src={settings.logo} 
+                alt={settings.storeName} 
+                className="h-12 mb-4 ml-auto object-contain"
+                onError={(e) => e.target.style.display = 'none'}
+              />
+            )}
             <h2 className="text-xl font-bold text-gray-800">
               {settings?.storeName}
             </h2>
@@ -182,13 +200,13 @@ const InvoiceView = () => {
               <tr key={index} className="border-b border-gray-100">
                 <td className="py-3 text-gray-800">{item.name}</td>
                 <td className="text-right py-3 text-gray-600">
-                  ${item.price.toFixed(2)}
+                  {formatCurrency(item.price, settings)}
                 </td>
                 <td className="text-right py-3 text-gray-600">
                   {item.quantity}
                 </td>
                 <td className="text-right py-3 text-gray-800 font-medium">
-                  ${item.total.toFixed(2)}
+                  {formatCurrency(item.total, settings)}
                 </td>
               </tr>
             ))}
@@ -199,25 +217,25 @@ const InvoiceView = () => {
         <div className="flex flex-col items-end space-y-2">
           <div className="flex justify-between w-64">
             <span className="text-gray-600">Subtotal:</span>
-            <span className="font-medium">${invoice.subtotal.toFixed(2)}</span>
+            <span className="font-medium">{formatCurrency(invoice.subtotal, settings)}</span>
           </div>
           {invoice.tax > 0 && (
             <div className="flex justify-between w-64">
-              <span className="text-gray-600">Tax:</span>
-              <span className="font-medium">${invoice.tax.toFixed(2)}</span>
+              <span className="text-gray-600">{settings?.tax?.label || "Tax"}:</span>
+              <span className="font-medium">{formatCurrency(invoice.tax, settings)}</span>
             </div>
           )}
           {invoice.discount > 0 && (
             <div className="flex justify-between w-64">
               <span className="text-gray-600">Discount:</span>
               <span className="font-medium">
-                -${invoice.discount.toFixed(2)}
+                -{formatCurrency(invoice.discount, settings)}
               </span>
             </div>
           )}
           <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t">
             <span>Total:</span>
-            <span>${invoice.total.toFixed(2)}</span>
+            <span>{formatCurrency(invoice.total, settings)}</span>
           </div>
         </div>
 

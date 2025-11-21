@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
+import { formatCurrency } from "../utils/currency";
 
 const styles = StyleSheet.create({
   page: {
@@ -167,16 +168,6 @@ const InvoicePDF = ({ invoice, settings }) => (
       {/* Header */}
       <View style={styles.header}>
         <View>
-          {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
-          <Text style={styles.companyInfo}>{settings?.storeName}</Text>
-          <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
-          <Text style={styles.companyInfo}>
-            {settings?.address?.city}, {settings?.address?.zip}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
-        </View>
-        <View style={{ alignItems: "flex-end" }}>
           <Text style={styles.title}>INVOICE</Text>
           <Text style={styles.text}>#{invoice.invoiceNumber}</Text>
           <Text style={styles.text}>
@@ -190,6 +181,16 @@ const InvoicePDF = ({ invoice, settings }) => (
           <Text style={styles.statusBadge}>
             Status: {invoice.status.toUpperCase()}
           </Text>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
+          <Text style={styles.companyInfo}>{settings?.storeName}</Text>
+          <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
+          <Text style={styles.companyInfo}>
+            {settings?.address?.city}, {settings?.address?.zip}
+          </Text>
+          <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
+          <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
         </View>
       </View>
 
@@ -229,13 +230,13 @@ const InvoicePDF = ({ invoice, settings }) => (
               <Text style={styles.tableCell}>{item.name}</Text>
             </View>
             <View style={styles.tableCol}>
-              <Text style={styles.tableCell}>${item.price.toFixed(2)}</Text>
+              <Text style={styles.tableCell}>{formatCurrency(item.price, settings)}</Text>
             </View>
             <View style={styles.tableCol}>
               <Text style={styles.tableCell}>{item.quantity}</Text>
             </View>
             <View style={styles.tableCol}>
-              <Text style={styles.tableCell}>${item.total.toFixed(2)}</Text>
+              <Text style={styles.tableCell}>{formatCurrency(item.total, settings)}</Text>
             </View>
           </View>
         ))}
@@ -245,19 +246,19 @@ const InvoicePDF = ({ invoice, settings }) => (
       <View style={styles.totals}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal:</Text>
-          <Text style={styles.totalValue}>${invoice.subtotal.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>{formatCurrency(invoice.subtotal, settings)}</Text>
         </View>
         {invoice.tax > 0 && (
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tax:</Text>
-            <Text style={styles.totalValue}>${invoice.tax.toFixed(2)}</Text>
+            <Text style={styles.totalLabel}>{settings?.tax?.label || "Tax"}:</Text>
+            <Text style={styles.totalValue}>{formatCurrency(invoice.tax, settings)}</Text>
           </View>
         )}
         {invoice.discount > 0 && (
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Discount:</Text>
             <Text style={styles.totalValue}>
-              -${invoice.discount.toFixed(2)}
+              -{formatCurrency(invoice.discount, settings)}
             </Text>
           </View>
         )}
@@ -271,7 +272,7 @@ const InvoicePDF = ({ invoice, settings }) => (
           <Text
             style={[styles.totalValue, { fontSize: 12, fontWeight: "bold" }]}
           >
-            ${invoice.total.toFixed(2)}
+            {formatCurrency(invoice.total, settings)}
           </Text>
         </View>
       </View>

@@ -24,6 +24,7 @@ app.use("/api/invoices", require("./routes/invoiceRoutes"));
 app.use("/api/expenses", require("./routes/expenseRoutes"));
 app.use("/api/email", require("./routes/emailRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/images", require("./routes/imageRoutes"));
 
 app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");

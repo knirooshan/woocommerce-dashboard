@@ -17,6 +17,7 @@ const Settings = () => {
     smtp: { host: "", port: 587, user: "", pass: "", secure: false },
     bank: { accountName: "", accountNumber: "", bankName: "", branch: "" },
     currency: { code: "USD", symbol: "$", position: "before" },
+    tax: { rate: 0, label: "Tax" },
   });
 
   useEffect(() => {
@@ -234,6 +235,50 @@ const Settings = () => {
                 onChange={(e) => handleChange(e, "smtp")}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Tax Settings */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-medium text-gray-900 mb-4 border-b pb-2">
+            Tax Configuration
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Tax Rate (%)
+              </label>
+              <input
+                type="number"
+                name="rate"
+                min="0"
+                max="100"
+                step="0.01"
+                value={formData.tax.rate}
+                onChange={(e) => handleChange(e, "tax")}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="0"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Enter 0 for no tax. Default tax rate applied to transactions.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Tax Label
+              </label>
+              <input
+                type="text"
+                name="label"
+                value={formData.tax.label}
+                onChange={(e) => handleChange(e, "tax")}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Tax"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Label shown on invoices (e.g., VAT, GST, Sales Tax)
+              </p>
             </div>
           </div>
         </div>

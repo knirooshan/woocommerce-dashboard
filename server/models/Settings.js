@@ -32,6 +32,10 @@ const settingsSchema = new mongoose.Schema(
       symbol: { type: String, default: "$" }, // e.g., $, €, £, ₹
       position: { type: String, default: "before", enum: ["before", "after"] }, // Symbol position
     },
+    tax: {
+      rate: { type: Number, default: 0, min: 0, max: 100 }, // Tax rate as percentage (0-100)
+      label: { type: String, default: "Tax" }, // Label for tax (e.g., "VAT", "GST", "Sales Tax")
+    },
   },
   {
     timestamps: true,
