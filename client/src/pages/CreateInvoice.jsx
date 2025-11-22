@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
@@ -8,6 +8,7 @@ import { formatCurrency } from "../utils/currency";
 const CreateInvoice = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const location = useLocation();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState(null);
@@ -37,10 +38,38 @@ const CreateInvoice = () => {
         setCustomers(custRes.data);
         setProducts(prodRes.data);
         setSettings(settingsRes.data);
-        setFormData((prev) => ({
-          ...prev,
-          taxRate: settingsRes.data?.tax?.rate || 0,
-        }));
+
+        // Check for quotation data passed via navigation
+        if (location.state?.quotationData) {
+          const { customer, items, tax, discount, notes } =
+            location.state.quotationData;
+
+          // Calculate tax rate from tax amount if possible, or use default
+          // Since we store tax amount, we might need to infer rate or just use default
+          // For now, let's use the default tax rate from settings, or 0
+          const defaultTaxRate = settingsRes.data?.tax?.rate || 0;
+
+          setFormData((prev) => ({
+            ...prev,
+            customer: customer._id,
+            items: items.map((item) => ({
+              product: item.product?._id || "", // Handle case where product might be populated or just ID
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              total: item.total,
+            })),
+            notes: notes || "",
+            taxRate: defaultTaxRate,
+            discount: discount || 0,
+          }));
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            taxRate: settingsRes.data?.tax?.rate || 0,
+          }));
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -48,7 +77,7 @@ const CreateInvoice = () => {
       }
     };
     fetchData();
-  }, [user.token]);
+  }, [user.token, location.state]);
 
   const addItem = () => {
     setFormData((prev) => ({

@@ -12,136 +12,128 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
-    padding: 30,
+    padding: 40,
     fontFamily: "Helvetica",
+    color: "#111827",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
-    paddingBottom: 10,
+    marginBottom: 30,
+    borderBottomWidth: 2,
+    borderBottomColor: "#10B981", // Green accent for Delivery
+    paddingBottom: 20,
   },
   logo: {
-    width: 150,
+    width: 120,
     height: 50,
     objectFit: "contain",
+    marginBottom: 10,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
+    color: "#10B981", // Green accent
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  subTitle: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 4,
   },
   companyInfo: {
-    fontSize: 10,
-    color: "#666",
-    marginTop: 5,
+    fontSize: 9,
+    color: "#4B5563",
+    marginTop: 2,
+    textAlign: "right",
   },
-  customerInfo: {
-    marginTop: 20,
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 4,
+  infoGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 30,
+  },
+  infoSection: {
+    width: "45%",
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
+    color: "#9CA3AF",
+    textTransform: "uppercase",
+    marginBottom: 8,
+    letterSpacing: 0.5,
   },
   text: {
     fontSize: 10,
-    color: "#555",
-    marginBottom: 2,
+    color: "#1F2937",
+    marginBottom: 3,
+    lineHeight: 1.4,
   },
   table: {
     display: "table",
     width: "auto",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    marginTop: 20,
+    marginTop: 10,
+    marginBottom: 20,
   },
   tableRow: {
-    margin: "auto",
     flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    paddingVertical: 12,
+    alignItems: "center",
   },
-  tableColHeader: {
-    width: "15%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
+  tableHeader: {
+    flexDirection: "row",
     backgroundColor: "#F3F4F6",
-    padding: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    alignItems: "center",
   },
-  tableColHeaderDesc: {
-    width: "70%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    backgroundColor: "#F3F4F6",
-    padding: 5,
-  },
-  tableCol: {
-    width: "15%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-  },
-  tableColDesc: {
-    width: "70%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 5,
-  },
+  colItem: { width: "80%", paddingLeft: 4 },
+  colQty: { width: "20%", textAlign: "center" },
+
   tableCellHeader: {
-    margin: "auto",
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "bold",
-    color: "#374151",
+    color: "#4B5563",
+    textTransform: "uppercase",
   },
   tableCell: {
-    margin: "auto",
     fontSize: 10,
-    color: "#4B5563",
-  },
-  footer: {
-    position: "absolute",
-    bottom: 30,
-    left: 30,
-    right: 30,
-    textAlign: "center",
-    fontSize: 8,
-    color: "#9CA3AF",
-    borderTopWidth: 1,
-    borderTopColor: "#EEEEEE",
-    paddingTop: 10,
+    color: "#1F2937",
   },
   signatureSection: {
-    marginTop: 50,
+    marginTop: 60,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   signatureBox: {
-    width: "40%",
+    width: "45%",
     borderTopWidth: 1,
-    borderTopColor: "#000",
-    paddingTop: 5,
+    borderTopColor: "#111827",
+    paddingTop: 8,
     alignItems: "center",
+  },
+  signatureLabel: {
+    fontSize: 10,
+    color: "#4B5563",
+    fontWeight: "bold",
+    marginTop: 4,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: "center",
+    fontSize: 8,
+    color: "#9CA3AF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    paddingTop: 15,
   },
 });
 
@@ -151,15 +143,16 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => (
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>DELIVERY RECEIPT</Text>
-          <Text style={styles.text}>Ref: {invoice.invoiceNumber}</Text>
-          <Text style={styles.text}>
-            Date: {new Date().toLocaleDateString()}
-          </Text>
+          <Text style={styles.title}>Delivery Receipt</Text>
+          <Text style={styles.subTitle}>Ref: {invoice.invoiceNumber}</Text>
         </View>
-        <View style={{ alignItems: "flex-end" }}>
+        <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
           {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
-          <Text style={styles.companyInfo}>{settings?.storeName}</Text>
+          <Text
+            style={[styles.companyInfo, { fontWeight: "bold", fontSize: 11 }]}
+          >
+            {settings?.storeName}
+          </Text>
           <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
           <Text style={styles.companyInfo}>
             {settings?.address?.city}, {settings?.address?.zip}
@@ -169,41 +162,67 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => (
         </View>
       </View>
 
-      {/* Customer Info */}
-      <View style={styles.customerInfo}>
-        <Text style={styles.sectionTitle}>Deliver To:</Text>
-        <Text style={styles.text}>
-          {invoice.customer?.firstName} {invoice.customer?.lastName}
-        </Text>
-        <Text style={styles.text}>{invoice.customer?.email}</Text>
-        <Text style={styles.text}>
-          {invoice.customer?.shipping?.address_1 ||
-            invoice.customer?.billing?.address_1}
-        </Text>
-        <Text style={styles.text}>
-          {invoice.customer?.shipping?.city || invoice.customer?.billing?.city},{" "}
-          {invoice.customer?.shipping?.postcode ||
-            invoice.customer?.billing?.postcode}
-        </Text>
+      {/* Info Group */}
+      <View style={styles.infoGroup}>
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Deliver To</Text>
+          <Text style={[styles.text, { fontWeight: "bold" }]}>
+            {invoice.customer?.firstName} {invoice.customer?.lastName}
+          </Text>
+          <Text style={styles.text}>{invoice.customer?.email}</Text>
+          <Text style={styles.text}>
+            {invoice.customer?.shipping?.address_1 ||
+              invoice.customer?.billing?.address_1}
+          </Text>
+          <Text style={styles.text}>
+            {invoice.customer?.shipping?.city ||
+              invoice.customer?.billing?.city}
+            ,{" "}
+            {invoice.customer?.shipping?.postcode ||
+              invoice.customer?.billing?.postcode}
+          </Text>
+        </View>
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Delivery Details</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 4,
+            }}
+          >
+            <Text style={styles.text}>Date:</Text>
+            <Text style={[styles.text, { fontWeight: "bold" }]}>
+              {new Date().toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {/* Items Table */}
       <View style={styles.table}>
-        <View style={styles.tableRow}>
-          <View style={styles.tableColHeaderDesc}>
+        <View style={styles.tableHeader}>
+          <View style={styles.colItem}>
             <Text style={styles.tableCellHeader}>Item Description</Text>
           </View>
-          <View style={styles.tableColHeader}>
+          <View style={styles.colQty}>
             <Text style={styles.tableCellHeader}>Qty</Text>
           </View>
         </View>
         {invoice.items.map((item, index) => (
           <View style={styles.tableRow} key={index}>
-            <View style={styles.tableColDesc}>
+            <View style={styles.colItem}>
               <Text style={styles.tableCell}>{item.name}</Text>
             </View>
-            <View style={styles.tableCol}>
-              <Text style={styles.tableCell}>{item.quantity}</Text>
+            <View style={styles.colQty}>
+              <Text
+                style={[
+                  styles.tableCell,
+                  { fontWeight: "bold", textAlign: "center" },
+                ]}
+              >
+                {item.quantity}
+              </Text>
             </View>
           </View>
         ))}
@@ -212,16 +231,21 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => (
       {/* Signature Section */}
       <View style={styles.signatureSection}>
         <View style={styles.signatureBox}>
-          <Text style={styles.text}>Received By (Signature)</Text>
+          <Text style={styles.signatureLabel}>Received By (Signature)</Text>
         </View>
         <View style={styles.signatureBox}>
-          <Text style={styles.text}>Date Received</Text>
+          <Text style={styles.signatureLabel}>Date Received</Text>
         </View>
       </View>
 
       {/* Footer */}
       <View style={styles.footer}>
         <Text>Please check all items upon delivery.</Text>
+        {settings?.contact?.phone && (
+          <Text style={{ marginTop: 4 }}>
+            For any issues, please contact us at {settings.contact.phone}
+          </Text>
+        )}
       </View>
     </Page>
   </Document>
