@@ -33,6 +33,7 @@ const Layout = () => {
     { name: "Orders", href: "/orders", icon: ShoppingCart },
     { name: "Customers", href: "/customers", icon: Users },
     { name: "Vendors", href: "/vendors", icon: Users },
+    { name: "Payments", href: "/payments", icon: FileText },
     { name: "Expenses", href: "/expenses", icon: DollarSign },
     { name: "Reports", href: "/reports", icon: BarChart3 },
     { name: "Settings", href: "/settings", icon: Settings },

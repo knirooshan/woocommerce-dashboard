@@ -1,26 +1,31 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import ReasonModal from "../components/ReasonModal";
 
-const CreateQuotation = () => {
+const EditInvoice = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const { id } = useParams();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showReasonModal, setShowReasonModal] = useState(false);
 
   const [formData, setFormData] = useState({
     customer: "",
     items: [],
     notes: "",
-    quotationDate: new Date().toISOString().split("T")[0],
-    validUntil: "",
+    invoiceDate: "",
+    dueDate: "",
+    paymentMethod: "Bank Transfer",
     taxRate: 0,
     discount: 0,
+    status: "draft",
   });
 
   useEffect(() => {
@@ -28,18 +33,52 @@ const CreateQuotation = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [custRes, prodRes, settingsRes] = await Promise.all([
+        const [custRes, prodRes, settingsRes, invoiceRes] = await Promise.all([
           axios.get("http://localhost:5000/api/customers", config),
           axios.get("http://localhost:5000/api/products", config),
           axios.get("http://localhost:5000/api/settings", config),
+          axios.get(`http://localhost:5000/api/invoices/${id}`, config),
         ]);
         setCustomers(custRes.data);
         setProducts(prodRes.data);
         setSettings(settingsRes.data);
-        setFormData((prev) => ({
-          ...prev,
-          taxRate: settingsRes.data?.tax?.rate || 0,
-        }));
+
+        const invoice = invoiceRes.data;
+        setFormData({
+          customer: invoice.customer._id,
+          items: invoice.items.map((item) => ({
+            product:
+              typeof item.product === "object"
+                ? item.product?._id
+                : item.product || "",
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.total,
+          })),
+          notes: invoice.notes || "",
+          invoiceDate: invoice.invoiceDate
+            ? invoice.invoiceDate.split("T")[0]
+            : "",
+          dueDate: invoice.dueDate ? invoice.dueDate.split("T")[0] : "",
+          paymentMethod: invoice.paymentMethod || "Bank Transfer",
+          taxRate: (invoice.tax / invoice.subtotal) * 100 || 0, // Approximate tax rate if not stored
+          discount: invoice.discount || 0,
+          status: invoice.status,
+        });
+
+        // If we can't calculate tax rate easily (e.g. subtotal is 0), use settings default or 0
+        if (invoice.subtotal === 0) {
+          setFormData((prev) => ({
+            ...prev,
+            taxRate: settingsRes.data?.tax?.rate || 0,
+          }));
+        } else {
+          // Calculate rate from tax amount and subtotal to be precise enough for the UI
+          const calculatedRate = (invoice.tax / invoice.subtotal) * 100;
+          setFormData((prev) => ({ ...prev, taxRate: calculatedRate }));
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -47,7 +86,7 @@ const CreateQuotation = () => {
       }
     };
     fetchData();
-  }, [user.token]);
+  }, [user.token, id]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -88,25 +127,32 @@ const CreateQuotation = () => {
     return { subtotal, tax, total };
   };
 
-  const handleSubmit = async (e) => {
+  const handleSaveClick = (e) => {
     e.preventDefault();
+    setShowReasonModal(true);
+  };
+
+  const handleConfirmSave = async (reason) => {
     const totals = calculateTotals();
 
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/api/quotations",
+      await axios.put(
+        `http://localhost:5000/api/invoices/${id}`,
         {
           ...formData,
           ...totals,
+          editReason: reason,
+          editedBy: user.name, // Assuming user object has name
         },
         config
       );
-      navigate("/quotations");
+      navigate("/invoices");
     } catch (error) {
-      console.error("Error creating quotation:", error);
+      console.error("Error updating invoice:", error);
     }
+    setShowReasonModal(false);
   };
 
   const { subtotal, tax, total } = calculateTotals();
@@ -115,12 +161,10 @@ const CreateQuotation = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">
-        Create New Quotation
-      </h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Edit Invoice</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer Selection and Dates */}
+      <form onSubmit={handleSaveClick} className="space-y-6">
+        {/* Customer Selection */}
         <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -132,42 +176,42 @@ const CreateQuotation = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, customer: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               >
                 <option value="">Select a customer...</option>
                 {customers.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.firstName} {c.lastName} ({c.email})
+                    {c.firstName} {c.lastName} ({c.email || "-"})
                   </option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Quotation Date
+                Invoice Date
               </label>
               <input
                 type="date"
-                value={formData.quotationDate}
+                value={formData.invoiceDate}
                 onChange={(e) =>
-                  setFormData({ ...formData, quotationDate: e.target.value })
+                  setFormData({ ...formData, invoiceDate: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Valid Until (Expiry Date)
+                Due Date
               </label>
               <input
                 type="date"
-                value={formData.validUntil}
+                value={formData.dueDate}
                 onChange={(e) =>
-                  setFormData({ ...formData, validUntil: e.target.value })
+                  setFormData({ ...formData, dueDate: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -201,7 +245,7 @@ const CreateQuotation = () => {
                     onChange={(e) =>
                       handleItemChange(index, "product", e.target.value)
                     }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                     required
                   >
                     <option value="">Select Product...</option>
@@ -226,7 +270,7 @@ const CreateQuotation = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                   />
                 </div>
                 <div className="w-20">
@@ -243,10 +287,10 @@ const CreateQuotation = () => {
                         parseFloat(e.target.value)
                       )
                     }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                    className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md py-1.5 px-2 text-sm"
                   />
                 </div>
-                <div className="w-24 text-right pb-2 font-medium text-white">
+                <div className="w-24 text-right pb-2 font-medium">
                   {formatCurrency(item.total, settings)}
                 </div>
                 <button
@@ -264,7 +308,7 @@ const CreateQuotation = () => {
           <div className="mt-6 border-t border-slate-800 pt-4 flex flex-col items-end space-y-2">
             <div className="flex justify-between w-64">
               <span className="text-slate-400">Subtotal:</span>
-              <span className="font-medium text-white">
+              <span className="font-medium">
                 {formatCurrency(subtotal, settings)}
               </span>
             </div>
@@ -281,7 +325,7 @@ const CreateQuotation = () => {
                     taxRate: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
             <div className="flex justify-between w-64 items-center">
@@ -295,28 +339,88 @@ const CreateQuotation = () => {
                     discount: parseFloat(e.target.value),
                   })
                 }
-                className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
-            <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t border-slate-800 text-white">
+            <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t">
               <span>Total:</span>
               <span>{formatCurrency(total, settings)}</span>
             </div>
           </div>
         </div>
 
+        {/* Additional Info */}
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Payment Method
+              </label>
+              <select
+                value={formData.paymentMethod}
+                onChange={(e) =>
+                  setFormData({ ...formData, paymentMethod: e.target.value })
+                }
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cash">Cash</option>
+                <option value="Check">Check</option>
+                <option value="Credit Card">Credit Card</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({ ...formData, status: e.target.value })
+                }
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Notes
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
+              rows={3}
+              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+
         <div className="flex justify-end">
           <button
             type="submit"
-            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm font-medium transition-colors"
+            className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm font-medium"
           >
             <Save className="mr-2 h-5 w-5" />
-            Save Quotation
+            Save Changes
           </button>
         </div>
       </form>
+
+      <ReasonModal
+        isOpen={showReasonModal}
+        onClose={() => setShowReasonModal(false)}
+        onConfirm={handleConfirmSave}
+        title="Edit Invoice Reason"
+        message="Please provide a reason for editing this invoice."
+      />
     </div>
   );
 };
 
-export default CreateQuotation;
+export default EditInvoice;

@@ -18,8 +18,16 @@ const getProducts = async (req, res) => {
 // @access  Private/Admin
 const syncProducts = async (req, res) => {
   try {
-    // Fetch page 1 for now. In production, we'd loop through all pages.
-    const wooProducts = await getWooProducts(1, 100);
+    let page = 1;
+    let wooProducts = [];
+
+    // Loop to fetch all products from WooCommerce
+    while (true) {
+      const products = await getWooProducts(page, 100);
+      if (!products || products.length === 0) break;
+      wooProducts = [...wooProducts, ...products];
+      page++;
+    }
 
     const syncedProducts = [];
 

@@ -193,9 +193,13 @@ const QuotationPDF = ({ quotation, settings }) => (
           </Text>
           <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
           <Text style={styles.companyInfo}>
-            {settings?.address?.city}, {settings?.address?.zip}
+            {settings?.address?.city}
+            {settings?.address?.city && settings?.address?.zip && ", "}
+            {settings?.address?.zip}
           </Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
+          <Text style={styles.companyInfo}>
+            {settings?.contact?.phone ? `Phone: ${settings.contact.phone}` : ""}
+          </Text>
           <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
         </View>
       </View>
@@ -205,6 +209,9 @@ const QuotationPDF = ({ quotation, settings }) => (
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Bill To</Text>
           <Text style={[styles.text, { fontWeight: "bold" }]}>
+            {quotation.customer?.salutation
+              ? `${quotation.customer.salutation} `
+              : ""}
             {quotation.customer?.firstName} {quotation.customer?.lastName}
           </Text>
           <Text style={styles.text}>{quotation.customer?.email}</Text>
@@ -212,7 +219,10 @@ const QuotationPDF = ({ quotation, settings }) => (
             {quotation.customer?.billing?.address_1}
           </Text>
           <Text style={styles.text}>
-            {quotation.customer?.billing?.city},{" "}
+            {quotation.customer?.billing?.city}
+            {quotation.customer?.billing?.city &&
+              quotation.customer?.billing?.postcode &&
+              ", "}
             {quotation.customer?.billing?.postcode}
           </Text>
         </View>
@@ -329,10 +339,22 @@ const QuotationPDF = ({ quotation, settings }) => (
       <View style={styles.footer}>
         <Text>Thank you for your business!</Text>
         {settings?.bank?.accountName && (
-          <Text style={{ marginTop: 4 }}>
-            {settings.bank.bankName} • {settings.bank.accountNumber} •{" "}
-            {settings.bank.accountName}
-          </Text>
+          <View style={{ marginTop: 10, alignItems: "center" }}>
+            <Text style={{ fontWeight: "bold", marginBottom: 2 }}>
+              Bank Details:
+            </Text>
+            <Text>
+              {settings.bank.bankName}
+              {settings.bank.branch ? `, ${settings.bank.branch}` : ""}
+            </Text>
+            <Text>
+              Account Name: {settings.bank.accountName} | Account No:{" "}
+              {settings.bank.accountNumber}
+            </Text>
+            {settings.bank.swiftCode && (
+              <Text>Swift Code: {settings.bank.swiftCode}</Text>
+            )}
+          </View>
         )}
       </View>
     </Page>

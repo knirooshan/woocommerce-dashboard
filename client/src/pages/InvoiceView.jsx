@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ArrowLeft, Download, Truck, Mail } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  Truck,
+  Mail,
+  DollarSign,
+  XCircle,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import InvoicePDF from "../components/InvoicePDF";
 import DeliveryReceiptPDF from "../components/DeliveryReceiptPDF";
+import PaymentModal from "../components/PaymentModal";
 import { formatCurrency } from "../utils/currency";
 import { urlToBase64 } from "../utils/imageUtils";
 
@@ -17,31 +25,33 @@ const InvoiceView = () => {
   const [logoBase64, setLogoBase64] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const [invRes, settingsRes] = await Promise.all([
+        axios.get(`http://localhost:5000/api/invoices/${id}`, config),
+        axios.get("http://localhost:5000/api/settings", config),
+      ]);
+      setInvoice(invRes.data);
+      setSettings(settingsRes.data);
+
+      // Convert logo URL to base64 for PDF
+      if (settingsRes.data?.logo) {
+        const base64Logo = await urlToBase64(settingsRes.data.logo, token);
+        setLogoBase64(base64Logo);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = user.token;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [invRes, settingsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/invoices/${id}`, config),
-          axios.get("http://localhost:5000/api/settings", config),
-        ]);
-        setInvoice(invRes.data);
-        setSettings(settingsRes.data);
-
-        // Convert logo URL to base64 for PDF
-        if (settingsRes.data?.logo) {
-          const base64Logo = await urlToBase64(settingsRes.data.logo, token);
-          setLogoBase64(base64Logo);
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [id, user.token]);
 
@@ -65,8 +75,52 @@ const InvoiceView = () => {
     }
   };
 
+  const handlePaymentSave = async (paymentData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.post(
+        "http://localhost:5000/api/payments",
+        paymentData,
+        config
+      );
+      setIsPaymentModalOpen(false);
+      fetchData(); // Refresh invoice data
+    } catch (error) {
+      console.error("Error saving payment:", error);
+      alert("Failed to save payment");
+    }
+  };
+
+  const handleWriteOff = async () => {
+    if (
+      !window.confirm(
+        "Are you sure you want to write off the remaining balance? This cannot be undone."
+      )
+    )
+      return;
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.put(
+        `http://localhost:5000/api/invoices/${id}/write-off`,
+        {},
+        config
+      );
+      fetchData(); // Refresh invoice data
+    } catch (error) {
+      console.error("Error writing off invoice:", error);
+      alert("Failed to write off invoice");
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!invoice) return <div>Invoice not found</div>;
+
+  const balanceDue =
+    invoice.balanceDue !== undefined
+      ? invoice.balanceDue
+      : invoice.total - (invoice.amountPaid || 0);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -78,6 +132,17 @@ const InvoiceView = () => {
           <ArrowLeft className="mr-2 h-5 w-5" /> Back to Invoices
         </Link>
         <div className="flex gap-4">
+          {balanceDue > 0 && !invoice.isWrittenOff && (
+            <>
+              <button
+                onClick={handleWriteOff}
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                <XCircle className="mr-2 h-5 w-5" />
+                Write Off
+              </button>
+            </>
+          )}
           <button
             onClick={handleSendEmail}
             disabled={sendingEmail}
@@ -150,12 +215,13 @@ const InvoiceView = () => {
                 className={`font-semibold uppercase ${
                   invoice.status === "paid"
                     ? "text-green-600"
-                    : invoice.status === "overdue"
+                    : invoice.status === "overdue" ||
+                      invoice.status === "written-off"
                     ? "text-red-600"
                     : "text-yellow-600"
                 }`}
               >
-                {invoice.status}
+                {invoice.status.replace("_", " ")}
               </span>
             </p>
           </div>
@@ -181,6 +247,9 @@ const InvoiceView = () => {
         <div className="mb-8">
           <h3 className="text-slate-600 font-semibold mb-2">Bill To:</h3>
           <p className="text-slate-900 font-medium">
+            {invoice.customer?.salutation
+              ? `${invoice.customer.salutation} `
+              : ""}
             {invoice.customer?.firstName} {invoice.customer?.lastName}
           </p>
           <p className="text-slate-600">{invoice.customer?.email}</p>
@@ -188,8 +257,13 @@ const InvoiceView = () => {
             {invoice.customer?.billing?.address_1}
           </p>
           <p className="text-slate-600">
-            {invoice.customer?.billing?.city},{" "}
-            {invoice.customer?.billing?.postcode}
+            <p className="text-slate-600">
+              {invoice.customer?.billing?.city}
+              {invoice.customer?.billing?.city &&
+                invoice.customer?.billing?.postcode &&
+                ", "}
+              {invoice.customer?.billing?.postcode}
+            </p>
           </p>
         </div>
 
@@ -251,7 +325,50 @@ const InvoiceView = () => {
             <span>Total:</span>
             <span>{formatCurrency(invoice.total, settings)}</span>
           </div>
+          <div className="flex justify-between w-64 text-slate-600">
+            <span>Amount Paid:</span>
+            <span>{formatCurrency(invoice.amountPaid || 0, settings)}</span>
+          </div>
+          <div className="flex justify-between w-64 text-lg font-semibold text-red-600">
+            <span>Balance Due:</span>
+            <span>{formatCurrency(balanceDue, settings)}</span>
+          </div>
         </div>
+
+        {/* Payments List */}
+        {invoice.payments && invoice.payments.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-slate-200">
+            <h3 className="text-slate-600 font-semibold mb-4">
+              Payments History
+            </h3>
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 text-slate-600">Date</th>
+                  <th className="text-left py-2 text-slate-600">Method</th>
+                  <th className="text-left py-2 text-slate-600">Reference</th>
+                  <th className="text-right py-2 text-slate-600">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoice.payments.map((payment, index) => (
+                  <tr key={index} className="border-b border-slate-100">
+                    <td className="py-2 text-slate-900">
+                      {new Date(payment.date).toLocaleDateString()}
+                    </td>
+                    <td className="py-2 text-slate-900">{payment.method}</td>
+                    <td className="py-2 text-slate-900">
+                      {payment.reference || "-"}
+                    </td>
+                    <td className="text-right py-2 text-slate-900 font-medium">
+                      {formatCurrency(payment.amount, settings)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Notes */}
         {invoice.notes && (
@@ -261,6 +378,14 @@ const InvoiceView = () => {
           </div>
         )}
       </div>
+
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSave={handlePaymentSave}
+        invoice={invoice}
+        totalDue={balanceDue}
+      />
     </div>
   );
 };

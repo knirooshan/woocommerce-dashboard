@@ -5,6 +5,7 @@ const Invoice = require("../models/Invoice");
 const Customer = require("../models/Customer");
 const Product = require("../models/Product");
 const Expense = require("../models/Expense");
+const Payment = require("../models/Payment");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
@@ -16,28 +17,30 @@ router.get("/stats", protect, async (req, res) => {
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    // Total sales (sum of all paid invoices)
-    const salesResult = await Invoice.aggregate([
-      { $match: { status: "paid" } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
+    // Total sales (sum of all non-deleted payments)
+    const salesResult = await Payment.aggregate([
+      { $match: { status: { $ne: "deleted" } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
 
     // This month's sales
-    const monthlySalesResult = await Invoice.aggregate([
+    const monthlySalesResult = await Payment.aggregate([
       {
         $match: {
-          status: "paid",
-          createdAt: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
+          status: { $ne: "deleted" },
+          date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
         },
       },
-      { $group: { _id: null, total: { $sum: "$total" } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const monthlySales =
       monthlySalesResult.length > 0 ? monthlySalesResult[0].total : 0;
 
-    // Total orders (invoices)
-    const totalOrders = await Invoice.countDocuments();
+    // Total orders (non-deleted invoices)
+    const totalOrders = await Invoice.countDocuments({
+      status: { $ne: "deleted" },
+    });
 
     // Total customers
     const totalCustomers = await Customer.countDocuments();
@@ -93,17 +96,17 @@ router.get("/chart", protect, async (req, res) => {
     const start = new Date();
     start.setDate(start.getDate() - 6); // Last 7 days
 
-    const sales = await Invoice.aggregate([
+    const sales = await Payment.aggregate([
       {
         $match: {
-          status: "paid",
-          createdAt: { $gte: start, $lte: end },
+          status: { $ne: "deleted" },
+          date: { $gte: start, $lte: end },
         },
       },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          sales: { $sum: "$total" },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          sales: { $sum: "$amount" },
         },
       },
       { $sort: { _id: 1 } },

@@ -9,6 +9,13 @@ const expenseSchema = new mongoose.Schema(
     vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     reference: { type: String },
     notes: { type: String },
+    editHistory: [
+      {
+        editedAt: { type: Date, default: Date.now },
+        editedBy: { type: String },
+        reason: { type: String },
+      },
+    ],
   },
   {
     timestamps: true,

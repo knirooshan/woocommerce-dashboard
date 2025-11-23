@@ -26,6 +26,7 @@ const settingsSchema = new mongoose.Schema(
       accountNumber: { type: String, default: "" },
       bankName: { type: String, default: "" },
       branch: { type: String, default: "" },
+      swiftCode: { type: String, default: "" },
     },
     currency: {
       code: { type: String, default: "USD" }, // e.g., USD, EUR, GBP, INR

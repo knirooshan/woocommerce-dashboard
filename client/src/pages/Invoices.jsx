@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, FileText, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, FileText, Eye, DollarSign, Trash2, Edit } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import PaymentModal from "../components/PaymentModal";
 
 const Invoices = () => {
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -31,6 +35,52 @@ const Invoices = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
       setLoading(false);
+    }
+  };
+
+  const handleRecordPayment = (invoice) => {
+    setSelectedInvoice(invoice);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSave = async (paymentData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.post(
+        "http://localhost:5000/api/payments",
+        paymentData,
+        config
+      );
+      setIsPaymentModalOpen(false);
+      setSelectedInvoice(null);
+      fetchData(); // Refresh data to show updated status
+    } catch (error) {
+      console.error("Error saving payment:", error);
+      alert("Failed to save payment");
+    }
+  };
+
+  const handleDelete = async (invoiceId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this invoice? This will also delete all associated payment records."
+      )
+    ) {
+      return;
+    }
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(
+        `http://localhost:5000/api/invoices/${invoiceId}`,
+        config
+      );
+      fetchData(); // Refresh data
+      alert("Invoice deleted successfully");
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      alert("Failed to delete invoice");
     }
   };
 
@@ -87,7 +137,9 @@ const Invoices = () => {
                     {invoice.customer?.firstName} {invoice.customer?.lastName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                    {new Date(invoice.createdAt).toLocaleDateString()}
+                    {invoice.invoiceDate
+                      ? new Date(invoice.invoiceDate).toLocaleDateString()
+                      : new Date(invoice.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {invoice.dueDate
@@ -107,14 +159,42 @@ const Invoices = () => {
                           : "bg-yellow-900/50 text-yellow-400 border border-yellow-800"
                       }`}
                     >
-                      {invoice.status.charAt(0).toUpperCase() +
-                        invoice.status.slice(1)}
+                      {invoice.status
+                        .replace("_", " ")
+                        .charAt(0)
+                        .toUpperCase() +
+                        invoice.status.replace("_", " ").slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                    <button
+                      onClick={() => navigate(`/invoices/edit/${invoice._id}`)}
+                      className="text-yellow-400 hover:text-yellow-300"
+                      title="Edit Invoice"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </button>
+                    {invoice.status !== "paid" &&
+                      invoice.status !== "written-off" && (
+                        <button
+                          onClick={() => handleRecordPayment(invoice)}
+                          className="text-green-400 hover:text-green-300"
+                          title="Record Payment"
+                        >
+                          <DollarSign className="h-5 w-5" />
+                        </button>
+                      )}
+                    <button
+                      onClick={() => handleDelete(invoice._id)}
+                      className="text-red-400 hover:text-red-300"
+                      title="Delete Invoice"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                     <Link
                       to={`/invoices/${invoice._id}`}
                       className="text-blue-400 hover:text-blue-300"
+                      title="View Invoice"
                     >
                       <Eye className="h-5 w-5" />
                     </Link>
@@ -130,6 +210,23 @@ const Invoices = () => {
           </div>
         )}
       </div>
+
+      {selectedInvoice && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => {
+            setIsPaymentModalOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onSave={handlePaymentSave}
+          invoice={selectedInvoice}
+          totalDue={
+            selectedInvoice.balanceDue !== undefined
+              ? selectedInvoice.balanceDue
+              : selectedInvoice.total - (selectedInvoice.amountPaid || 0)
+          }
+        />
+      )}
     </div>
   );
 };

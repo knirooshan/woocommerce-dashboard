@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ArrowLeft, Download, Printer, FileText } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileText, Mail } from "lucide-react";
 import { useSelector } from "react-redux";
 import QuotationPDF from "../components/QuotationPDF";
 import { formatCurrency } from "../utils/currency";
@@ -16,6 +16,7 @@ const QuotationView = () => {
   const [settings, setSettings] = useState(null);
   const [logoBase64, setLogoBase64] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,6 +51,35 @@ const QuotationView = () => {
     });
   };
 
+  const handleSendEmail = async () => {
+    // Check if customer has email
+    if (!quotation.customer?.email) {
+      alert(
+        "This customer does not have an email address. Please add an email to the customer profile first."
+      );
+      return;
+    }
+
+    if (!window.confirm("Send this quotation to the customer via email?"))
+      return;
+    setSendingEmail(true);
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.post(
+        `http://localhost:5000/api/email/send-quotation/${id}`,
+        {},
+        config
+      );
+      alert("Email sent successfully!");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send email. Please check SMTP settings.");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (!quotation) return <div>Quotation not found</div>;
 
@@ -63,6 +93,14 @@ const QuotationView = () => {
           <ArrowLeft className="mr-2 h-5 w-5" /> Back to Quotations
         </Link>
         <div className="flex gap-4">
+          <button
+            onClick={handleSendEmail}
+            disabled={sendingEmail}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
+          >
+            <Mail className="mr-2 h-5 w-5" />
+            {sendingEmail ? "Sending..." : "Send Email"}
+          </button>
           <button
             onClick={handleConvertToInvoice}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
@@ -132,6 +170,9 @@ const QuotationView = () => {
         <div className="mb-8">
           <h3 className="text-slate-600 font-semibold mb-2">Bill To:</h3>
           <p className="text-slate-900 font-medium">
+            {quotation.customer?.salutation
+              ? `${quotation.customer.salutation} `
+              : ""}
             {quotation.customer?.firstName} {quotation.customer?.lastName}
           </p>
           <p className="text-slate-600">{quotation.customer?.email}</p>
@@ -139,8 +180,13 @@ const QuotationView = () => {
             {quotation.customer?.billing?.address_1}
           </p>
           <p className="text-slate-600">
-            {quotation.customer?.billing?.city},{" "}
-            {quotation.customer?.billing?.postcode}
+            <p className="text-slate-600">
+              {quotation.customer?.billing?.city}
+              {quotation.customer?.billing?.city &&
+                quotation.customer?.billing?.postcode &&
+                ", "}
+              {quotation.customer?.billing?.postcode}
+            </p>
           </p>
         </div>
 

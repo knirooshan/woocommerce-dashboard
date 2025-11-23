@@ -5,11 +5,17 @@ const {
   getQuotationById,
   createQuotation,
   updateQuotationStatus,
+  updateQuotation,
+  deleteQuotation,
 } = require("../controllers/quotationController");
 const { protect } = require("../middleware/authMiddleware");
 
 router.route("/").get(protect, getQuotations).post(protect, createQuotation);
-router.route("/:id").get(protect, getQuotationById);
+router
+  .route("/:id")
+  .get(protect, getQuotationById)
+  .put(protect, updateQuotation)
+  .delete(protect, deleteQuotation);
 router.route("/:id/status").put(protect, updateQuotationStatus);
 
 module.exports = router;

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, FileText, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, FileText, Eye, Edit, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 
 const Quotations = () => {
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [quotations, setQuotations] = useState([]);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,31 @@ const Quotations = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
       setLoading(false);
+    }
+  };
+
+  const handleConvertToInvoice = (quotation) => {
+    navigate("/invoices/create", {
+      state: { quotationData: quotation },
+    });
+  };
+
+  const handleDelete = async (quotationId) => {
+    if (!window.confirm("Are you sure you want to delete this quotation?")) {
+      return;
+    }
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(
+        `http://localhost:5000/api/quotations/${quotationId}`,
+        config
+      );
+      fetchData(); // Refresh data
+      alert("Quotation deleted successfully");
+    } catch (error) {
+      console.error("Error deleting quotation:", error);
+      alert("Failed to delete quotation");
     }
   };
 
@@ -64,6 +90,9 @@ const Quotations = () => {
                   Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Expiry Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Total
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
@@ -85,7 +114,14 @@ const Quotations = () => {
                     {quotation.customer?.lastName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                    {new Date(quotation.createdAt).toLocaleDateString()}
+                    {quotation.quotationDate
+                      ? new Date(quotation.quotationDate).toLocaleDateString()
+                      : new Date(quotation.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
+                    {quotation.validUntil
+                      ? new Date(quotation.validUntil).toLocaleDateString()
+                      : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
                     {formatCurrency(quotation.total, settings)}
@@ -104,10 +140,34 @@ const Quotations = () => {
                         quotation.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                    <button
+                      onClick={() =>
+                        navigate(`/quotations/edit/${quotation._id}`)
+                      }
+                      className="text-yellow-400 hover:text-yellow-300"
+                      title="Edit Quotation"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleConvertToInvoice(quotation)}
+                      className="text-green-400 hover:text-green-300"
+                      title="Convert to Invoice"
+                    >
+                      <FileText className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(quotation._id)}
+                      className="text-red-400 hover:text-red-300"
+                      title="Delete Quotation"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                     <Link
                       to={`/quotations/${quotation._id}`}
                       className="text-blue-400 hover:text-blue-300"
+                      title="View Quotation"
                     >
                       <Eye className="h-5 w-5" />
                     </Link>

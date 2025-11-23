@@ -18,6 +18,7 @@ const CreateInvoice = () => {
     customer: "",
     items: [],
     notes: "",
+    invoiceDate: new Date().toISOString().split("T")[0],
     dueDate: "",
     paymentMethod: "Bank Transfer",
     taxRate: 0,
@@ -166,10 +167,24 @@ const CreateInvoice = () => {
                 <option value="">Select a customer...</option>
                 {customers.map((c) => (
                   <option key={c._id} value={c._id}>
-                    {c.firstName} {c.lastName} ({c.email})
+                    {c.firstName} {c.lastName} ({c.email || "-"})
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Invoice Date
+              </label>
+              <input
+                type="date"
+                value={formData.invoiceDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, invoiceDate: e.target.value })
+                }
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">

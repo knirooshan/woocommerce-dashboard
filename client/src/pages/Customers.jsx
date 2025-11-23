@@ -11,6 +11,7 @@ const Customers = () => {
   const [editingCustomer, setEditingCustomer] = useState(null);
 
   const [formData, setFormData] = useState({
+    salutation: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -47,6 +48,7 @@ const Customers = () => {
     if (customer) {
       setEditingCustomer(customer);
       setFormData({
+        salutation: customer.salutation || "",
         firstName: customer.firstName || "",
         lastName: customer.lastName || "",
         email: customer.email || "",
@@ -61,6 +63,7 @@ const Customers = () => {
     } else {
       setEditingCustomer(null);
       setFormData({
+        salutation: "",
         firstName: "",
         lastName: "",
         email: "",
@@ -172,7 +175,7 @@ const Customers = () => {
                     {customer.firstName} {customer.lastName}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                    {customer.email}
+                    {customer.email || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.billing?.phone || "-"}
@@ -223,6 +226,28 @@ const Customers = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Salutation
+                </label>
+                <select
+                  value={formData.salutation}
+                  onChange={(e) =>
+                    setFormData({ ...formData, salutation: e.target.value })
+                  }
+                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select...</option>
+                  <option value="Mr.">Mr.</option>
+                  <option value="Mrs.">Mrs.</option>
+                  <option value="Ms.">Ms.</option>
+                  <option value="Miss">Miss</option>
+                  <option value="Dr.">Dr.</option>
+                  <option value="Prof.">Prof.</option>
+                  <option value="Rev.">Rev.</option>
+                </select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
@@ -255,22 +280,21 @@ const Customers = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Email
                 </label>
                 <input
                   type="email"
-                  required
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Phone
                 </label>
                 <input
@@ -282,12 +306,12 @@ const Customers = () => {
                       billing: { ...formData.billing, phone: e.target.value },
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Address
                 </label>
                 <input
@@ -302,7 +326,7 @@ const Customers = () => {
                       },
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 

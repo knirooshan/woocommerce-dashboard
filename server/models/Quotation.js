@@ -27,10 +27,11 @@ const quotationSchema = new mongoose.Schema(
     total: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["draft", "sent", "accepted", "rejected"],
+      enum: ["draft", "sent", "accepted", "rejected", "deleted"],
       default: "draft",
     },
     notes: String,
+    quotationDate: { type: Date, default: Date.now },
     validUntil: Date,
   },
   {

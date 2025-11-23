@@ -5,7 +5,7 @@ const Quotation = require("../models/Quotation");
 // @access  Private
 const getQuotations = async (req, res) => {
   try {
-    const quotations = await Quotation.find({})
+    const quotations = await Quotation.find({ status: { $ne: "deleted" } })
       .populate("customer", "firstName lastName email")
       .sort({ createdAt: -1 });
     res.json(quotations);
@@ -46,6 +46,7 @@ const createQuotation = async (req, res) => {
       discount,
       total,
       notes,
+      quotationDate,
       validUntil,
     } = req.body;
 
@@ -57,6 +58,7 @@ const createQuotation = async (req, res) => {
       discount,
       total,
       notes,
+      quotationDate,
       validUntil,
     });
 
@@ -87,9 +89,55 @@ const updateQuotationStatus = async (req, res) => {
   }
 };
 
+// @desc    Update quotation
+// @route   PUT /api/quotations/:id
+// @access  Private
+const updateQuotation = async (req, res) => {
+  try {
+    const quotation = await Quotation.findById(req.params.id);
+
+    if (quotation) {
+      const updateData = req.body;
+
+      // Update quotation fields
+      Object.keys(updateData).forEach((key) => {
+        quotation[key] = updateData[key];
+      });
+
+      const updatedQuotation = await quotation.save();
+      res.json(updatedQuotation);
+    } else {
+      res.status(404).json({ message: "Quotation not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc Delete quotation (soft delete)
+// @route DELETE /api/quotations/:id
+// @access Private
+const deleteQuotation = async (req, res) => {
+  try {
+    const quotation = await Quotation.findById(req.params.id);
+
+    if (quotation) {
+      quotation.status = "deleted";
+      await quotation.save();
+      res.json({ message: "Quotation deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Quotation not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getQuotations,
   getQuotationById,
   createQuotation,
   updateQuotationStatus,
+  updateQuotation,
+  deleteQuotation,
 };

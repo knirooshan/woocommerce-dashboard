@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 
-const CreateQuotation = () => {
+const EditQuotation = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const { id } = useParams();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState(null);
@@ -17,7 +18,7 @@ const CreateQuotation = () => {
     customer: "",
     items: [],
     notes: "",
-    quotationDate: new Date().toISOString().split("T")[0],
+    quotationDate: "",
     validUntil: "",
     taxRate: 0,
     discount: 0,
@@ -28,18 +29,52 @@ const CreateQuotation = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [custRes, prodRes, settingsRes] = await Promise.all([
+        const [custRes, prodRes, settingsRes, quoteRes] = await Promise.all([
           axios.get("http://localhost:5000/api/customers", config),
           axios.get("http://localhost:5000/api/products", config),
           axios.get("http://localhost:5000/api/settings", config),
+          axios.get(`http://localhost:5000/api/quotations/${id}`, config),
         ]);
         setCustomers(custRes.data);
         setProducts(prodRes.data);
         setSettings(settingsRes.data);
-        setFormData((prev) => ({
-          ...prev,
-          taxRate: settingsRes.data?.tax?.rate || 0,
-        }));
+
+        const quotation = quoteRes.data;
+        setFormData({
+          customer: quotation.customer._id,
+          items: quotation.items.map((item) => ({
+            product:
+              typeof item.product === "object"
+                ? item.product?._id
+                : item.product || "",
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            total: item.total,
+          })),
+          notes: quotation.notes || "",
+          quotationDate: quotation.quotationDate
+            ? quotation.quotationDate.split("T")[0]
+            : "",
+          validUntil: quotation.validUntil
+            ? quotation.validUntil.split("T")[0]
+            : "",
+          taxRate: (quotation.tax / quotation.subtotal) * 100 || 0,
+          discount: quotation.discount || 0,
+        });
+
+        // If we can't calculate tax rate easily (e.g. subtotal is 0), use settings default or 0
+        if (quotation.subtotal === 0) {
+          setFormData((prev) => ({
+            ...prev,
+            taxRate: settingsRes.data?.tax?.rate || 0,
+          }));
+        } else {
+          // Calculate rate from tax amount and subtotal to be precise enough for the UI
+          const calculatedRate = (quotation.tax / quotation.subtotal) * 100;
+          setFormData((prev) => ({ ...prev, taxRate: calculatedRate }));
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -47,7 +82,7 @@ const CreateQuotation = () => {
       }
     };
     fetchData();
-  }, [user.token]);
+  }, [user.token, id]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -95,8 +130,8 @@ const CreateQuotation = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/api/quotations",
+      await axios.put(
+        `http://localhost:5000/api/quotations/${id}`,
         {
           ...formData,
           ...totals,
@@ -105,7 +140,7 @@ const CreateQuotation = () => {
       );
       navigate("/quotations");
     } catch (error) {
-      console.error("Error creating quotation:", error);
+      console.error("Error updating quotation:", error);
     }
   };
 
@@ -115,9 +150,7 @@ const CreateQuotation = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">
-        Create New Quotation
-      </h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Edit Quotation</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Customer Selection and Dates */}
@@ -311,7 +344,7 @@ const CreateQuotation = () => {
             className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm font-medium transition-colors"
           >
             <Save className="mr-2 h-5 w-5" />
-            Save Quotation
+            Save Changes
           </button>
         </div>
       </form>
@@ -319,4 +352,4 @@ const CreateQuotation = () => {
   );
 };
 
-export default CreateQuotation;
+export default EditQuotation;

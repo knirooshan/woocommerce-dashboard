@@ -186,171 +186,228 @@ const styles = StyleSheet.create({
   },
 });
 
-const InvoicePDF = ({ invoice, settings }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>INVOICE</Text>
-          <Text style={styles.subTitle}>#{invoice.invoiceNumber}</Text>
-          <View style={styles.statusBadge}>
-            <Text>{invoice.status.toUpperCase()}</Text>
+const InvoicePDF = ({ invoice, settings }) => {
+  const amountPaid = invoice.amountPaid || 0;
+  const balanceDue =
+    invoice.balanceDue !== undefined
+      ? invoice.balanceDue
+      : invoice.total - amountPaid;
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>INVOICE</Text>
+            <Text style={styles.subTitle}>#{invoice.invoiceNumber}</Text>
+            <View style={styles.statusBadge}>
+              <Text>{invoice.status.replace("_", " ").toUpperCase()}</Text>
+            </View>
+          </View>
+          <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
+            {settings?.logo && (
+              <Image style={styles.logo} src={settings.logo} />
+            )}
+            <Text
+              style={[styles.companyInfo, { fontWeight: "bold", fontSize: 11 }]}
+            >
+              {settings?.storeName}
+            </Text>
+            <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
+            <Text style={styles.companyInfo}>
+              {settings?.address?.city}
+              {settings?.address?.city && settings?.address?.zip && ", "}
+              {settings?.address?.zip}
+            </Text>
+            <Text style={styles.companyInfo}>
+              {settings?.contact?.phone
+                ? `Phone: ${settings.contact.phone}`
+                : ""}
+            </Text>
+            <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
           </View>
         </View>
-        <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
-          {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
-          <Text
-            style={[styles.companyInfo, { fontWeight: "bold", fontSize: 11 }]}
-          >
-            {settings?.storeName}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
-          <Text style={styles.companyInfo}>
-            {settings?.address?.city}, {settings?.address?.zip}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
-        </View>
-      </View>
 
-      {/* Info Group */}
-      <View style={styles.infoGroup}>
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Bill To</Text>
-          <Text style={[styles.text, { fontWeight: "bold" }]}>
-            {invoice.customer?.firstName} {invoice.customer?.lastName}
-          </Text>
-          <Text style={styles.text}>{invoice.customer?.email}</Text>
-          <Text style={styles.text}>
-            {invoice.customer?.billing?.address_1}
-          </Text>
-          <Text style={styles.text}>
-            {invoice.customer?.billing?.city},{" "}
-            {invoice.customer?.billing?.postcode}
-          </Text>
-        </View>
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Invoice Details</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 4,
-            }}
-          >
-            <Text style={styles.text}>Date Issued:</Text>
+        {/* Info Group */}
+        <View style={styles.infoGroup}>
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Bill To</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {new Date(invoice.createdAt).toLocaleDateString()}
+              {invoice.customer?.salutation
+                ? `${invoice.customer.salutation} `
+                : ""}
+              {invoice.customer?.firstName} {invoice.customer?.lastName}
+            </Text>
+            <Text style={styles.text}>{invoice.customer?.email}</Text>
+            <Text style={styles.text}>
+              {invoice.customer?.billing?.address_1}
+            </Text>
+            <Text style={styles.text}>
+              {invoice.customer?.billing?.city}
+              {invoice.customer?.billing?.city &&
+                invoice.customer?.billing?.postcode &&
+                ", "}
+              {invoice.customer?.billing?.postcode}
             </Text>
           </View>
-          {invoice.dueDate && (
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Invoice Details</Text>
             <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 4,
+              }}
             >
-              <Text style={styles.text}>Due Date:</Text>
+              <Text style={styles.text}>Date Issued:</Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {new Date(invoice.dueDate).toLocaleDateString()}
+                {new Date(invoice.createdAt).toLocaleDateString()}
+              </Text>
+            </View>
+            {invoice.dueDate && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={styles.text}>Due Date:</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {new Date(invoice.dueDate).toLocaleDateString()}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Items Table */}
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <View style={styles.colItem}>
+              <Text style={styles.tableCellHeader}>Item Description</Text>
+            </View>
+            <View style={styles.colPrice}>
+              <Text style={styles.tableCellHeader}>Price</Text>
+            </View>
+            <View style={styles.colQty}>
+              <Text style={styles.tableCellHeader}>Qty</Text>
+            </View>
+            <View style={styles.colTotal}>
+              <Text style={styles.tableCellHeader}>Total</Text>
+            </View>
+          </View>
+          {invoice.items.map((item, index) => (
+            <View style={styles.tableRow} key={index}>
+              <View style={styles.colItem}>
+                <Text style={styles.tableCell}>{item.name}</Text>
+              </View>
+              <View style={styles.colPrice}>
+                <Text style={styles.tableCell}>
+                  {formatCurrency(item.price, settings)}
+                </Text>
+              </View>
+              <View style={styles.colQty}>
+                <Text style={styles.tableCell}>{item.quantity}</Text>
+              </View>
+              <View style={styles.colTotal}>
+                <Text style={[styles.tableCell, { fontWeight: "bold" }]}>
+                  {formatCurrency(item.total, settings)}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Totals */}
+        <View style={styles.totals}>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalValue}>
+              {formatCurrency(invoice.subtotal, settings)}
+            </Text>
+          </View>
+          {invoice.tax > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>
+                {settings?.tax?.label || "Tax"}
+              </Text>
+              <Text style={styles.totalValue}>
+                {formatCurrency(invoice.tax, settings)}
               </Text>
             </View>
           )}
-        </View>
-      </View>
-
-      {/* Items Table */}
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <View style={styles.colItem}>
-            <Text style={styles.tableCellHeader}>Item Description</Text>
-          </View>
-          <View style={styles.colPrice}>
-            <Text style={styles.tableCellHeader}>Price</Text>
-          </View>
-          <View style={styles.colQty}>
-            <Text style={styles.tableCellHeader}>Qty</Text>
-          </View>
-          <View style={styles.colTotal}>
-            <Text style={styles.tableCellHeader}>Total</Text>
-          </View>
-        </View>
-        {invoice.items.map((item, index) => (
-          <View style={styles.tableRow} key={index}>
-            <View style={styles.colItem}>
-              <Text style={styles.tableCell}>{item.name}</Text>
-            </View>
-            <View style={styles.colPrice}>
-              <Text style={styles.tableCell}>
-                {formatCurrency(item.price, settings)}
+          {invoice.discount > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Discount</Text>
+              <Text style={[styles.totalValue, { color: "#EF4444" }]}>
+                -{formatCurrency(invoice.discount, settings)}
               </Text>
             </View>
-            <View style={styles.colQty}>
-              <Text style={styles.tableCell}>{item.quantity}</Text>
-            </View>
-            <View style={styles.colTotal}>
-              <Text style={[styles.tableCell, { fontWeight: "bold" }]}>
-                {formatCurrency(item.total, settings)}
+          )}
+          <View style={styles.grandTotal}>
+            <Text style={styles.grandTotalLabel}>Total</Text>
+            <Text style={styles.grandTotalValue}>
+              {formatCurrency(invoice.total, settings)}
+            </Text>
+          </View>
+          {(amountPaid > 0 || invoice.status === "paid") && (
+            <>
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Amount Paid</Text>
+                <Text style={styles.totalValue}>
+                  {formatCurrency(amountPaid, settings)}
+                </Text>
+              </View>
+              <View style={styles.totalRow}>
+                <Text style={[styles.totalLabel, { fontWeight: "bold" }]}>
+                  Balance Due
+                </Text>
+                <Text style={[styles.totalValue, { fontWeight: "bold" }]}>
+                  {formatCurrency(balanceDue, settings)}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* Notes */}
+        {invoice.notes && (
+          <View style={styles.notes}>
+            <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+              Notes
+            </Text>
+            <Text style={[styles.text, { fontStyle: "italic" }]}>
+              {invoice.notes}
+            </Text>
+          </View>
+        )}
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text>Thank you for your business!</Text>
+          {settings?.bank?.accountName && (
+            <View style={{ marginTop: 10, alignItems: "center" }}>
+              <Text style={{ fontWeight: "bold", marginBottom: 2 }}>
+                Bank Details:
               </Text>
+              <Text>
+                {settings.bank.bankName}
+                {settings.bank.branch ? `, ${settings.bank.branch}` : ""}
+              </Text>
+              <Text>
+                Account Name: {settings.bank.accountName} | Account No:{" "}
+                {settings.bank.accountNumber}
+              </Text>
+              {settings.bank.swiftCode && (
+                <Text>Swift Code: {settings.bank.swiftCode}</Text>
+              )}
             </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Totals */}
-      <View style={styles.totals}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Subtotal</Text>
-          <Text style={styles.totalValue}>
-            {formatCurrency(invoice.subtotal, settings)}
-          </Text>
+          )}
         </View>
-        {invoice.tax > 0 && (
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>
-              {settings?.tax?.label || "Tax"}
-            </Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(invoice.tax, settings)}
-            </Text>
-          </View>
-        )}
-        {invoice.discount > 0 && (
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Discount</Text>
-            <Text style={[styles.totalValue, { color: "#EF4444" }]}>
-              -{formatCurrency(invoice.discount, settings)}
-            </Text>
-          </View>
-        )}
-        <View style={styles.grandTotal}>
-          <Text style={styles.grandTotalLabel}>Total</Text>
-          <Text style={styles.grandTotalValue}>
-            {formatCurrency(invoice.total, settings)}
-          </Text>
-        </View>
-      </View>
-
-      {/* Notes */}
-      {invoice.notes && (
-        <View style={styles.notes}>
-          <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>Notes</Text>
-          <Text style={[styles.text, { fontStyle: "italic" }]}>
-            {invoice.notes}
-          </Text>
-        </View>
-      )}
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text>Thank you for your business!</Text>
-        {settings?.bank?.accountName && (
-          <Text style={{ marginTop: 4 }}>
-            {settings.bank.bankName} • {settings.bank.accountNumber} •{" "}
-            {settings.bank.accountName}
-          </Text>
-        )}
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};
 
 export default InvoicePDF;

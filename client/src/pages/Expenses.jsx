@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Trash, DollarSign } from "lucide-react";
+import { Plus, Trash, DollarSign, Edit } from "lucide-react";
+import ReasonModal from "../components/ReasonModal";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 
@@ -10,6 +11,9 @@ const Expenses = () => {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState(null);
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -60,24 +64,83 @@ const Expenses = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (editingExpense) {
+      // For edits, show reason modal
+      setPendingUpdate(formData);
+      setShowReasonModal(true);
+    } else {
+      // For new expenses, save directly
+      try {
+        const token = user.token;
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        await axios.post(
+          "http://localhost:5000/api/expenses",
+          formData,
+          config
+        );
+        setShowForm(false);
+        resetForm();
+        fetchExpenses();
+      } catch (error) {
+        console.error("Error creating expense:", error);
+      }
+    }
+  };
+
+  const handleConfirmEdit = async (reason) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post("http://localhost:5000/api/expenses", formData, config);
+      await axios.put(
+        `http://localhost:5000/api/expenses/${editingExpense._id}`,
+        {
+          ...pendingUpdate,
+          editReason: reason,
+          editedBy: user.name,
+        },
+        config
+      );
       setShowForm(false);
-      setFormData({
-        description: "",
-        amount: "",
-        category: "General",
-        date: new Date().toISOString().split("T")[0],
-        vendor: "",
-        reference: "",
-        notes: "",
-      });
+      setShowReasonModal(false);
+      setEditingExpense(null);
+      setPendingUpdate(null);
+      resetForm();
       fetchExpenses();
     } catch (error) {
-      console.error("Error creating expense:", error);
+      console.error("Error updating expense:", error);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      description: "",
+      amount: "",
+      category: "General",
+      date: new Date().toISOString().split("T")[0],
+      vendor: "",
+      reference: "",
+      notes: "",
+    });
+  };
+
+  const handleEdit = (expense) => {
+    setEditingExpense(expense);
+    setFormData({
+      description: expense.description,
+      amount: expense.amount,
+      category: expense.category,
+      date: expense.date.split("T")[0],
+      vendor: expense.vendor?._id || "",
+      reference: expense.reference || "",
+      notes: expense.notes || "",
+    });
+    setShowForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowForm(false);
+    setEditingExpense(null);
+    resetForm();
   };
 
   const handleDelete = async (id) => {
@@ -100,7 +163,7 @@ const Expenses = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">Expenses</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => (showForm ? handleCancelEdit() : setShowForm(true))}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           <Plus className="mr-2 h-5 w-5" />
@@ -110,7 +173,9 @@ const Expenses = () => {
 
       {showForm && (
         <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800 mb-6">
-          <h2 className="text-lg font-medium text-white mb-4">New Expense</h2>
+          <h2 className="text-lg font-medium text-white mb-4">
+            {editingExpense ? "Edit Expense" : "New Expense"}
+          </h2>
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -263,10 +328,18 @@ const Expenses = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
                   -{formatCurrency(expense.amount, settings)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                  <button
+                    onClick={() => handleEdit(expense)}
+                    className="text-yellow-400 hover:text-yellow-300"
+                    title="Edit Expense"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </button>
                   <button
                     onClick={() => handleDelete(expense._id)}
                     className="text-red-400 hover:text-red-300"
+                    title="Delete Expense"
                   >
                     <Trash className="h-5 w-5" />
                   </button>
@@ -281,6 +354,17 @@ const Expenses = () => {
           </div>
         )}
       </div>
+
+      <ReasonModal
+        isOpen={showReasonModal}
+        onClose={() => {
+          setShowReasonModal(false);
+          setPendingUpdate(null);
+        }}
+        onConfirm={handleConfirmEdit}
+        title="Edit Expense Reason"
+        message="Please provide a reason for editing this expense."
+      />
     </div>
   );
 };

@@ -40,12 +40,30 @@ const syncOrders = async (req, res) => {
             firstName: order.billing.first_name || "",
             lastName: order.billing.last_name || "",
             email: order.billing.email,
-            phone: order.billing.phone || "",
-            address: order.billing.address_1 || "",
-            city: order.billing.city || "",
-            state: order.billing.state || "",
-            zipCode: order.billing.postcode || "",
-            country: order.billing.country || "",
+            billing: {
+              first_name: order.billing.first_name || "",
+              last_name: order.billing.last_name || "",
+              company: order.billing.company || "",
+              address_1: order.billing.address_1 || "",
+              address_2: order.billing.address_2 || "",
+              city: order.billing.city || "",
+              state: order.billing.state || "",
+              postcode: order.billing.postcode || "",
+              country: order.billing.country || "",
+              email: order.billing.email || "",
+              phone: order.billing.phone || "",
+            },
+            shipping: {
+              first_name: order.shipping?.first_name || "",
+              last_name: order.shipping?.last_name || "",
+              company: order.shipping?.company || "",
+              address_1: order.shipping?.address_1 || "",
+              address_2: order.shipping?.address_2 || "",
+              city: order.shipping?.city || "",
+              state: order.shipping?.state || "",
+              postcode: order.shipping?.postcode || "",
+              country: order.shipping?.country || "",
+            },
           });
         }
       }
@@ -166,6 +184,56 @@ const syncOrders = async (req, res) => {
       }
 
       syncedOrders.push(savedOrder);
+
+      // Create Payment record if order is paid and doesn't have one (simplified check)
+      // In a real scenario, we'd check if a payment for this order already exists to avoid duplicates
+      // For now, we'll assume if it's being synced and is 'completed' or 'processing', we record it.
+      // Better approach: Check if Payment exists for this order.
+
+      if (order.status === "completed" || order.status === "processing") {
+        const Payment = require("../models/Payment");
+        const existingPayment = await Payment.findOne({
+          order: savedOrder._id,
+        });
+
+        if (!existingPayment) {
+          const mapWooPaymentMethod = (title) => {
+            if (!title) return "WooCommerce";
+            const lower = title.toLowerCase();
+            if (lower.includes("bank transfer") || lower.includes("bacs"))
+              return "Bank Transfer";
+            if (lower.includes("check") || lower.includes("cheque"))
+              return "Check";
+            if (lower.includes("cash")) return "Cash";
+            if (
+              lower.includes("card") ||
+              lower.includes("stripe") ||
+              lower.includes("credit")
+            )
+              return "Card";
+            return "Other";
+          };
+
+          await Payment.create({
+            amount: parseFloat(order.total),
+            date: order.date_paid ? new Date(order.date_paid) : new Date(),
+            method: mapWooPaymentMethod(order.payment_method_title),
+            reference: order.transaction_id || `WOO-${order.id}`,
+            source: "WooCommerce",
+            order: savedOrder._id,
+            invoice: invoice._id, // Link to the invoice we just created/updated
+            customer: customer ? customer._id : null,
+            notes: `Auto-created from WooCommerce Order #${
+              order.number || order.id
+            }. Method: ${order.payment_method_title || "Unknown"}`,
+          });
+
+          // Update invoice status/paid amount since we just added a payment
+          invoice.amountPaid = parseFloat(order.total);
+          invoice.status = "paid";
+          await invoice.save();
+        }
+      }
     }
 
     res.json({

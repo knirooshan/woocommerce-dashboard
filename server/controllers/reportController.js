@@ -1,15 +1,16 @@
 const Invoice = require("../models/Invoice");
 const Expense = require("../models/Expense");
+const Payment = require("../models/Payment");
 
 // @desc    Get Dashboard Stats
 // @route   GET /api/reports/dashboard
 // @access  Private
 const getDashboardStats = async (req, res) => {
   try {
-    // Calculate Total Sales (Paid Invoices)
-    const salesResult = await Invoice.aggregate([
-      { $match: { status: "paid" } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
+    // Calculate Total Sales (sum of all non-deleted payments)
+    const salesResult = await Payment.aggregate([
+      { $match: { status: { $ne: "deleted" } } },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
 
@@ -23,8 +24,8 @@ const getDashboardStats = async (req, res) => {
     // Calculate Net Profit
     const netProfit = totalSales - totalExpenses;
 
-    // Recent Invoices
-    const recentInvoices = await Invoice.find()
+    // Recent Invoices (non-deleted)
+    const recentInvoices = await Invoice.find({ status: { $ne: "deleted" } })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("customer", "firstName lastName");
@@ -45,13 +46,13 @@ const getDashboardStats = async (req, res) => {
 // @access  Private
 const getSalesReport = async (req, res) => {
   try {
-    // 1. Get Monthly Sales
-    const sales = await Invoice.aggregate([
-      { $match: { status: "paid" } },
+    // 1. Get Monthly Sales (from payments)
+    const sales = await Payment.aggregate([
+      { $match: { status: { $ne: "deleted" } } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-          sales: { $sum: "$total" },
+          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+          sales: { $sum: "$amount" },
           count: { $sum: 1 },
         },
       },

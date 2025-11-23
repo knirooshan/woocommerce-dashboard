@@ -57,4 +57,38 @@ const deleteExpense = async (req, res) => {
   }
 };
 
-module.exports = { getExpenses, createExpense, deleteExpense };
+// @desc    Update expense
+// @route   PUT /api/expenses/:id
+// @access  Private
+const updateExpense = async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+
+    if (expense) {
+      const { editReason, editedBy, ...updateData } = req.body;
+
+      // Add to edit history if edit reason provided
+      if (editReason) {
+        expense.editHistory.push({
+          editedAt: new Date(),
+          editedBy: editedBy || "User",
+          reason: editReason,
+        });
+      }
+
+      // Update expense fields
+      Object.keys(updateData).forEach((key) => {
+        expense[key] = updateData[key];
+      });
+
+      const updatedExpense = await expense.save();
+      res.json(updatedExpense);
+    } else {
+      res.status(404).json({ message: "Expense not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = { getExpenses, createExpense, updateExpense, deleteExpense };

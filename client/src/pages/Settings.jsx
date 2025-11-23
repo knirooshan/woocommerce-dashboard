@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { Save } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
@@ -78,17 +79,25 @@ const Settings = () => {
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">Store Settings</h1>
-        {message && (
-          <span
-            className={`px-4 py-2 rounded text-sm ${
-              message.includes("Error")
-                ? "bg-red-900/50 text-red-200 border border-red-800"
-                : "bg-green-900/50 text-green-200 border border-green-800"
-            }`}
+        <div className="flex items-center gap-4">
+          <Link
+            to="/activity-log"
+            className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors text-sm font-medium"
           >
-            {message}
-          </span>
-        )}
+            View Activity Log
+          </Link>
+          {message && (
+            <span
+              className={`px-4 py-2 rounded text-sm ${
+                message.includes("Error")
+                  ? "bg-red-900/50 text-red-200 border border-red-800"
+                  : "bg-green-900/50 text-green-200 border border-green-800"
+              }`}
+            >
+              {message}
+            </span>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -233,6 +242,75 @@ const Settings = () => {
                 name="pass"
                 value={formData.smtp.pass}
                 onChange={(e) => handleChange(e, "smtp")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bank Details */}
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+            Bank Details
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Account Name
+              </label>
+              <input
+                type="text"
+                name="accountName"
+                value={formData.bank.accountName}
+                onChange={(e) => handleChange(e, "bank")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Account Number
+              </label>
+              <input
+                type="text"
+                name="accountNumber"
+                value={formData.bank.accountNumber}
+                onChange={(e) => handleChange(e, "bank")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Bank Name
+              </label>
+              <input
+                type="text"
+                name="bankName"
+                value={formData.bank.bankName}
+                onChange={(e) => handleChange(e, "bank")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Branch
+              </label>
+              <input
+                type="text"
+                name="branch"
+                value={formData.bank.branch}
+                onChange={(e) => handleChange(e, "bank")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Swift Code
+              </label>
+              <input
+                type="text"
+                name="swiftCode"
+                value={formData.bank.swiftCode || ""}
+                onChange={(e) => handleChange(e, "bank")}
                 className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>

@@ -35,7 +35,8 @@ const getCustomerById = async (req, res) => {
 // @access  Private
 const createCustomer = async (req, res) => {
   try {
-    const { email, firstName, lastName, billing, shipping } = req.body;
+    const { salutation, email, firstName, lastName, billing, shipping } =
+      req.body;
 
     // Check if customer with email already exists
     const customerExists = await Customer.findOne({ email });
@@ -47,6 +48,7 @@ const createCustomer = async (req, res) => {
     }
 
     const customer = await Customer.create({
+      salutation,
       email,
       firstName,
       lastName,

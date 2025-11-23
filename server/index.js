@@ -9,6 +9,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Activity Logger (should be after body parser and before routes)
+// We need to ensure auth middleware runs first if we want user info, but auth is usually per-route.
+// To capture user info globally, we might need a global auth check that doesn't fail but populates req.user if token exists.
+// For now, let's place it here. If auth middleware is per-route, req.user won't be populated here for the log creation time unless we attach it later.
+// However, our activityLogger logs on 'finish', so by then req.user should be populated if the route was protected.
+app.use(require("./middleware/activityLogger"));
+
 // Database Connection
 connectDB();
 
@@ -27,6 +34,8 @@ app.use("/api/email", require("./routes/emailRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
 app.use("/api/images", require("./routes/imageRoutes"));
 app.use("/api/vendors", require("./routes/vendorRoutes"));
+app.use("/api/activity-logs", require("./routes/activityLogRoutes"));
+app.use("/api/payments", require("./routes/paymentRoutes"));
 
 app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");

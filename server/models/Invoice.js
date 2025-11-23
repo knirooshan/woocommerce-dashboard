@@ -31,14 +31,41 @@ const invoiceSchema = new mongoose.Schema(
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     total: { type: Number, required: true },
+    paymentMethod: String,
+    payments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment",
+      },
+    ],
+    amountPaid: { type: Number, default: 0 },
+    balanceDue: { type: Number },
+    isWrittenOff: { type: Boolean, default: false },
     status: {
       type: String,
-      enum: ["draft", "sent", "paid", "partially_paid", "overdue", "cancelled"],
+      enum: [
+        "draft",
+        "sent",
+        "paid",
+        "partially_paid",
+        "overdue",
+        "cancelled",
+        "written-off",
+        "deleted",
+      ],
       default: "draft",
     },
+    editHistory: [
+      {
+        editedAt: { type: Date, default: Date.now },
+        editedBy: { type: String },
+        reason: { type: String },
+      },
+    ],
+    invoiceDate: { type: Date, default: Date.now },
     dueDate: Date,
     notes: String,
-    paymentMethod: String,
+    woocommerceOrderId: Number,
   },
   {
     timestamps: true,
@@ -53,6 +80,15 @@ invoiceSchema.pre("save", async function (next) {
       .toString()
       .padStart(4, "0")}`;
   }
+
+  // Calculate balance due
+  if (this.total !== undefined) {
+    this.balanceDue = this.total - (this.amountPaid || 0);
+    if (this.isWrittenOff) {
+      this.balanceDue = 0;
+    }
+  }
+
   next();
 });
 

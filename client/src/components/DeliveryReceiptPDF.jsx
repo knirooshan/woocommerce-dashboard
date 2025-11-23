@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
+import { formatCurrency } from "../utils/currency";
 
 const styles = StyleSheet.create({
   page: {
@@ -137,118 +138,237 @@ const styles = StyleSheet.create({
   },
 });
 
-const DeliveryReceiptPDF = ({ invoice, settings }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Delivery Receipt</Text>
-          <Text style={styles.subTitle}>Ref: {invoice.invoiceNumber}</Text>
-        </View>
-        <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
-          {settings?.logo && <Image style={styles.logo} src={settings.logo} />}
-          <Text
-            style={[styles.companyInfo, { fontWeight: "bold", fontSize: 11 }]}
-          >
-            {settings?.storeName}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
-          <Text style={styles.companyInfo}>
-            {settings?.address?.city}, {settings?.address?.zip}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.phone}</Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
-        </View>
-      </View>
+const DeliveryReceiptPDF = ({ invoice, settings }) => {
+  const amountPaid = invoice.amountPaid || 0;
+  const balanceDue =
+    invoice.balanceDue !== undefined
+      ? invoice.balanceDue
+      : invoice.total - amountPaid;
 
-      {/* Info Group */}
-      <View style={styles.infoGroup}>
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Deliver To</Text>
-          <Text style={[styles.text, { fontWeight: "bold" }]}>
-            {invoice.customer?.firstName} {invoice.customer?.lastName}
-          </Text>
-          <Text style={styles.text}>{invoice.customer?.email}</Text>
-          <Text style={styles.text}>
-            {invoice.customer?.shipping?.address_1 ||
-              invoice.customer?.billing?.address_1}
-          </Text>
-          <Text style={styles.text}>
-            {invoice.customer?.shipping?.city ||
-              invoice.customer?.billing?.city}
-            ,{" "}
-            {invoice.customer?.shipping?.postcode ||
-              invoice.customer?.billing?.postcode}
-          </Text>
+  let paymentStatusText = "NOT PAID";
+  let statusColor = "#DC2626"; // Red
+
+  if (invoice.status === "paid" || balanceDue <= 0) {
+    paymentStatusText = "PAID";
+    statusColor = "#059669"; // Green
+  } else if (amountPaid > 0) {
+    paymentStatusText = "PARTIALLY PAID";
+    statusColor = "#D97706"; // Amber
+  }
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Delivery Receipt</Text>
+            <Text style={styles.subTitle}>Ref: {invoice.invoiceNumber}</Text>
+          </View>
+          <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
+            {settings?.logo && (
+              <Image style={styles.logo} src={settings.logo} />
+            )}
+            <Text
+              style={[styles.companyInfo, { fontWeight: "bold", fontSize: 11 }]}
+            >
+              {settings?.storeName}
+            </Text>
+            <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
+            <Text style={styles.companyInfo}>
+              {settings?.address?.city}
+              {settings?.address?.city && settings?.address?.zip && ", "}
+              {settings?.address?.zip}
+            </Text>
+            <Text style={styles.companyInfo}>
+              {settings?.contact?.phone
+                ? `Phone: ${settings.contact.phone}`
+                : ""}
+            </Text>
+            <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
+          </View>
         </View>
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Delivery Details</Text>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 4,
-            }}
-          >
-            <Text style={styles.text}>Date:</Text>
+
+        {/* Info Group */}
+        <View style={styles.infoGroup}>
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Deliver To</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {new Date().toLocaleDateString()}
+              {invoice.customer?.salutation
+                ? `${invoice.customer.salutation} `
+                : ""}
+              {invoice.customer?.firstName} {invoice.customer?.lastName}
+            </Text>
+            <Text style={styles.text}>{invoice.customer?.email}</Text>
+            <Text style={styles.text}>
+              {invoice.customer?.shipping?.address_1 ||
+                invoice.customer?.billing?.address_1}
+            </Text>
+            <Text style={styles.text}>
+              {invoice.customer?.shipping?.city ||
+                invoice.customer?.billing?.city}
+              {(invoice.customer?.shipping?.city ||
+                invoice.customer?.billing?.city) &&
+                (invoice.customer?.shipping?.postcode ||
+                  invoice.customer?.billing?.postcode) &&
+                ", "}
+              {invoice.customer?.shipping?.postcode ||
+                invoice.customer?.billing?.postcode}
             </Text>
           </View>
-        </View>
-      </View>
-
-      {/* Items Table */}
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <View style={styles.colItem}>
-            <Text style={styles.tableCellHeader}>Item Description</Text>
-          </View>
-          <View style={styles.colQty}>
-            <Text style={styles.tableCellHeader}>Qty</Text>
-          </View>
-        </View>
-        {invoice.items.map((item, index) => (
-          <View style={styles.tableRow} key={index}>
-            <View style={styles.colItem}>
-              <Text style={styles.tableCell}>{item.name}</Text>
-            </View>
-            <View style={styles.colQty}>
-              <Text
-                style={[
-                  styles.tableCell,
-                  { fontWeight: "bold", textAlign: "center" },
-                ]}
-              >
-                {item.quantity}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Delivery Details</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 4,
+              }}
+            >
+              <Text style={styles.text}>Date:</Text>
+              <Text style={[styles.text, { fontWeight: "bold" }]}>
+                {new Date().toLocaleDateString()}
               </Text>
             </View>
+
+            <View
+              style={{
+                marginTop: 12,
+                paddingTop: 8,
+                borderTopWidth: 1,
+                borderTopColor: "#E5E7EB",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={styles.text}>Payment Status:</Text>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontWeight: "bold", color: statusColor },
+                  ]}
+                >
+                  {paymentStatusText}
+                </Text>
+              </View>
+
+              {paymentStatusText === "PARTIALLY PAID" && (
+                <>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 2,
+                    }}
+                  >
+                    <Text style={styles.text}>Total Amount:</Text>
+                    <Text style={styles.text}>
+                      {formatCurrency(invoice.total, settings)}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 2,
+                    }}
+                  >
+                    <Text style={styles.text}>Amount Paid:</Text>
+                    <Text style={styles.text}>
+                      {formatCurrency(amountPaid, settings)}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text style={[styles.text, { fontWeight: "bold" }]}>
+                      Balance Due:
+                    </Text>
+                    <Text style={[styles.text, { fontWeight: "bold" }]}>
+                      {formatCurrency(balanceDue, settings)}
+                    </Text>
+                  </View>
+                </>
+              )}
+
+              {paymentStatusText === "NOT PAID" && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    Balance Due:
+                  </Text>
+                  <Text style={[styles.text, { fontWeight: "bold" }]}>
+                    {formatCurrency(balanceDue, settings)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-        ))}
-      </View>
-
-      {/* Signature Section */}
-      <View style={styles.signatureSection}>
-        <View style={styles.signatureBox}>
-          <Text style={styles.signatureLabel}>Received By (Signature)</Text>
         </View>
-        <View style={styles.signatureBox}>
-          <Text style={styles.signatureLabel}>Date Received</Text>
-        </View>
-      </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text>Please check all items upon delivery.</Text>
-        {settings?.contact?.phone && (
-          <Text style={{ marginTop: 4 }}>
-            For any issues, please contact us at {settings.contact.phone}
-          </Text>
-        )}
-      </View>
-    </Page>
-  </Document>
-);
+        {/* Items Table */}
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <View style={styles.colItem}>
+              <Text style={styles.tableCellHeader}>Item Description</Text>
+            </View>
+            <View style={styles.colQty}>
+              <Text style={styles.tableCellHeader}>Qty</Text>
+            </View>
+          </View>
+          {invoice.items.map((item, index) => (
+            <View style={styles.tableRow} key={index}>
+              <View style={styles.colItem}>
+                <Text style={styles.tableCell}>{item.name}</Text>
+              </View>
+              <View style={styles.colQty}>
+                <Text
+                  style={[
+                    styles.tableCell,
+                    { fontWeight: "bold", textAlign: "center" },
+                  ]}
+                >
+                  {item.quantity}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Signature Section */}
+        <View style={styles.signatureSection}>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Received By (Signature)</Text>
+          </View>
+          <View style={styles.signatureBox}>
+            <Text style={styles.signatureLabel}>Date Received</Text>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text>Please check all items upon delivery.</Text>
+          {settings?.contact?.phone && (
+            <Text style={{ marginTop: 4 }}>
+              For any issues, please contact us at {settings.contact.phone}
+            </Text>
+          )}
+        </View>
+      </Page>
+    </Document>
+  );
+};
 
 export default DeliveryReceiptPDF;
