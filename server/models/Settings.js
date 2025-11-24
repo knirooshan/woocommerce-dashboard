@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const settingsSchema = new mongoose.Schema(
   {
     storeName: { type: String, default: "My Store" },
+    website: { type: String, default: "" },
     address: {
       street: { type: String, default: "" },
       city: { type: String, default: "" },

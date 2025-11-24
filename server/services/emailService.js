@@ -1,6 +1,25 @@
 const nodemailer = require("nodemailer");
 const Settings = require("../models/Settings");
 
+let cachedTransporter = null;
+let cachedConfigKey = null;
+
+const createTransporterFromSettings = (settings) => {
+  // createTransport options; enable pooling to avoid reconnect overhead
+  return nodemailer.createTransport({
+    host: settings.smtp.host,
+    port: settings.smtp.port,
+    secure: settings.smtp.secure, // true for 465, false for other ports
+    auth: {
+      user: settings.smtp.user,
+      pass: settings.smtp.pass,
+    },
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
+  });
+};
+
 const sendEmail = async (to, subject, text, html, attachments = []) => {
   try {
     const settings = await Settings.findOne();
@@ -9,15 +28,12 @@ const sendEmail = async (to, subject, text, html, attachments = []) => {
       throw new Error("SMTP settings not configured");
     }
 
-    const transporter = nodemailer.createTransport({
-      host: settings.smtp.host,
-      port: settings.smtp.port,
-      secure: settings.smtp.secure, // true for 465, false for other ports
-      auth: {
-        user: settings.smtp.user,
-        pass: settings.smtp.pass,
-      },
-    });
+    const configKey = `${settings.smtp.host}|${settings.smtp.port}|${settings.smtp.user}|${settings.smtp.secure}`;
+
+    if (!cachedTransporter || cachedConfigKey !== configKey) {
+      cachedTransporter = createTransporterFromSettings(settings);
+      cachedConfigKey = configKey;
+    }
 
     const mailOptions = {
       from: `"${settings.storeName}" <${settings.smtp.user}>`,
@@ -28,7 +44,7 @@ const sendEmail = async (to, subject, text, html, attachments = []) => {
       attachments,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await cachedTransporter.sendMail(mailOptions);
     console.log("Message sent: %s", info.messageId);
     return info;
   } catch (error) {

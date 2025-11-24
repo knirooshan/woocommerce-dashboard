@@ -18,6 +18,7 @@ const Settings = () => {
 
   const [formData, setFormData] = useState({
     storeName: "",
+    website: "",
     logo: "",
     address: { street: "", city: "", zip: "", country: "" },
     contact: { phone: "", email: "" },
@@ -116,6 +117,19 @@ const Settings = () => {
                 name="storeName"
                 value={formData.storeName}
                 onChange={handleChange}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Website (https://...)
+              </label>
+              <input
+                type="text"
+                name="website"
+                value={formData.website}
+                onChange={handleChange}
+                placeholder="https://yourstore.com"
                 className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               />
             </div>

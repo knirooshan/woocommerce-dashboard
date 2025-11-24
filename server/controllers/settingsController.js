@@ -26,6 +26,7 @@ const updateSettings = async (req, res) => {
 
     if (settings) {
       settings.storeName = req.body.storeName || settings.storeName;
+      settings.website = req.body.website || settings.website;
       settings.address = req.body.address || settings.address;
       settings.contact = req.body.contact || settings.contact;
       settings.logo = req.body.logo || settings.logo;

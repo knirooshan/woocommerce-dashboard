@@ -25,12 +25,9 @@ const QuotationView = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const { data } = await axios.get(
-          ENDPOINTS.QUOTATION_BY_ID(id),
-          config
-        );
+        const { data } = await axios.get(ENDPOINTS.QUOTATION_BY_ID(id), config);
 
-        const quotationData = quoteRes.data;
+        const quotationData = data;
 
         // Convert product images to base64 for items
         const itemsWithImages = await Promise.all(

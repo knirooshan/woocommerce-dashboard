@@ -28,11 +28,21 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
-    next();
-  } else {
-    res.status(401).json({ message: "Not authorized as an admin" });
+  // Only enforce admin for DELETE requests or activity-log routes
+  const isActivityRoute =
+    req.originalUrl && req.originalUrl.includes("/activity");
+  const requiresAdmin = req.method === "DELETE" || isActivityRoute;
+
+  if (!requiresAdmin) {
+    // allow non-admin authenticated users for non-admin routes
+    return next();
   }
+
+  if (req.user && req.user.role === "admin") {
+    return next();
+  }
+
+  res.status(401).json({ message: "Not authorized as an admin" });
 };
 
 module.exports = { protect, admin };
