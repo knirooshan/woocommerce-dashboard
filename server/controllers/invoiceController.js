@@ -46,6 +46,8 @@ const createInvoice = async (req, res) => {
       subtotal,
       tax,
       discount,
+      deliveryCharge,
+      deliveryNote,
       total,
       notes,
       invoiceDate,
@@ -60,6 +62,8 @@ const createInvoice = async (req, res) => {
       subtotal,
       tax,
       discount,
+      deliveryCharge,
+      deliveryNote,
       total,
       notes,
       invoiceDate,
@@ -69,6 +73,29 @@ const createInvoice = async (req, res) => {
     });
 
     const createdInvoice = await invoice.save();
+
+    // If invoice status is paid, create a payment record
+    if (status === "paid") {
+      const Payment = require("../models/Payment");
+      
+      const payment = new Payment({
+        invoice: createdInvoice._id,
+        customer: customer,
+        amount: total,
+        method: paymentMethod || "cash",
+        paymentDate: invoiceDate || new Date(),
+        notes: "Payment recorded upon invoice creation",
+      });
+
+      await payment.save();
+
+      // Update invoice with payment information
+      createdInvoice.amountPaid = total;
+      createdInvoice.balanceDue = 0;
+      createdInvoice.payments = [payment._id];
+      await createdInvoice.save();
+    }
+
     res.status(201).json(createdInvoice);
   } catch (error) {
     res.status(500).json({ message: error });

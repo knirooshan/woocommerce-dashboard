@@ -38,13 +38,15 @@ const createCustomer = async (req, res) => {
     const { salutation, email, firstName, lastName, billing, shipping } =
       req.body;
 
-    // Check if customer with email already exists
-    const customerExists = await Customer.findOne({ email });
+    // Check if customer with email already exists (only if email is provided)
+    if (email) {
+      const customerExists = await Customer.findOne({ email });
 
-    if (customerExists) {
-      return res
-        .status(400)
-        .json({ message: "Customer with this email already exists" });
+      if (customerExists) {
+        return res
+          .status(400)
+          .json({ message: "Customer with this email already exists" });
+      }
     }
 
     const customer = await Customer.create({

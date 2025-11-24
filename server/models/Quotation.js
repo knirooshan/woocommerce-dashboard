@@ -24,6 +24,8 @@ const quotationSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true },
     tax: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
+    deliveryCharge: { type: Number, default: 0 },
+    deliveryNote: { type: String },
     total: { type: Number, required: true },
     status: {
       type: String,

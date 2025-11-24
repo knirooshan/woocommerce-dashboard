@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { ENDPOINTS } from "../config/api";
+import { Plus, Edit, Trash2 } from "lucide-react";
+import CustomerForm from "../components/CustomerForm";
 
 const Customers = () => {
   const { user } = useSelector((state) => state.auth);
@@ -9,20 +11,6 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-
-  const [formData, setFormData] = useState({
-    salutation: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    billing: {
-      phone: "",
-      address_1: "",
-      city: "",
-      postcode: "",
-      country: "",
-    },
-  });
 
   useEffect(() => {
     fetchCustomers();
@@ -32,10 +20,7 @@ const Customers = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/customers",
-        config
-      );
+      const { data } = await axios.get(ENDPOINTS.CUSTOMERS, config);
       setCustomers(data);
       setLoading(false);
     } catch (error) {
@@ -45,37 +30,7 @@ const Customers = () => {
   };
 
   const openModal = (customer = null) => {
-    if (customer) {
-      setEditingCustomer(customer);
-      setFormData({
-        salutation: customer.salutation || "",
-        firstName: customer.firstName || "",
-        lastName: customer.lastName || "",
-        email: customer.email || "",
-        billing: {
-          phone: customer.billing?.phone || "",
-          address_1: customer.billing?.address_1 || "",
-          city: customer.billing?.city || "",
-          postcode: customer.billing?.postcode || "",
-          country: customer.billing?.country || "",
-        },
-      });
-    } else {
-      setEditingCustomer(null);
-      setFormData({
-        salutation: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        billing: {
-          phone: "",
-          address_1: "",
-          city: "",
-          postcode: "",
-          country: "",
-        },
-      });
-    }
+    setEditingCustomer(customer);
     setShowModal(true);
   };
 
@@ -84,9 +39,7 @@ const Customers = () => {
     setEditingCustomer(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSaveCustomer = async (formData) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -94,14 +47,14 @@ const Customers = () => {
       if (editingCustomer) {
         // Update
         await axios.put(
-          `http://localhost:5000/api/customers/${editingCustomer._id}`,
+          ENDPOINTS.CUSTOMER_BY_ID(editingCustomer._id),
           formData,
           config
         );
       } else {
         // Create
         await axios.post(
-          "http://localhost:5000/api/customers",
+          ENDPOINTS.CUSTOMERS,
           formData,
           config
         );
@@ -123,7 +76,7 @@ const Customers = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/customers/${id}`, config);
+      await axios.delete(ENDPOINTS.CUSTOMER_BY_ID(id), config);
       fetchCustomers();
     } catch (error) {
       console.error("Error deleting customer:", error);
@@ -131,7 +84,7 @@ const Customers = () => {
     }
   };
 
-  if (loading) return <div>Loading customers...</div>;
+  if (loading) return <div className="text-white">Loading customers...</div>;
 
   return (
     <div className="space-y-6">
@@ -180,8 +133,14 @@ const Customers = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.billing?.phone || "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                    {customer.billing?.city || "-"}
+                  <td className="px-6 py-4 text-slate-400">
+                    {[
+                      customer.billing?.address_1,
+                      customer.billing?.city,
+                      customer.billing?.postcode,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -190,12 +149,14 @@ const Customers = () => {
                     >
                       <Edit className="h-5 w-5" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(customer._id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDelete(customer._id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -211,200 +172,11 @@ const Customers = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-900 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-800 shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">
-                {editingCustomer ? "Edit Customer" : "Add Customer"}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-slate-400 hover:text-white"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Salutation
-                </label>
-                <select
-                  value={formData.salutation}
-                  onChange={(e) =>
-                    setFormData({ ...formData, salutation: e.target.value })
-                  }
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select...</option>
-                  <option value="Mr.">Mr.</option>
-                  <option value="Mrs.">Mrs.</option>
-                  <option value="Ms.">Ms.</option>
-                  <option value="Miss">Miss</option>
-                  <option value="Dr.">Dr.</option>
-                  <option value="Prof.">Prof.</option>
-                  <option value="Rev.">Rev.</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  value={formData.billing.phone}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      billing: { ...formData.billing, phone: e.target.value },
-                    })
-                  }
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  value={formData.billing.address_1}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      billing: {
-                        ...formData.billing,
-                        address_1: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.billing.city}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        billing: { ...formData.billing, city: e.target.value },
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Postcode
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.billing.postcode}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        billing: {
-                          ...formData.billing,
-                          postcode: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.billing.country}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        billing: {
-                          ...formData.billing,
-                          country: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 border border-slate-700 rounded-md text-slate-300 hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  {editingCustomer ? "Update" : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CustomerForm
+          customer={editingCustomer}
+          onClose={closeModal}
+          onSave={handleSaveCustomer}
+        />
       )}
     </div>
   );

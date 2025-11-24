@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ENDPOINTS } from "../config/api";
+import { pdf } from "@react-pdf/renderer";
 import { ArrowLeft, Download, Printer, FileText, Mail } from "lucide-react";
 import { useSelector } from "react-redux";
 import QuotationPDF from "../components/QuotationPDF";
@@ -12,27 +13,53 @@ const QuotationView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [quotation, setQuotation] = useState(null);
-  const [settings, setSettings] = useState(null);
   const [logoBase64, setLogoBase64] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [quoteRes, settingsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/quotations/${id}`, config),
-          axios.get("http://localhost:5000/api/settings", config),
-        ]);
-        setQuotation(quoteRes.data);
-        setSettings(settingsRes.data);
+        const { data } = await axios.get(
+          ENDPOINTS.QUOTATION_BY_ID(id),
+          config
+        );
+
+        const quotationData = quoteRes.data;
+
+        // Convert product images to base64 for items
+        const itemsWithImages = await Promise.all(
+          quotationData.items.map(async (item) => {
+            if (item.product?.images && item.product.images.length > 0) {
+              try {
+                const base64Image = await urlToBase64(
+                  item.product.images[0],
+                  token
+                );
+                return { ...item, image: base64Image };
+              } catch (error) {
+                console.error(
+                  "Error converting product image to base64:",
+                  error
+                );
+                return { ...item, image: null };
+              }
+            }
+            return { ...item, image: null };
+          })
+        );
+
+        quotationData.items = itemsWithImages;
+        setQuotation(quotationData);
 
         // Convert logo URL to base64 for PDF
-        if (settingsRes.data?.logo) {
-          const base64Logo = await urlToBase64(settingsRes.data.logo, token);
+        if (settings?.logo) {
+          const base64Logo = await urlToBase64(settings.logo, token);
           setLogoBase64(base64Logo);
         }
 
@@ -43,7 +70,7 @@ const QuotationView = () => {
       }
     };
     fetchData();
-  }, [id, user.token]);
+  }, [id, user.token, settings]);
 
   const handleConvertToInvoice = () => {
     navigate("/invoices/create", {
@@ -64,11 +91,31 @@ const QuotationView = () => {
       return;
     setSendingEmail(true);
     try {
+      // Generate PDF blob from React component
+      const pdfDoc = (
+        <QuotationPDF
+          quotation={quotation}
+          settings={{ ...settings, logo: logoBase64 }}
+        />
+      );
+      const blob = await pdf(pdfDoc).toBlob();
+
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64String = reader.result.split(",")[1];
+          resolve(base64String);
+        };
+      });
+      reader.readAsDataURL(blob);
+      const pdfBase64 = await base64Promise;
+
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.post(
-        `http://localhost:5000/api/email/send-quotation/${id}`,
-        {},
+        ENDPOINTS.EMAIL_SEND_QUOTATION(id),
+        { pdfBase64 },
         config
       );
       alert("Email sent successfully!");
@@ -80,8 +127,35 @@ const QuotationView = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (!quotation) return <div>Quotation not found</div>;
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const pdfDoc = (
+        <QuotationPDF
+          quotation={quotation}
+          settings={{ ...settings, logo: logoBase64 }}
+        />
+      );
+      const blob = await pdf(pdfDoc).toBlob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${quotation.quotationNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Failed to download PDF. Please try again.");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
+  if (loading) return <div className="text-white">Loading...</div>;
+  if (!quotation) return <div className="text-white">Quotation not found</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -107,26 +181,14 @@ const QuotationView = () => {
           >
             <FileText className="mr-2 h-5 w-5" /> Convert to Invoice
           </button>
-          <PDFDownloadLink
-            document={
-              <QuotationPDF
-                quotation={quotation}
-                settings={{ ...settings, logo: logoBase64 }}
-              />
-            }
-            fileName={`${quotation.quotationNumber}.pdf`}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloadingPDF}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {({ blob, url, loading, error }) =>
-              loading ? (
-                "Generating PDF..."
-              ) : (
-                <>
-                  <Download className="mr-2 h-5 w-5" /> Download PDF
-                </>
-              )
-            }
-          </PDFDownloadLink>
+            <Download className="mr-2 h-5 w-5" />
+            {downloadingPDF ? "Generating..." : "Download PDF"}
+          </button>
         </div>
       </div>
 
@@ -194,6 +256,7 @@ const QuotationView = () => {
         <table className="min-w-full mb-8">
           <thead>
             <tr className="border-b-2 border-slate-200">
+              <th className="text-left py-3 text-slate-600 w-20">Image</th>
               <th className="text-left py-3 text-slate-600">Item</th>
               <th className="text-right py-3 text-slate-600">Price</th>
               <th className="text-right py-3 text-slate-600">Qty</th>
@@ -203,6 +266,16 @@ const QuotationView = () => {
           <tbody>
             {quotation.items.map((item, index) => (
               <tr key={index} className="border-b border-slate-200">
+                <td className="py-3">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-12 h-12 object-contain"
+                      onError={(e) => (e.target.style.display = "none")}
+                    />
+                  )}
+                </td>
                 <td className="py-3 text-slate-900">{item.name}</td>
                 <td className="text-right py-3 text-slate-600">
                   {formatCurrency(item.price, settings)}
@@ -244,6 +317,14 @@ const QuotationView = () => {
               </span>
             </div>
           )}
+          {quotation.deliveryCharge > 0 && (
+            <div className="flex justify-between w-64">
+              <span className="text-slate-600">Delivery Charge:</span>
+              <span className="font-medium text-slate-900">
+                {formatCurrency(quotation.deliveryCharge, settings)}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t border-slate-200 text-slate-900">
             <span>Total:</span>
             <span>{formatCurrency(quotation.total, settings)}</span>
@@ -251,10 +332,22 @@ const QuotationView = () => {
         </div>
 
         {/* Notes */}
-        {quotation.notes && (
+        {(quotation.notes || quotation.deliveryNote) && (
           <div className="mt-8 pt-8 border-t border-slate-200">
-            <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
-            <p className="text-slate-600">{quotation.notes}</p>
+            {quotation.notes && (
+              <div className="mb-4">
+                <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
+                <p className="text-slate-600">{quotation.notes}</p>
+              </div>
+            )}
+            {quotation.deliveryNote && (
+              <div>
+                <h3 className="text-slate-600 font-semibold mb-2">
+                  Delivery Note:
+                </h3>
+                <p className="text-slate-600">{quotation.deliveryNote}</p>
+              </div>
+            )}
           </div>
         )}
       </div>

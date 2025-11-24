@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { useSelector } from "react-redux";
+import { formatCurrency } from "../utils/currency";
 
 const PaymentModal = ({
   isOpen,
@@ -9,6 +11,7 @@ const PaymentModal = ({
   totalDue,
   initialData,
 }) => {
+  const { data: settings } = useSelector((state) => state.settings);
   const [formData, setFormData] = useState({
     amount: initialData?.amount || totalDue || "",
     date: initialData?.date
@@ -69,7 +72,10 @@ const PaymentModal = ({
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
-              Amount {initialData ? "" : `(Due: ${totalDue})`}
+              Amount{" "}
+              {initialData
+                ? ""
+                : `(Due: ${formatCurrency(totalDue, settings)})`}
             </label>
             <input
               type="number"

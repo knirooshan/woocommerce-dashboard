@@ -74,6 +74,9 @@ const syncProducts = async (req, res) => {
 // @access  Private/Admin
 const createProduct = async (req, res) => {
   try {
+    // Log the incoming request body to debug
+    console.log("Create product request body:", req.body);
+
     const {
       name,
       sku,
@@ -89,7 +92,19 @@ const createProduct = async (req, res) => {
       status,
     } = req.body;
 
-    const product = new Product({
+    // Generate wooId for manually created products using timestamp
+    const now = new Date();
+    const wooId = parseInt(
+      now.getFullYear().toString() +
+        (now.getMonth() + 1).toString().padStart(2, "0") +
+        now.getDate().toString().padStart(2, "0") +
+        now.getHours().toString().padStart(2, "0") +
+        now.getMinutes().toString().padStart(2, "0") +
+        now.getSeconds().toString().padStart(2, "0")
+    );
+
+    const productData = {
+      wooId,
       name,
       sku,
       price,
@@ -102,11 +117,13 @@ const createProduct = async (req, res) => {
       description,
       shortDescription,
       status,
-    });
+    };
 
+    const product = new Product(productData);
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {
+    console.error("Error creating product:", error);
     res.status(400).json({ message: error.message });
   }
 };

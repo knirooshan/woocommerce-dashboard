@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/slices/authSlice";
+import { ENDPOINTS } from "../config/api";
 import axios from "axios";
 import { Lock, Mail, User } from "lucide-react";
 
@@ -39,9 +40,7 @@ const FirstTimeSetup = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/first-run/setup",
-        {
+      const { data } = await axios.post(ENDPOINTS.FIRST_RUN_SETUP, {
           name: formData.name,
           email: formData.email,
           password: formData.password,

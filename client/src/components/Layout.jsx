@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+import { fetchSettings } from "../store/slices/settingsSlice";
 import {
   LayoutDashboard,
   Settings,
@@ -19,10 +20,17 @@ import {
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
+  const { loaded: settingsLoaded } = useSelector((state) => state.settings);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && !settingsLoaded) {
+      dispatch(fetchSettings());
+    }
+  }, [user, settingsLoaded, dispatch]);
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -36,12 +44,32 @@ const Layout = () => {
     { name: "Payments", href: "/payments", icon: FileText },
     { name: "Expenses", href: "/expenses", icon: DollarSign },
     { name: "Reports", href: "/reports", icon: BarChart3 },
-    { name: "Settings", href: "/settings", icon: Settings },
+    ...(user?.role === "admin"
+      ? [
+          { name: "Users", href: "/users", icon: Users },
+          { name: "Settings", href: "/settings", icon: Settings },
+        ]
+      : []),
   ];
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      const token = user?.token;
+      if (token) {
+        await fetch(ENDPOINTS.AUTH_LOGOUT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      dispatch(logout());
+      navigate("/login");
+    }
   };
 
   return (

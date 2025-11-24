@@ -1,12 +1,18 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { ENDPOINTS } from "../config/api";
 import axios from "axios";
 import { Save } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { fetchSettings } from "../store/slices/settingsSlice";
 
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
+  const { data: settings, loading: settingsLoading } = useSelector(
+    (state) => state.settings
+  );
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -22,24 +28,16 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const token = user.token;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/settings",
-        config
-      );
-      if (data) setFormData(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-      setLoading(false);
+    if (user && user.role !== "admin") {
+      navigate("/");
     }
-  };
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+    }
+  }, [settings]);
 
   const handleChange = (e, section = null) => {
     const { name, value, type, checked } = e.target;
@@ -63,8 +61,9 @@ const Settings = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put("http://localhost:5000/api/settings", formData, config);
+      await axios.put(ENDPOINTS.SETTINGS, formData, config);
       setMessage("Settings saved successfully!");
+      dispatch(fetchSettings()); // Refresh settings in Redux
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       setMessage("Error saving settings");
@@ -73,7 +72,8 @@ const Settings = () => {
     }
   };
 
-  if (loading) return <div>Loading settings...</div>;
+  if (settingsLoading && !settings)
+    return <div className="text-white">Loading settings...</div>;
 
   return (
     <div className="max-w-4xl mx-auto">

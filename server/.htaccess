@@ -1,0 +1,20 @@
+# Node.js Application .htaccess
+# Place this file in your API directory if needed
+
+# Protect .env file
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Protect node_modules
+<DirectoryMatch "node_modules">
+    Order allow,deny
+    Deny from all
+</DirectoryMatch>
+
+# Protect package files
+<FilesMatch "(package\.json|package-lock\.json)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

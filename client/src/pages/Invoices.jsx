@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { Plus, FileText, Eye, DollarSign, Trash2, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -8,9 +9,9 @@ import PaymentModal from "../components/PaymentModal";
 
 const Invoices = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -24,13 +25,9 @@ const Invoices = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [invoicesRes, settingsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/invoices", config),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
+      const invoicesRes = await axios.get(ENDPOINTS.INVOICES, config);
 
       setInvoices(invoicesRes.data);
-      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -47,11 +44,7 @@ const Invoices = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/api/payments",
-        paymentData,
-        config
-      );
+      await axios.post(ENDPOINTS.PAYMENTS, paymentData, config);
       setIsPaymentModalOpen(false);
       setSelectedInvoice(null);
       fetchData(); // Refresh data to show updated status
@@ -72,10 +65,7 @@ const Invoices = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(
-        `http://localhost:5000/api/invoices/${invoiceId}`,
-        config
-      );
+      await axios.delete(ENDPOINTS.INVOICE_BY_ID(invoiceId), config);
       fetchData(); // Refresh data
       alert("Invoice deleted successfully");
     } catch (error) {
@@ -84,7 +74,7 @@ const Invoices = () => {
     }
   };
 
-  if (loading) return <div>Loading invoices...</div>;
+  if (loading) return <div className="text-white">Loading invoices...</div>;
 
   return (
     <div className="space-y-6">
@@ -184,13 +174,15 @@ const Invoices = () => {
                           <DollarSign className="h-5 w-5" />
                         </button>
                       )}
-                    <button
-                      onClick={() => handleDelete(invoice._id)}
-                      className="text-red-400 hover:text-red-300"
-                      title="Delete Invoice"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDelete(invoice._id)}
+                        className="text-red-400 hover:text-red-300"
+                        title="Delete Invoice"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
                     <Link
                       to={`/invoices/${invoice._id}`}
                       className="text-blue-400 hover:text-blue-300"

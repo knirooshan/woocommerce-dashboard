@@ -2,9 +2,9 @@ const ActivityLog = require("../models/ActivityLog");
 
 const activityLogger = async (req, res, next) => {
   // Only log in production environment
-  if (process.env.NODE_ENV !== "production") {
-    return next();
-  }
+  // if (process.env.NODE_ENV !== "production") {
+  //   return next();
+  // }
 
   // Capture the original end function to log after response is sent (optional, but good for status codes)
   // For now, we log the request as it comes in or finishes.
@@ -12,10 +12,32 @@ const activityLogger = async (req, res, next) => {
 
   res.on("finish", async () => {
     try {
-      // Skip logging for OPTIONS requests or health checks if needed
-      if (req.method === "OPTIONS") return;
+      // Skip logging for OPTIONS requests, GET requests, or health checks
+      if (req.method === "OPTIONS" || req.method === "GET") return;
 
-      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      // Extract IP address with proper handling for localhost and proxies
+      let ip =
+        req.headers["x-forwarded-for"] ||
+        req.headers["x-real-ip"] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket?.remoteAddress;
+
+      // Convert IPv6 localhost to IPv4 for readability
+      if (ip === "::1" || ip === "::ffff:127.0.0.1") {
+        ip = "127.0.0.1";
+      }
+
+      // Handle x-forwarded-for with multiple IPs (take the first one)
+      if (ip && ip.includes(",")) {
+        ip = ip.split(",")[0].trim();
+      }
+
+      // Remove IPv6 prefix if present
+      if (ip && ip.startsWith("::ffff:")) {
+        ip = ip.substring(7);
+      }
+
       const userAgent = req.headers["user-agent"];
 
       // Sanitize body

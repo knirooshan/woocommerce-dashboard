@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import CustomerForm from "../components/CustomerForm";
 
 const CreateInvoice = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const navigate = useNavigate();
   const location = useLocation();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   const [formData, setFormData] = useState({
     customer: "",
@@ -23,22 +26,32 @@ const CreateInvoice = () => {
     paymentMethod: "Bank Transfer",
     taxRate: 0,
     discount: 0,
+    deliveryCharge: 0,
+    deliveryNote: "",
     status: "draft",
   });
+
+  useEffect(() => {
+    if (settings) {
+      const defaultTaxRate = settings.tax?.rate || 0;
+      setFormData((prev) => ({
+        ...prev,
+        taxRate: defaultTaxRate,
+      }));
+    }
+  }, [settings]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [custRes, prodRes, settingsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/customers", config),
-          axios.get("http://localhost:5000/api/products", config),
-          axios.get("http://localhost:5000/api/settings", config),
+        const [custRes, prodRes] = await Promise.all([
+          axios.get(ENDPOINTS.CUSTOMERS, config),
+          axios.get(ENDPOINTS.PRODUCTS, config),
         ]);
         setCustomers(custRes.data);
         setProducts(prodRes.data);
-        setSettings(settingsRes.data);
 
         // Check for quotation data passed via navigation
         if (location.state?.quotationData) {
@@ -48,7 +61,7 @@ const CreateInvoice = () => {
           // Calculate tax rate from tax amount if possible, or use default
           // Since we store tax amount, we might need to infer rate or just use default
           // For now, let's use the default tax rate from settings, or 0
-          const defaultTaxRate = settingsRes.data?.tax?.rate || 0;
+          const defaultTaxRate = settings?.tax?.rate || 0;
 
           setFormData((prev) => ({
             ...prev,
@@ -64,11 +77,6 @@ const CreateInvoice = () => {
             taxRate: defaultTaxRate,
             discount: discount || 0,
           }));
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            taxRate: settingsRes.data?.tax?.rate || 0,
-          }));
         }
 
         setLoading(false);
@@ -78,7 +86,7 @@ const CreateInvoice = () => {
       }
     };
     fetchData();
-  }, [user.token, location.state]);
+  }, [user.token, location.state, settings]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -95,7 +103,7 @@ const CreateInvoice = () => {
     setFormData((prev) => ({ ...prev, items: newItems }));
   };
 
-  const handleItemChange = (index, field, value) => {
+  const handleItemChange = async (index, field, value) => {
     const newItems = [...formData.items];
     newItems[index][field] = value;
 
@@ -105,6 +113,22 @@ const CreateInvoice = () => {
         newItems[index].name = selectedProduct.name;
         newItems[index].price = selectedProduct.price;
         newItems[index].sku = selectedProduct.sku;
+
+        // Convert product image to base64
+        if (selectedProduct.images && selectedProduct.images.length > 0) {
+          try {
+            const base64Image = await urlToBase64(
+              selectedProduct.images[0],
+              user.token
+            );
+            newItems[index].image = base64Image;
+          } catch (error) {
+            console.error("Error converting image to base64:", error);
+            newItems[index].image = null;
+          }
+        } else {
+          newItems[index].image = null;
+        }
       }
     }
 
@@ -115,7 +139,8 @@ const CreateInvoice = () => {
   const calculateTotals = () => {
     const subtotal = formData.items.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * (formData.taxRate / 100);
-    const total = subtotal + tax - formData.discount;
+    const total =
+      subtotal + tax - formData.discount + (formData.deliveryCharge || 0);
     return { subtotal, tax, total };
   };
 
@@ -127,7 +152,7 @@ const CreateInvoice = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.post(
-        "http://localhost:5000/api/invoices",
+        ENDPOINTS.INVOICES,
         {
           ...formData,
           ...totals,
@@ -140,9 +165,27 @@ const CreateInvoice = () => {
     }
   };
 
+  const handleSaveCustomer = async (customerData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.CUSTOMERS,
+        customerData,
+        config
+      );
+      setCustomers([...customers, data]);
+      setFormData({ ...formData, customer: data._id });
+      setShowCustomerModal(false);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      alert("Error creating customer");
+    }
+  };
+
   const { subtotal, tax, total } = calculateTotals();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -156,21 +199,31 @@ const CreateInvoice = () => {
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Select Customer
               </label>
-              <select
-                value={formData.customer}
-                onChange={(e) =>
-                  setFormData({ ...formData, customer: e.target.value })
-                }
-                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">Select a customer...</option>
-                {customers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.firstName} {c.lastName} ({c.email || "-"})
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={formData.customer}
+                  onChange={(e) =>
+                    setFormData({ ...formData, customer: e.target.value })
+                  }
+                  className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="">Select a customer...</option>
+                  {customers.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.firstName} {c.lastName} ({c.email || "-"})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
+                  title="Add New Customer"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -293,7 +346,7 @@ const CreateInvoice = () => {
           <div className="mt-6 border-t border-slate-800 pt-4 flex flex-col items-end space-y-2">
             <div className="flex justify-between w-64">
               <span className="text-slate-400">Subtotal:</span>
-              <span className="font-medium">
+              <span className="font-medium text-white">
                 {formatCurrency(subtotal, settings)}
               </span>
             </div>
@@ -322,6 +375,20 @@ const CreateInvoice = () => {
                   setFormData({
                     ...formData,
                     discount: parseFloat(e.target.value),
+                  })
+                }
+                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
+              />
+            </div>
+            <div className="flex justify-between w-64 items-center">
+              <span className="text-slate-400">Delivery Charge:</span>
+              <input
+                type="number"
+                value={formData.deliveryCharge}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    deliveryCharge: parseFloat(e.target.value) || 0,
                   })
                 }
                 className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
@@ -384,6 +451,20 @@ const CreateInvoice = () => {
               className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Delivery Note
+            </label>
+            <textarea
+              value={formData.deliveryNote}
+              onChange={(e) =>
+                setFormData({ ...formData, deliveryNote: e.target.value })
+              }
+              rows={2}
+              placeholder="Add delivery instructions or notes..."
+              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
 
         <div className="flex justify-end">
@@ -396,6 +477,13 @@ const CreateInvoice = () => {
           </button>
         </div>
       </form>
+
+      {showCustomerModal && (
+        <CustomerForm
+          onClose={() => setShowCustomerModal(false)}
+          onSave={handleSaveCustomer}
+        />
+      )}
     </div>
   );
 };

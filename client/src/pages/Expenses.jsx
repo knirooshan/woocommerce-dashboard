@@ -2,18 +2,21 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Plus, Trash, DollarSign, Edit } from "lucide-react";
 import ReasonModal from "../components/ReasonModal";
+import VendorForm from "../components/VendorForm";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { ENDPOINTS } from "../config/api";
 
 const Expenses = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [expenses, setExpenses] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState(null);
+  const [showVendorModal, setShowVendorModal] = useState(false);
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -35,10 +38,7 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/vendors",
-        config
-      );
+      const { data } = await axios.get(ENDPOINTS.VENDORS, config);
       setVendors(data);
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -49,12 +49,8 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const [expensesRes, settingsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/expenses", config),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
+      const expensesRes = await axios.get(ENDPOINTS.EXPENSES, config);
       setExpenses(expensesRes.data);
-      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching expenses:", error);
@@ -73,11 +69,7 @@ const Expenses = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.post(
-          "http://localhost:5000/api/expenses",
-          formData,
-          config
-        );
+        await axios.post(ENDPOINTS.EXPENSES, formData, config);
         setShowForm(false);
         resetForm();
         fetchExpenses();
@@ -92,7 +84,7 @@ const Expenses = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put(
-        `http://localhost:5000/api/expenses/${editingExpense._id}`,
+        ENDPOINTS.EXPENSE_BY_ID(editingExpense._id),
         {
           ...pendingUpdate,
           editReason: reason,
@@ -108,6 +100,24 @@ const Expenses = () => {
       fetchExpenses();
     } catch (error) {
       console.error("Error updating expense:", error);
+    }
+  };
+
+  const handleSaveVendor = async (vendorData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.VENDORS,
+        vendorData,
+        config
+      );
+      setVendors([...vendors, data]);
+      setFormData({ ...formData, vendor: data._id });
+      setShowVendorModal(false);
+    } catch (error) {
+      console.error("Error creating vendor:", error);
+      alert("Error creating vendor");
     }
   };
 
@@ -149,14 +159,14 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/expenses/${id}`, config);
+      await axios.delete(ENDPOINTS.EXPENSE_BY_ID(id), config);
       fetchExpenses();
     } catch (error) {
       console.error("Error deleting expense:", error);
     }
   };
 
-  if (loading) return <div>Loading expenses...</div>;
+  if (loading) return <div className="text-white">Loading expenses...</div>;
 
   return (
     <div className="space-y-6">
@@ -244,20 +254,30 @@ const Expenses = () => {
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Vendor
               </label>
-              <select
-                value={formData.vendor}
-                onChange={(e) =>
-                  setFormData({ ...formData, vendor: e.target.value })
-                }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-              >
-                <option value="">Select Vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor._id} value={vendor._id}>
-                    {vendor.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={formData.vendor}
+                  onChange={(e) =>
+                    setFormData({ ...formData, vendor: e.target.value })
+                  }
+                  className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
+                >
+                  <option value="">Select Vendor</option>
+                  {vendors.map((vendor) => (
+                    <option key={vendor._id} value={vendor._id}>
+                      {vendor.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowVendorModal(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
+                  title="Add New Vendor"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
@@ -336,13 +356,15 @@ const Expenses = () => {
                   >
                     <Edit className="h-5 w-5" />
                   </button>
-                  <button
-                    onClick={() => handleDelete(expense._id)}
-                    className="text-red-400 hover:text-red-300"
-                    title="Delete Expense"
-                  >
-                    <Trash className="h-5 w-5" />
-                  </button>
+                  {user?.role === "admin" && (
+                    <button
+                      onClick={() => handleDelete(expense._id)}
+                      className="text-red-400 hover:text-red-300"
+                      title="Delete Expense"
+                    >
+                      <Trash className="h-5 w-5" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -365,6 +387,13 @@ const Expenses = () => {
         title="Edit Expense Reason"
         message="Please provide a reason for editing this expense."
       />
+
+      {showVendorModal && (
+        <VendorForm
+          onClose={() => setShowVendorModal(false)}
+          onSave={handleSaveVendor}
+        />
+      )}
     </div>
   );
 };

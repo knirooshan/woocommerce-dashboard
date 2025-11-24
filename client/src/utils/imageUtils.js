@@ -1,3 +1,5 @@
+import { ENDPOINTS } from "../config/api";
+
 /**
  * Convert image URL to base64 data URL using backend API to avoid CORS issues
  * @param {string} url - The image URL to convert
@@ -14,7 +16,7 @@ export const urlToBase64 = async (url, token) => {
 
   try {
     // Use backend API to convert image (bypasses CORS)
-    const response = await fetch("http://localhost:5000/api/images/to-base64", {
+    const response = await fetch(ENDPOINTS.IMAGES_TO_BASE64, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

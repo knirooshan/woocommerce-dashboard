@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { ENDPOINTS } from "./config/api";
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "./store/slices/authSlice";
@@ -31,6 +32,7 @@ import Settings from "./pages/Settings";
 import Vendors from "./pages/Vendors";
 import ActivityLog from "./pages/ActivityLog";
 import Payments from "./pages/Payments";
+import Users from "./pages/Users";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
@@ -41,9 +43,7 @@ function App() {
   useEffect(() => {
     const checkFirstRun = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:5000/api/first-run/check"
-        );
+        const { data } = await axios.get(ENDPOINTS.FIRST_RUN_CHECK);
         setIsFirstRun(data.isFirstRun);
 
         // If it's first run, clear any existing auth state
@@ -115,6 +115,7 @@ function App() {
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/users" element={<Users />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/activity-log" element={<ActivityLog />} />
             </Route>

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { Eye, ExternalLink } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 
 const Orders = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [orders, setOrders] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
@@ -20,13 +21,9 @@ const Orders = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [ordersRes, settingsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/orders", config),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
+      const ordersRes = await axios.get(ENDPOINTS.ORDERS, config);
 
       setOrders(ordersRes.data);
-      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -46,7 +43,7 @@ const Orders = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.post(
-        "http://localhost:5000/api/orders/sync",
+        ENDPOINTS.ORDERS_SYNC,
         {},
         config
       );
@@ -83,7 +80,7 @@ const Orders = () => {
     }
   };
 
-  if (loading) return <div>Loading orders...</div>;
+  if (loading) return <div className="text-white">Loading orders...</div>;
 
   return (
     <div className="space-y-6">

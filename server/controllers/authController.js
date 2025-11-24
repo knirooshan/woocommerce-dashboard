@@ -118,4 +118,24 @@ const setupFirstUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, checkFirstRun, setupFirstUser };
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Private
+const logoutUser = async (req, res) => {
+  try {
+    // Since JWT is stateless and stored client-side,
+    // logout is handled by client removing the token
+    // This endpoint is for logging the activity
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  loginUser,
+  registerUser,
+  checkFirstRun,
+  setupFirstUser,
+  logoutUser,
+};

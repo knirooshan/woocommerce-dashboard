@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { Plus, FileText, Eye, Edit, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -7,9 +8,9 @@ import { formatCurrency } from "../utils/currency";
 
 const Quotations = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const navigate = useNavigate();
   const [quotations, setQuotations] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,13 +22,9 @@ const Quotations = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [quotationsRes, settingsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/quotations", config),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
+      const quotationsRes = await axios.get(ENDPOINTS.QUOTATIONS, config);
 
       setQuotations(quotationsRes.data);
-      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -48,10 +45,7 @@ const Quotations = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(
-        `http://localhost:5000/api/quotations/${quotationId}`,
-        config
-      );
+      await axios.delete(ENDPOINTS.QUOTATION_BY_ID(quotationId), config);
       fetchData(); // Refresh data
       alert("Quotation deleted successfully");
     } catch (error) {
@@ -60,7 +54,7 @@ const Quotations = () => {
     }
   };
 
-  if (loading) return <div>Loading quotations...</div>;
+  if (loading) return <div className="text-white">Loading quotations...</div>;
 
   return (
     <div className="space-y-6">

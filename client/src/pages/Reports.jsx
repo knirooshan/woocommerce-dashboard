@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import {
   BarChart,
   Bar,
@@ -15,9 +16,9 @@ import { formatCurrency } from "../utils/currency";
 
 const Reports = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [stats, setStats] = useState(null);
   const [salesData, setSalesData] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,13 +26,11 @@ const Reports = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [statsRes, salesRes, settingsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/reports/dashboard", config),
-          axios.get("http://localhost:5000/api/reports/sales", config),
-          axios.get("http://localhost:5000/api/settings", config),
+        const [salesRes, statsRes] = await Promise.all([
+          axios.get(ENDPOINTS.REPORTS_SALES, config),
+          axios.get(ENDPOINTS.DASHBOARD_STATS, config),
         ]);
         setStats(statsRes.data);
-        setSettings(settingsRes.data);
 
         // Format sales data for chart
         // The backend now returns merged data with sales, expenses, and profit
@@ -46,7 +45,7 @@ const Reports = () => {
     fetchData();
   }, [user.token]);
 
-  if (loading) return <div>Loading reports...</div>;
+  if (loading) return <div className="text-white">Loading reports...</div>;
 
   return (
     <div className="space-y-6">

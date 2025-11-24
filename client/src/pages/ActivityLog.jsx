@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS, API_URL } from "../config/api";
 import { useSelector } from "react-redux";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -21,7 +22,7 @@ const ActivityLog = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.get(
-        `http://localhost:5000/api/activity-logs?pageNumber=${pageNumber}`,
+        `${API_URL}/activity-logs?pageNumber=${pageNumber}`,
         config
       );
       setLogs(data.logs);
@@ -66,9 +67,6 @@ const ActivityLog = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Action
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  IP Address
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   User Agent
@@ -118,9 +116,6 @@ const ActivityLog = () => {
                         {log.method}
                       </span>
                       <span className="ml-2 text-slate-300">{log.url}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                      {log.ip}
                     </td>
                     <td
                       className="px-6 py-4 text-sm text-slate-400 truncate max-w-xs"

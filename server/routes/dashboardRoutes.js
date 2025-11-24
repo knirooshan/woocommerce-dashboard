@@ -6,6 +6,7 @@ const Customer = require("../models/Customer");
 const Product = require("../models/Product");
 const Expense = require("../models/Expense");
 const Payment = require("../models/Payment");
+const ActivityLog = require("../models/ActivityLog");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
@@ -87,14 +88,14 @@ router.get("/stats", protect, async (req, res) => {
   }
 });
 
-// @desc    Get weekly sales for chart
+// @desc    Get monthly sales for chart
 // @route   GET /api/dashboard/chart
 // @access  Private
 router.get("/chart", protect, async (req, res) => {
   try {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 6); // Last 7 days
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
 
     const sales = await Payment.aggregate([
       {
@@ -112,20 +113,36 @@ router.get("/chart", protect, async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Fill in missing days
+    // Fill in missing days for the entire month
     const chartData = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split("T")[0];
-      const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+      const dayNum = d.getDate();
       const dayData = sales.find((s) => s._id === dateStr);
       chartData.push({
-        name: dayName,
+        name: dayNum.toString(),
         date: dateStr,
         sales: dayData ? dayData.sales : 0,
       });
     }
 
     res.json(chartData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Get recent activities
+// @route   GET /api/dashboard/activities
+// @access  Private
+router.get("/activities", protect, async (req, res) => {
+  try {
+    const logs = await ActivityLog.find({})
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    res.json(logs);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

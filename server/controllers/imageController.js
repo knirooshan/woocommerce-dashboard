@@ -1,4 +1,5 @@
 const axios = require("axios");
+const sharp = require("sharp");
 
 // @desc    Convert image URL to base64
 // @route   POST /api/images/to-base64
@@ -22,15 +23,33 @@ const urlToBase64 = async (req, res) => {
       timeout: 10000,
     });
 
-    // Convert to base64
-    const base64 = Buffer.from(response.data, "binary").toString("base64");
-
     // Get content type from response headers
-    const contentType =
-      response.headers["content-type"] || "image/png";
+    const contentType = response.headers["content-type"] || "image/png";
+
+    // Convert WebP to JPEG for better PDF compatibility
+    let imageBuffer = Buffer.from(response.data);
+    let finalContentType = contentType;
+
+    if (contentType === "image/webp" || contentType.includes("webp")) {
+      try {
+        imageBuffer = await sharp(imageBuffer)
+          .jpeg({ quality: 85 })
+          .toBuffer();
+        finalContentType = "image/jpeg";
+      } catch (sharpError) {
+        console.log(
+          "Sharp conversion failed, using original image:",
+          sharpError.message
+        );
+        // If sharp fails, use original image
+      }
+    }
+
+    // Convert to base64
+    const base64 = imageBuffer.toString("base64");
 
     // Create data URL
-    const dataURL = `data:${contentType};base64,${base64}`;
+    const dataURL = `data:${finalContentType};base64,${base64}`;
 
     res.json({ base64: dataURL });
   } catch (error) {

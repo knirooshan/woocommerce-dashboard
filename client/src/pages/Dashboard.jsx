@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { DollarSign, ShoppingBag, Users, Package } from "lucide-react";
 import StatsCard from "../components/StatsCard";
 import SalesChart from "../components/SalesChart";
@@ -8,9 +9,10 @@ import { formatCurrency } from "../utils/currency";
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [stats, setStats] = useState(null);
-  const [settings, setSettings] = useState(null);
   const [chartData, setChartData] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,16 +24,16 @@ const Dashboard = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // Fetch stats, settings, and chart data in parallel
-      const [statsRes, settingsRes, chartRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/dashboard/stats", config),
-        axios.get("http://localhost:5000/api/settings", config),
-        axios.get("http://localhost:5000/api/dashboard/chart", config),
+      // Fetch stats, chart data, and activities in parallel
+      const [statsRes, chartRes, activitiesRes] = await Promise.all([
+        axios.get(ENDPOINTS.DASHBOARD_STATS, config),
+        axios.get(ENDPOINTS.DASHBOARD_CHART, config),
+        axios.get(ENDPOINTS.DASHBOARD_ACTIVITIES, config),
       ]);
 
       setStats(statsRes.data);
-      setSettings(settingsRes.data);
       setChartData(chartRes.data);
+      setActivities(activitiesRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -121,6 +123,76 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Recent Activities - Admin Only */}
+      {user?.role === "admin" && (
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
+          <h3 className="text-lg font-bold text-white mb-4">
+            Recent Activities
+          </h3>
+          <div className="space-y-3">
+            {activities.length > 0 ? (
+              activities.map((activity, index) => {
+                const method = activity.method;
+                const url = activity.url || "";
+                const userName = activity.user?.name || "System";
+
+                // Determine icon and color based on method
+                let activityIcon = Package;
+                let activityColor = "bg-slate-500/20 text-slate-400";
+
+                if (method === "POST") {
+                  activityIcon = Package;
+                  activityColor = "bg-green-500/20 text-green-400";
+                } else if (method === "PUT") {
+                  activityIcon = Package;
+                  activityColor = "bg-blue-500/20 text-blue-400";
+                } else if (method === "DELETE") {
+                  activityIcon = Package;
+                  activityColor = "bg-red-500/20 text-red-400";
+                }
+
+                const ActivityIcon = activityIcon;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-slate-800 rounded-lg hover:bg-slate-750 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${activityColor}`}
+                      >
+                        <ActivityIcon size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white font-medium text-sm font-mono">
+                          {method} {url}
+                        </p>
+                        <p className="text-slate-400 text-xs mt-0.5">
+                          {userName} • {activity.ip || "Unknown IP"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-slate-400 text-xs">
+                        {new Date(activity.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-slate-500 text-xs">
+                        {new Date(activity.createdAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-slate-400 text-center py-4">
+                No recent activities
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

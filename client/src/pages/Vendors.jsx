@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { Plus, Edit, Trash, Search } from "lucide-react";
 import { useSelector } from "react-redux";
 import VendorForm from "../components/VendorForm";
@@ -20,10 +21,7 @@ const Vendors = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/vendors",
-        config
-      );
+      const { data } = await axios.get(ENDPOINTS.VENDORS, config);
       setVendors(data);
       setLoading(false);
     } catch (error) {
@@ -47,7 +45,7 @@ const Vendors = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/vendors/${id}`, config);
+        await axios.delete(ENDPOINTS.VENDOR_BY_ID(id), config);
         setVendors(vendors.filter((v) => v._id !== id));
       } catch (error) {
         console.error("Error deleting vendor:", error);
@@ -63,7 +61,7 @@ const Vendors = () => {
 
       if (editingVendor) {
         const { data } = await axios.put(
-          `http://localhost:5000/api/vendors/${editingVendor._id}`,
+          ENDPOINTS.VENDOR_BY_ID(editingVendor._id),
           vendorData,
           config
         );
@@ -72,7 +70,7 @@ const Vendors = () => {
         );
       } else {
         const { data } = await axios.post(
-          "http://localhost:5000/api/vendors",
+          ENDPOINTS.VENDORS,
           vendorData,
           config
         );
@@ -91,7 +89,7 @@ const Vendors = () => {
       vendor.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div>Loading vendors...</div>;
+  if (loading) return <div className="text-white">Loading vendors...</div>;
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { RefreshCw, Search, Plus, Edit, Trash } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
@@ -7,30 +8,13 @@ import ProductForm from "../components/ProductForm";
 
 const Products = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [settings, setSettings] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = user.token;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const settingsRes = await axios.get(
-          "http://localhost:5000/api/settings",
-          config
-        );
-        setSettings(settingsRes.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, [user.token]);
 
   useEffect(() => {
     fetchProducts();
@@ -40,10 +24,7 @@ const Products = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(
-        "http://localhost:5000/api/products",
-        config
-      );
+      const { data } = await axios.get(ENDPOINTS.PRODUCTS, config);
       setProducts(data);
       setLoading(false);
     } catch (error) {
@@ -57,7 +38,7 @@ const Products = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post("http://localhost:5000/api/products/sync", {}, config);
+      await axios.post(ENDPOINTS.PRODUCTS_SYNC, {}, config);
       await fetchProducts(); // Refresh list
     } catch (error) {
       console.error("Error syncing products:", error);
@@ -81,7 +62,7 @@ const Products = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`http://localhost:5000/api/products/${id}`, config);
+        await axios.delete(ENDPOINTS.PRODUCT_BY_ID(id), config);
         setProducts(products.filter((p) => p._id !== id));
       } catch (error) {
         console.error("Error deleting product:", error);
@@ -97,7 +78,7 @@ const Products = () => {
 
       if (editingProduct) {
         const { data } = await axios.put(
-          `http://localhost:5000/api/products/${editingProduct._id}`,
+          ENDPOINTS.PRODUCT_BY_ID(editingProduct._id),
           productData,
           config
         );
@@ -106,7 +87,7 @@ const Products = () => {
         );
       } else {
         const { data } = await axios.post(
-          "http://localhost:5000/api/products",
+          ENDPOINTS.PRODUCTS,
           productData,
           config
         );
@@ -125,7 +106,7 @@ const Products = () => {
       product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div>Loading products...</div>;
+  if (loading) return <div className="text-white">Loading products...</div>;
 
   return (
     <div className="space-y-6">

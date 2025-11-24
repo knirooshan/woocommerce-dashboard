@@ -1,4 +1,4 @@
-import { Trash, ShoppingCart, User } from "lucide-react";
+import { Trash, ShoppingCart, User, Plus } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 
 const POSCart = ({
@@ -9,6 +9,7 @@ const POSCart = ({
   customers,
   selectedCustomer,
   onSelectCustomer,
+  onAddCustomer,
   total,
   subtotal,
   tax,
@@ -24,18 +25,27 @@ const POSCart = ({
           <User size={18} className="mr-2 text-slate-400" />
           <span className="text-sm font-medium text-slate-300">Customer</span>
         </div>
-        <select
-          value={selectedCustomer}
-          onChange={(e) => onSelectCustomer(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-        >
-          <option value="0000-0000-0001">Walk-in Customer</option>
-          {customers.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.firstName} {c.lastName}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2">
+          <select
+            value={selectedCustomer}
+            onChange={(e) => onSelectCustomer(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+          >
+            <option value="0000-0000-0001">Walk-in Customer</option>
+            {customers.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.firstName} {c.lastName}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={onAddCustomer}
+            className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
+            title="Add New Customer"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Cart Items */}

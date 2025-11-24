@@ -92,10 +92,22 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E7EB",
     alignItems: "center",
   },
-  colItem: { width: "45%", paddingLeft: 4 },
+  colItem: {
+    width: "35%",
+    paddingLeft: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  colImage: { width: "10%", paddingLeft: 4 },
   colPrice: { width: "20%", textAlign: "right" },
   colQty: { width: "15%", textAlign: "right" },
   colTotal: { width: "20%", textAlign: "right", paddingRight: 4 },
+  productImage: {
+    width: 30,
+    height: 30,
+    objectFit: "contain",
+    marginRight: 8,
+  },
 
   tableCellHeader: {
     fontSize: 9,
@@ -256,6 +268,9 @@ const QuotationPDF = ({ quotation, settings }) => (
       {/* Items Table */}
       <View style={styles.table}>
         <View style={styles.tableHeader}>
+          <View style={styles.colImage}>
+            <Text style={styles.tableCellHeader}>Image</Text>
+          </View>
           <View style={styles.colItem}>
             <Text style={styles.tableCellHeader}>Item Description</Text>
           </View>
@@ -269,26 +284,37 @@ const QuotationPDF = ({ quotation, settings }) => (
             <Text style={styles.tableCellHeader}>Total</Text>
           </View>
         </View>
-        {quotation.items.map((item, index) => (
-          <View style={styles.tableRow} key={index}>
-            <View style={styles.colItem}>
-              <Text style={styles.tableCell}>{item.name}</Text>
+        {quotation.items.map((item, index) => {
+          return (
+            <View style={styles.tableRow} key={index}>
+              <View style={styles.colImage}>
+                {item.image && (
+                  <Image
+                    style={styles.productImage}
+                    src={item.image}
+                    cache={false}
+                  />
+                )}
+              </View>
+              <View style={styles.colItem}>
+                <Text style={styles.tableCell}>{item.name}</Text>
+              </View>
+              <View style={styles.colPrice}>
+                <Text style={styles.tableCell}>
+                  {formatCurrency(item.price, settings)}
+                </Text>
+              </View>
+              <View style={styles.colQty}>
+                <Text style={styles.tableCell}>{item.quantity}</Text>
+              </View>
+              <View style={styles.colTotal}>
+                <Text style={[styles.tableCell, { fontWeight: "bold" }]}>
+                  {formatCurrency(item.total, settings)}
+                </Text>
+              </View>
             </View>
-            <View style={styles.colPrice}>
-              <Text style={styles.tableCell}>
-                {formatCurrency(item.price, settings)}
-              </Text>
-            </View>
-            <View style={styles.colQty}>
-              <Text style={styles.tableCell}>{item.quantity}</Text>
-            </View>
-            <View style={styles.colTotal}>
-              <Text style={[styles.tableCell, { fontWeight: "bold" }]}>
-                {formatCurrency(item.total, settings)}
-              </Text>
-            </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
       {/* Totals */}
@@ -317,6 +343,14 @@ const QuotationPDF = ({ quotation, settings }) => (
             </Text>
           </View>
         )}
+        {quotation.deliveryCharge > 0 && (
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Delivery Charge</Text>
+            <Text style={styles.totalValue}>
+              {formatCurrency(quotation.deliveryCharge, settings)}
+            </Text>
+          </View>
+        )}
         <View style={styles.grandTotal}>
           <Text style={styles.grandTotalLabel}>Total</Text>
           <Text style={styles.grandTotalValue}>
@@ -326,12 +360,28 @@ const QuotationPDF = ({ quotation, settings }) => (
       </View>
 
       {/* Notes */}
-      {quotation.notes && (
+      {(quotation.notes || quotation.deliveryNote) && (
         <View style={styles.notes}>
-          <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>Notes</Text>
-          <Text style={[styles.text, { fontStyle: "italic" }]}>
-            {quotation.notes}
-          </Text>
+          {quotation.notes && (
+            <View style={{ marginBottom: quotation.deliveryNote ? 10 : 0 }}>
+              <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                Notes
+              </Text>
+              <Text style={[styles.text, { fontStyle: "italic" }]}>
+                {quotation.notes}
+              </Text>
+            </View>
+          )}
+          {quotation.deliveryNote && (
+            <View>
+              <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                Delivery Note
+              </Text>
+              <Text style={[styles.text, { fontStyle: "italic" }]}>
+                {quotation.deliveryNote}
+              </Text>
+            </View>
+          )}
         </View>
       )}
 

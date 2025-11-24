@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ENDPOINTS } from "../config/api";
+import { pdf } from "@react-pdf/renderer";
 import {
   ArrowLeft,
   Download,
@@ -20,27 +21,50 @@ import { urlToBase64 } from "../utils/imageUtils";
 const InvoiceView = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [invoice, setInvoice] = useState(null);
-  const [settings, setSettings] = useState(null);
   const [logoBase64, setLogoBase64] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const fetchData = async () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const [invRes, settingsRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/invoices/${id}`, config),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
-      setInvoice(invRes.data);
-      setSettings(settingsRes.data);
+      const invRes = await axios.get(
+        ENDPOINTS.INVOICE_BY_ID(id),
+        config
+      );
+
+      const invoiceData = invRes.data;
+
+      // Convert product images to base64 for items
+      const itemsWithImages = await Promise.all(
+        invoiceData.items.map(async (item) => {
+          if (item.product?.images && item.product.images.length > 0) {
+            try {
+              const base64Image = await urlToBase64(
+                item.product.images[0],
+                token
+              );
+              return { ...item, image: base64Image };
+            } catch (error) {
+              console.error("Error converting product image to base64:", error);
+              return { ...item, image: null };
+            }
+          }
+          return { ...item, image: null };
+        })
+      );
+
+      invoiceData.items = itemsWithImages;
+      setInvoice(invoiceData);
 
       // Convert logo URL to base64 for PDF
-      if (settingsRes.data?.logo) {
-        const base64Logo = await urlToBase64(settingsRes.data.logo, token);
+      if (settings?.logo) {
+        const base64Logo = await urlToBase64(settings.logo, token);
         setLogoBase64(base64Logo);
       }
 
@@ -53,23 +77,47 @@ const InvoiceView = () => {
 
   useEffect(() => {
     fetchData();
-  }, [id, user.token]);
+  }, [id, user.token, settings]);
 
   const handleSendEmail = async () => {
     if (!window.confirm("Send this invoice to the customer via email?")) return;
     setSendingEmail(true);
     try {
+      // Generate PDF blob from React component
+      const pdfDoc = (
+        <InvoicePDF
+          invoice={invoice}
+          settings={{ ...settings, logo: logoBase64 }}
+        />
+      );
+      const blob = await pdf(pdfDoc).toBlob();
+
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64String = reader.result.split(",")[1];
+          resolve(base64String);
+        };
+      });
+      reader.readAsDataURL(blob);
+      const pdfBase64 = await base64Promise;
+
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.post(
-        `http://localhost:5000/api/email/send-invoice/${id}`,
-        {},
+        ENDPOINTS.EMAIL_SEND_INVOICE(id),
+        { pdfBase64 },
         config
       );
       alert("Email sent successfully!");
     } catch (error) {
       console.error("Error sending email:", error);
-      alert("Failed to send email. Please check SMTP settings.");
+      alert(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to send email. Please check SMTP settings."
+      );
     } finally {
       setSendingEmail(false);
     }
@@ -80,7 +128,7 @@ const InvoiceView = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.post(
-        "http://localhost:5000/api/payments",
+        ENDPOINTS.PAYMENTS,
         paymentData,
         config
       );
@@ -102,8 +150,8 @@ const InvoiceView = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put(
-        `http://localhost:5000/api/invoices/${id}/write-off`,
+      await axios.post(
+        ENDPOINTS.INVOICE_WRITE_OFF(id),
         {},
         config
       );
@@ -114,7 +162,61 @@ const InvoiceView = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handleDownloadInvoicePDF = async () => {
+    setDownloadingPDF(true);
+    try {
+      const pdfDoc = (
+        <InvoicePDF
+          invoice={invoice}
+          settings={{ ...settings, logo: logoBase64 }}
+        />
+      );
+      const blob = await pdf(pdfDoc).toBlob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading invoice PDF:", error);
+      alert("Failed to download invoice PDF. Please try again.");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
+  const handleDownloadDeliveryReceipt = async () => {
+    setDownloadingPDF(true);
+    try {
+      const pdfDoc = (
+        <DeliveryReceiptPDF
+          invoice={invoice}
+          settings={{ ...settings, logo: logoBase64 }}
+        />
+      );
+      const blob = await pdf(pdfDoc).toBlob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${invoice.invoiceNumber}-delivery-receipt.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading delivery receipt:", error);
+      alert("Failed to download delivery receipt. Please try again.");
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
+  if (loading) return <div className="text-white">Loading...</div>;
   if (!invoice) return <div>Invoice not found</div>;
 
   const balanceDue =
@@ -132,65 +234,45 @@ const InvoiceView = () => {
           <ArrowLeft className="mr-2 h-5 w-5" /> Back to Invoices
         </Link>
         <div className="flex gap-4">
-          {balanceDue > 0 && !invoice.isWrittenOff && (
-            <>
-              <button
-                onClick={handleWriteOff}
-                className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              >
-                <XCircle className="mr-2 h-5 w-5" />
-                Write Off
-              </button>
-            </>
+          {balanceDue > 0 &&
+            !invoice.isWrittenOff &&
+            user?.role === "admin" && (
+              <>
+                <button
+                  onClick={handleWriteOff}
+                  className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                >
+                  <XCircle className="mr-2 h-5 w-5" />
+                  Write Off
+                </button>
+              </>
+            )}
+          {invoice?.customer?.email && (
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
+            >
+              <Mail className="mr-2 h-5 w-5" />
+              {sendingEmail ? "Sending..." : "Send Email"}
+            </button>
           )}
           <button
-            onClick={handleSendEmail}
-            disabled={sendingEmail}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors disabled:opacity-50"
+            onClick={handleDownloadInvoicePDF}
+            disabled={downloadingPDF}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            <Mail className="mr-2 h-5 w-5" />
-            {sendingEmail ? "Sending..." : "Send Email"}
+            <Download className="mr-2 h-5 w-5" />
+            {downloadingPDF ? "Generating..." : "Invoice"}
           </button>
-          <PDFDownloadLink
-            document={
-              <InvoicePDF
-                invoice={invoice}
-                settings={{ ...settings, logo: logoBase64 }}
-              />
-            }
-            fileName={`${invoice.invoiceNumber}.pdf`}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          <button
+            onClick={handleDownloadDeliveryReceipt}
+            disabled={downloadingPDF}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
           >
-            {({ blob, url, loading, error }) =>
-              loading ? (
-                "Generating PDF..."
-              ) : (
-                <>
-                  <Download className="mr-2 h-5 w-5" /> Invoice
-                </>
-              )
-            }
-          </PDFDownloadLink>
-          <PDFDownloadLink
-            document={
-              <DeliveryReceiptPDF
-                invoice={invoice}
-                settings={{ ...settings, logo: logoBase64 }}
-              />
-            }
-            fileName={`DR-${invoice.invoiceNumber}.pdf`}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-          >
-            {({ blob, url, loading, error }) =>
-              loading ? (
-                "Generating DR..."
-              ) : (
-                <>
-                  <Truck className="mr-2 h-5 w-5" /> Delivery Receipt
-                </>
-              )
-            }
-          </PDFDownloadLink>
+            <Truck className="mr-2 h-5 w-5" />
+            Delivery Receipt
+          </button>
         </div>
       </div>
 
@@ -271,6 +353,7 @@ const InvoiceView = () => {
         <table className="min-w-full mb-8">
           <thead>
             <tr className="border-b-2 border-slate-200">
+              <th className="text-left py-3 text-slate-600 w-20">Image</th>
               <th className="text-left py-3 text-slate-600">Item</th>
               <th className="text-right py-3 text-slate-600">Price</th>
               <th className="text-right py-3 text-slate-600">Qty</th>
@@ -280,6 +363,16 @@ const InvoiceView = () => {
           <tbody>
             {invoice.items.map((item, index) => (
               <tr key={index} className="border-b border-slate-200">
+                <td className="py-3">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-12 h-12 object-contain"
+                      onError={(e) => (e.target.style.display = "none")}
+                    />
+                  )}
+                </td>
                 <td className="py-3 text-slate-900">{item.name}</td>
                 <td className="text-right py-3 text-slate-600">
                   {formatCurrency(item.price, settings)}
@@ -318,6 +411,14 @@ const InvoiceView = () => {
               <span className="text-slate-600">Discount:</span>
               <span className="text-slate-900">
                 -{formatCurrency(invoice.discount, settings)}
+              </span>
+            </div>
+          )}
+          {invoice.deliveryCharge > 0 && (
+            <div className="flex justify-between w-64">
+              <span className="text-slate-600">Delivery Charge:</span>
+              <span className="text-slate-900">
+                {formatCurrency(invoice.deliveryCharge, settings)}
               </span>
             </div>
           )}
@@ -371,10 +472,22 @@ const InvoiceView = () => {
         )}
 
         {/* Notes */}
-        {invoice.notes && (
+        {(invoice.notes || invoice.deliveryNote) && (
           <div className="mt-8 pt-8 border-t border-slate-200">
-            <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
-            <p className="text-slate-600">{invoice.notes}</p>
+            {invoice.notes && (
+              <div className="mb-4">
+                <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
+                <p className="text-slate-600">{invoice.notes}</p>
+              </div>
+            )}
+            {invoice.deliveryNote && (
+              <div>
+                <h3 className="text-slate-600 font-semibold mb-2">
+                  Delivery Note:
+                </h3>
+                <p className="text-slate-600">{invoice.deliveryNote}</p>
+              </div>
+            )}
           </div>
         )}
       </div>

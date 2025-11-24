@@ -1,32 +1,33 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { useSelector } from "react-redux";
 import POSProductGrid from "../components/POSProductGrid";
 import POSCart from "../components/POSCart";
+import CustomerForm from "../components/CustomerForm";
 
 const POS = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [products, setProducts] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [cart, setCart] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [discount, setDiscount] = useState(0);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [prodRes, custRes, settingsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/products", config),
-          axios.get("http://localhost:5000/api/customers", config),
-          axios.get("http://localhost:5000/api/settings", config),
+        const [prodRes, custRes] = await Promise.all([
+          axios.get(ENDPOINTS.PRODUCTS, config),
+          axios.get(ENDPOINTS.CUSTOMERS, config),
         ]);
         setProducts(prodRes.data);
         setCustomers(custRes.data);
-        setSettings(settingsRes.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -102,11 +103,7 @@ const POS = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        "http://localhost:5000/api/invoices",
-        invoiceData,
-        config
-      );
+      await axios.post(ENDPOINTS.INVOICES, invoiceData, config);
       alert("Order completed successfully!");
       setCart([]);
       setDiscount(0);
@@ -117,9 +114,27 @@ const POS = () => {
     }
   };
 
+  const handleSaveCustomer = async (customerData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.CUSTOMERS,
+        customerData,
+        config
+      );
+      setCustomers([...customers, data]);
+      setSelectedCustomer(data._id);
+      setShowCustomerModal(false);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      alert("Error creating customer");
+    }
+  };
+
   const { subtotal, tax, total } = calculateTotals();
 
-  if (loading) return <div>Loading POS...</div>;
+  if (loading) return <div className="text-white">Loading POS...</div>;
 
   return (
     <div className="flex h-[calc(100vh-100px)] gap-6">
@@ -137,6 +152,7 @@ const POS = () => {
           customers={customers}
           selectedCustomer={selectedCustomer}
           onSelectCustomer={setSelectedCustomer}
+          onAddCustomer={() => setShowCustomerModal(true)}
           total={total}
           subtotal={subtotal}
           tax={tax}
@@ -145,6 +161,13 @@ const POS = () => {
           settings={settings}
         />
       </div>
+
+      {showCustomerModal && (
+        <CustomerForm
+          onClose={() => setShowCustomerModal(false)}
+          onSave={handleSaveCustomer}
+        />
+      )}
     </div>
   );
 };

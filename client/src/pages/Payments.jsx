@@ -5,11 +5,12 @@ import { formatCurrency } from "../utils/currency";
 import { Edit, Trash2, Plus } from "lucide-react";
 import PaymentModal from "../components/PaymentModal";
 import ReasonModal from "../components/ReasonModal";
+import { ENDPOINTS } from "../config/api";
 
 const Payments = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [payments, setPayments] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
@@ -28,17 +29,13 @@ const Payments = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const [paymentsRes, settingsRes] = await Promise.all([
-        axios.get(
-          `http://localhost:5000/api/payments?pageNumber=${page}`,
-          config
-        ),
-        axios.get("http://localhost:5000/api/settings", config),
-      ]);
+      const paymentsRes = await axios.get(
+        `${ENDPOINTS.PAYMENTS}?pageNumber=${page}`,
+        config
+      );
 
       setPayments(paymentsRes.data.payments);
       setPages(paymentsRes.data.pages);
-      setSettings(settingsRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -56,7 +53,7 @@ const Payments = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`http://localhost:5000/api/payments/${id}`, config);
+      await axios.delete(ENDPOINTS.PAYMENT_BY_ID(id), config);
       fetchData();
     } catch (error) {
       console.error("Error deleting payment:", error);
@@ -92,11 +89,7 @@ const Payments = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.post(
-          "http://localhost:5000/api/payments",
-          paymentData,
-          config
-        );
+        await axios.post(ENDPOINTS.PAYMENTS, paymentData, config);
         setIsPaymentModalOpen(false);
         setSelectedPayment(null);
         setSelectedInvoice(null);
@@ -113,7 +106,7 @@ const Payments = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put(
-        `http://localhost:5000/api/payments/${selectedPayment._id}`,
+        ENDPOINTS.PAYMENT_BY_ID(selectedPayment._id),
         {
           ...pendingPaymentData,
           editReason: reason,
@@ -133,7 +126,7 @@ const Payments = () => {
     }
   };
 
-  if (loading) return <div>Loading payments...</div>;
+  if (loading) return <div className="text-white">Loading payments...</div>;
 
   return (
     <div className="space-y-6">
@@ -204,12 +197,14 @@ const Payments = () => {
                     >
                       <Edit className="h-5 w-5" />
                     </button>
-                    <button
-                      onClick={() => handleDelete(payment._id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDelete(payment._id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

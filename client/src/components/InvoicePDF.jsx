@@ -92,10 +92,22 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E7EB",
     alignItems: "center",
   },
-  colItem: { width: "45%", paddingLeft: 4 },
+  colItem: {
+    width: "35%",
+    paddingLeft: 4,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  colImage: { width: "10%", paddingLeft: 4 },
   colPrice: { width: "20%", textAlign: "right" },
   colQty: { width: "15%", textAlign: "right" },
   colTotal: { width: "20%", textAlign: "right", paddingRight: 4 },
+  productImage: {
+    width: 30,
+    height: 30,
+    objectFit: "contain",
+    marginRight: 8,
+  },
 
   tableCellHeader: {
     fontSize: 9,
@@ -284,6 +296,9 @@ const InvoicePDF = ({ invoice, settings }) => {
         {/* Items Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
+            <View style={styles.colImage}>
+              <Text style={styles.tableCellHeader}>Image</Text>
+            </View>
             <View style={styles.colItem}>
               <Text style={styles.tableCellHeader}>Item Description</Text>
             </View>
@@ -299,6 +314,15 @@ const InvoicePDF = ({ invoice, settings }) => {
           </View>
           {invoice.items.map((item, index) => (
             <View style={styles.tableRow} key={index}>
+              <View style={styles.colImage}>
+                {item.image && (
+                  <Image
+                    style={styles.productImage}
+                    src={item.image}
+                    cache={false}
+                  />
+                )}
+              </View>
               <View style={styles.colItem}>
                 <Text style={styles.tableCell}>{item.name}</Text>
               </View>
@@ -345,6 +369,14 @@ const InvoicePDF = ({ invoice, settings }) => {
               </Text>
             </View>
           )}
+          {invoice.deliveryCharge > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Delivery Charge</Text>
+              <Text style={styles.totalValue}>
+                {formatCurrency(invoice.deliveryCharge, settings)}
+              </Text>
+            </View>
+          )}
           <View style={styles.grandTotal}>
             <Text style={styles.grandTotalLabel}>Total</Text>
             <Text style={styles.grandTotalValue}>
@@ -353,7 +385,7 @@ const InvoicePDF = ({ invoice, settings }) => {
           </View>
           {(amountPaid > 0 || invoice.status === "paid") && (
             <>
-              <View style={styles.totalRow}>
+              <View style={[styles.totalRow, { marginTop: 8 }]}>
                 <Text style={styles.totalLabel}>Amount Paid</Text>
                 <Text style={styles.totalValue}>
                   {formatCurrency(amountPaid, settings)}
@@ -372,14 +404,28 @@ const InvoicePDF = ({ invoice, settings }) => {
         </View>
 
         {/* Notes */}
-        {invoice.notes && (
+        {(invoice.notes || invoice.deliveryNote) && (
           <View style={styles.notes}>
-            <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
-              Notes
-            </Text>
-            <Text style={[styles.text, { fontStyle: "italic" }]}>
-              {invoice.notes}
-            </Text>
+            {invoice.notes && (
+              <View style={{ marginBottom: invoice.deliveryNote ? 10 : 0 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  Notes
+                </Text>
+                <Text style={[styles.text, { fontStyle: "italic" }]}>
+                  {invoice.notes}
+                </Text>
+              </View>
+            )}
+            {invoice.deliveryNote && (
+              <View>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  Delivery Note
+                </Text>
+                <Text style={[styles.text, { fontStyle: "italic" }]}>
+                  {invoice.deliveryNote}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/slices/authSlice";
+import { fetchSettings } from "../store/slices/settingsSlice";
+import { ENDPOINTS } from "../config/api";
 import axios from "axios";
 import { Lock, Mail } from "lucide-react";
 
@@ -19,15 +21,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
+      const { data } = await axios.post(ENDPOINTS.AUTH_LOGIN, {
           email,
           password,
         }
       );
 
       dispatch(setUser(data));
+      await dispatch(fetchSettings());
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid email or password");

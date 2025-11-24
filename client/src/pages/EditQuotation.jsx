@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { ENDPOINTS } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import CustomerForm from "../components/CustomerForm";
 
 const EditQuotation = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const navigate = useNavigate();
   const { id } = useParams();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
 
   const [formData, setFormData] = useState({
     customer: "",
@@ -22,6 +25,8 @@ const EditQuotation = () => {
     validUntil: "",
     taxRate: 0,
     discount: 0,
+    deliveryCharge: 0,
+    deliveryNote: "",
   });
 
   useEffect(() => {
@@ -29,15 +34,13 @@ const EditQuotation = () => {
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const [custRes, prodRes, settingsRes, quoteRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/customers", config),
-          axios.get("http://localhost:5000/api/products", config),
-          axios.get("http://localhost:5000/api/settings", config),
-          axios.get(`http://localhost:5000/api/quotations/${id}`, config),
+        const [custRes, prodRes, quoteRes] = await Promise.all([
+          axios.get(ENDPOINTS.CUSTOMERS, config),
+          axios.get(ENDPOINTS.PRODUCTS, config),
+          axios.get(ENDPOINTS.QUOTATION_BY_ID(id), config),
         ]);
         setCustomers(custRes.data);
         setProducts(prodRes.data);
-        setSettings(settingsRes.data);
 
         const quotation = quoteRes.data;
         setFormData({
@@ -61,13 +64,15 @@ const EditQuotation = () => {
             : "",
           taxRate: (quotation.tax / quotation.subtotal) * 100 || 0,
           discount: quotation.discount || 0,
+          deliveryCharge: quotation.deliveryCharge || 0,
+          deliveryNote: quotation.deliveryNote || "",
         });
 
         // If we can't calculate tax rate easily (e.g. subtotal is 0), use settings default or 0
         if (quotation.subtotal === 0) {
           setFormData((prev) => ({
             ...prev,
-            taxRate: settingsRes.data?.tax?.rate || 0,
+            taxRate: settings?.tax?.rate || 0,
           }));
         } else {
           // Calculate rate from tax amount and subtotal to be precise enough for the UI
@@ -82,7 +87,7 @@ const EditQuotation = () => {
       }
     };
     fetchData();
-  }, [user.token, id]);
+  }, [user.token, id, settings]);
 
   const addItem = () => {
     setFormData((prev) => ({
@@ -119,7 +124,8 @@ const EditQuotation = () => {
   const calculateTotals = () => {
     const subtotal = formData.items.reduce((sum, item) => sum + item.total, 0);
     const tax = subtotal * (formData.taxRate / 100);
-    const total = subtotal + tax - formData.discount;
+    const total =
+      subtotal + tax - formData.discount + (formData.deliveryCharge || 0);
     return { subtotal, tax, total };
   };
 
@@ -131,7 +137,7 @@ const EditQuotation = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put(
-        `http://localhost:5000/api/quotations/${id}`,
+        ENDPOINTS.QUOTATION_BY_ID(id),
         {
           ...formData,
           ...totals,
@@ -144,9 +150,27 @@ const EditQuotation = () => {
     }
   };
 
+  const handleSaveCustomer = async (customerData) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.CUSTOMERS,
+        customerData,
+        config
+      );
+      setCustomers([...customers, data]);
+      setFormData({ ...formData, customer: data._id });
+      setShowCustomerModal(false);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      alert("Error creating customer");
+    }
+  };
+
   const { subtotal, tax, total } = calculateTotals();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-white">Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -160,21 +184,31 @@ const EditQuotation = () => {
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Select Customer
               </label>
-              <select
-                value={formData.customer}
-                onChange={(e) =>
-                  setFormData({ ...formData, customer: e.target.value })
-                }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
-                required
-              >
-                <option value="">Select a customer...</option>
-                {customers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.firstName} {c.lastName} ({c.email})
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  value={formData.customer}
+                  onChange={(e) =>
+                    setFormData({ ...formData, customer: e.target.value })
+                  }
+                  className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
+                  required
+                >
+                  <option value="">Select a customer...</option>
+                  {customers.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.firstName} {c.lastName} ({c.email})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
+                  title="Add New Customer"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
@@ -331,10 +365,56 @@ const EditQuotation = () => {
                 className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
               />
             </div>
+            <div className="flex justify-between w-64 items-center">
+              <span className="text-slate-400">Delivery Charge:</span>
+              <input
+                type="number"
+                value={formData.deliveryCharge}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    deliveryCharge: parseFloat(e.target.value) || 0,
+                  })
+                }
+                className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-right text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+              />
+            </div>
             <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t border-slate-800 text-white">
               <span>Total:</span>
               <span>{formatCurrency(total, settings)}</span>
             </div>
+          </div>
+        </div>
+
+        {/* Notes Section */}
+        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Notes
+            </label>
+            <textarea
+              value={formData.notes}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
+              rows={3}
+              placeholder="Add any additional notes or terms..."
+              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Delivery Note
+            </label>
+            <textarea
+              value={formData.deliveryNote}
+              onChange={(e) =>
+                setFormData({ ...formData, deliveryNote: e.target.value })
+              }
+              rows={2}
+              placeholder="Add delivery instructions or notes..."
+              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
 
@@ -348,6 +428,13 @@ const EditQuotation = () => {
           </button>
         </div>
       </form>
+
+      {showCustomerModal && (
+        <CustomerForm
+          onClose={() => setShowCustomerModal(false)}
+          onSave={handleSaveCustomer}
+        />
+      )}
     </div>
   );
 };

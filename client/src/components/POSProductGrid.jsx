@@ -2,30 +2,10 @@ import { Search } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios";
 
 const POSProductGrid = ({ products, onAddToCart }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [settings, setSettings] = useState(null);
-
-  const { user } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = user.token;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const settingsRes = await axios.get(
-          "http://localhost:5000/api/settings",
-          config
-        );
-        setSettings(settingsRes.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, [user.token]);
+  const { data: settings } = useSelector((state) => state.settings);
 
   const filteredProducts = products.filter(
     (product) =>
