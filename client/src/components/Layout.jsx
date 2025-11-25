@@ -87,11 +87,12 @@ const Layout = () => {
       {/* Sidebar */}
       <aside
         className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out
-                ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-                lg:relative lg:translate-x-0
-                border-r border-slate-800
-            `}
+            fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            lg:relative lg:translate-x-0
+            border-r border-slate-800
+            flex flex-col
+        `}
       >
         <div className="flex items-center justify-between h-16 px-6 bg-slate-950 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -106,7 +107,7 @@ const Layout = () => {
           </button>
         </div>
 
-        <nav className="px-4 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -129,7 +130,7 @@ const Layout = () => {
           })}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-slate-800">
+        <div className="mt-auto w-full p-4 border-t border-slate-800">
           <button
             onClick={handleLogout}
             className="flex items-center w-full px-4 py-3 text-sm font-medium text-slate-400 rounded-md hover:bg-slate-800 hover:text-white transition-colors"

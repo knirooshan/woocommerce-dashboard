@@ -562,6 +562,9 @@ server {
     listen [::]:80;
     server_name dashboard.ceyloncanecrafts.lk;
 
+   # Prevent search engines from indexing this site
+   add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+
     # For Let's Encrypt challenges
     location /.well-known/acme-challenge/ {
         root /var/www/dashboard.ceyloncanecrafts.lk/client/dist;
