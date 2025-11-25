@@ -7,8 +7,8 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Activity Logger (should be after body parser and before routes)
 // We need to ensure auth middleware runs first if we want user info, but auth is usually per-route.
@@ -39,6 +39,10 @@ app.use("/api/pdf", require("./routes/pdfRoutes"));
 app.use("/api/vendors", require("./routes/vendorRoutes"));
 app.use("/api/activity-logs", require("./routes/activityLogRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
+app.use("/api/media", require("./routes/mediaRoutes"));
+
+// Serve static files from uploads directory
+app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
 
 app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");

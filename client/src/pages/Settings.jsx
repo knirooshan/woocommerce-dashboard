@@ -6,6 +6,8 @@ import { Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchSettings } from "../store/slices/settingsSlice";
 
+import MediaLibraryModal from "../components/MediaLibraryModal";
+
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
   const { data: settings, loading: settingsLoading } = useSelector(
@@ -15,6 +17,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
 
   const [formData, setFormData] = useState({
     storeName: "",
@@ -52,6 +55,10 @@ const Settings = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: val }));
     }
+  };
+
+  const handleLogoSelect = (media) => {
+    setFormData((prev) => ({ ...prev, logo: media.url }));
   };
 
   const handleSubmit = async (e) => {
@@ -134,19 +141,36 @@ const Settings = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300">
-                Logo URL
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Logo
               </label>
-              <input
-                type="text"
-                name="logo"
-                value={formData.logo}
-                onChange={handleChange}
-                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
-              />
+              <div className="flex items-center gap-4">
+                {formData.logo && (
+                  <div className="h-16 w-16 bg-slate-800 rounded-md overflow-hidden border border-slate-700">
+                    <img
+                      src={formData.logo}
+                      alt="Store Logo"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowMediaLibrary(true)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-md hover:bg-slate-700 hover:text-white transition-colors text-sm"
+                >
+                  {formData.logo ? "Change Logo" : "Select Logo"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
+        <MediaLibraryModal
+          isOpen={showMediaLibrary}
+          onClose={() => setShowMediaLibrary(false)}
+          onSelect={handleLogoSelect}
+        />
 
         {/* Address & Contact */}
         <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">

@@ -1,0 +1,74 @@
+Subject: Hosting Requirements for Node.js + React Application
+
+Hi,
+
+I need to host a full-stack web application and would like to know the best hosting option from your services.
+
+APPLICATION DETAILS:
+- Frontend: React.js SPA (static files)
+- Backend: Node.js 18+ with Express.js (runs on port 5000)
+- Database: MongoDB (prefer local installation if available, can use Atlas as fallback)
+- Users: 5-50 concurrent users expected
+
+TECHNICAL REQUIREMENTS:
+- Node.js version 18 or higher
+- SSH/Terminal access for npm install
+- Ability to run Node.js app continuously (PM2 or systemd)
+- Reverse proxy support (Apache/Nginx) to forward /api requests
+- SSL certificate (Let's Encrypt acceptable)
+- Outbound HTTPS connections to WooCommerce API
+- .htaccess support OR Nginx configuration
+
+RESOURCES NEEDED:
+- RAM: 1GB minimum (2GB+ if local MongoDB)
+- Storage: 1GB minimum (5-10GB if local MongoDB)
+- Bandwidth: 50-100GB/month
+- SSL: Required
+- Database: MongoDB (local installation preferred, Atlas fallback)
+
+QUESTIONS:
+
+1. Which hosting plan supports Node.js 18+ applications?
+
+2. Do you offer cPanel or DirectAdmin with Node.js setup tools?
+
+3. Can I use PM2 for process management?
+
+4. DATABASE (IMPORTANT):
+   - Can I install MongoDB locally on the server? (This would be ideal)
+   - Is MongoDB pre-installed or can I install it myself?
+   - Do you offer managed MongoDB hosting?
+   - If local MongoDB not available, are outbound connections to MongoDB Atlas (port 27017) allowed?
+   - Which database option would you recommend for my use case?
+
+5. What's the deployment process? (FTP, Git, SSH?)
+
+6. Is SSL included or available?
+
+7. What are the costs and any setup fees?
+
+8. Do you provide technical support for Node.js deployments?
+
+9. Are there any bandwidth/storage overage charges?
+
+10. Do you offer automated backups?
+
+BUDGET: $10-50/month (flexible, can go higher if local MongoDB included)
+
+TIMELINE: Ready to deploy within 1-2 weeks
+
+ADDITIONAL INFORMATION:
+- Application is fully developed and tested locally
+- Currently using MongoDB Atlas (free tier) but prefer local MongoDB for better performance
+- WooCommerce integration requires outbound API calls
+- PDF generation and image processing included
+- Need ability to set environment variables securely
+
+Please recommend the most suitable hosting plan and provide:
+- Technical specifications of recommended plan
+- Deployment documentation specific to your hosting
+- Any limitations I should be aware of
+- Pricing breakdown
+- Whether local MongoDB is available/recommended
+
+Thank you for your assistance!

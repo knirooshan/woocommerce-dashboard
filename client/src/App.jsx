@@ -33,6 +33,7 @@ import Vendors from "./pages/Vendors";
 import ActivityLog from "./pages/ActivityLog";
 import Payments from "./pages/Payments";
 import Users from "./pages/Users";
+import MediaLibrary from "./pages/MediaLibrary";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
@@ -117,6 +118,7 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path="/users" element={<Users />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/media-library" element={<MediaLibrary />} />
               <Route path="/activity-log" element={<ActivityLog />} />
             </Route>
           </Route>

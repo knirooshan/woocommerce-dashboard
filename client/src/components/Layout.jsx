@@ -16,6 +16,7 @@ import {
   Monitor,
   DollarSign,
   BarChart3,
+  Image,
 } from "lucide-react";
 
 const Layout = () => {
@@ -43,6 +44,7 @@ const Layout = () => {
     { name: "Vendors", href: "/vendors", icon: Users },
     { name: "Payments", href: "/payments", icon: FileText },
     { name: "Expenses", href: "/expenses", icon: DollarSign },
+    { name: "Media Library", href: "/media-library", icon: Image },
     { name: "Reports", href: "/reports", icon: BarChart3 },
     ...(user?.role === "admin"
       ? [

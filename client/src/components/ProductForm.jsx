@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
+import MediaLibraryModal from "./MediaLibraryModal";
+
 const ProductForm = ({ product, onClose, onSave }) => {
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -9,7 +12,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
     regularPrice: "",
     salePrice: "",
     costPrice: "",
-    images: "",
+    images: [],
     status: "publish",
     description: "",
     shortDescription: "",
@@ -24,7 +27,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
         regularPrice: product.regularPrice || "",
         salePrice: product.salePrice || "",
         costPrice: product.costPrice || "",
-        images: product.images ? product.images.join(",") : "",
+        images: product.images || [],
         status: product.status || "publish",
         description: product.description || "",
         shortDescription: product.shortDescription || "",
@@ -37,6 +40,20 @@ const ProductForm = ({ product, onClose, onSave }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageSelect = (media) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, media.url],
+    }));
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const processedData = {
@@ -45,10 +62,6 @@ const ProductForm = ({ product, onClose, onSave }) => {
       regularPrice: parseFloat(formData.regularPrice) || 0,
       salePrice: parseFloat(formData.salePrice) || 0,
       costPrice: parseFloat(formData.costPrice) || 0,
-      images: formData.images
-        .split(",")
-        .map((url) => url.trim())
-        .filter((url) => url),
     };
     onSave(processedData);
   };
@@ -151,16 +164,39 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
-              Image URLs (comma separated)
+              Images
             </label>
-            <input
-              type="text"
-              name="images"
-              value={formData.images}
-              onChange={handleChange}
-              className="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-              placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-            />
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3">
+                {formData.images.map((url, index) => (
+                  <div
+                    key={index}
+                    className="relative group w-24 h-24 border border-slate-700 rounded-md overflow-hidden"
+                  >
+                    <img
+                      src={url}
+                      alt={`Product ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setShowMediaLibrary(true)}
+                  className="w-24 h-24 border-2 border-dashed border-slate-700 rounded-md flex flex-col items-center justify-center text-slate-400 hover:text-white hover:border-slate-500 transition-colors"
+                >
+                  <span className="text-2xl">+</span>
+                  <span className="text-xs">Add Image</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -223,6 +259,12 @@ const ProductForm = ({ product, onClose, onSave }) => {
           </div>
         </form>
       </div>
+
+      <MediaLibraryModal
+        isOpen={showMediaLibrary}
+        onClose={() => setShowMediaLibrary(false)}
+        onSelect={handleImageSelect}
+      />
     </div>
   );
 };
