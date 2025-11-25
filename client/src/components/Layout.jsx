@@ -95,10 +95,14 @@ const Layout = () => {
         `}
       >
         <div className="flex items-center justify-between h-16 px-6 bg-slate-950 border-b border-slate-800">
-          <div className="flex items-center gap-3">
+          <Link
+            to="/"
+            className="flex items-center gap-3"
+            aria-label="Go to dashboard home"
+          >
             <img src="/vite.svg" alt="Logo" className="h-8 w-8" />
             <span className="text-xl font-bold text-white">wooDashboard</span>
-          </div>
+          </Link>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-slate-400 hover:text-white"
