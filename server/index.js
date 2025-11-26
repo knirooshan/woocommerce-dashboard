@@ -48,7 +48,12 @@ app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");
 });
 
+const { initQueueProcessor } = require("./services/emailQueueService");
+
 const PORT = process.env.PORT || 5000;
+
+// Start email queue processor
+initQueueProcessor();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

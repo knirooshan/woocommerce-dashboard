@@ -1,4 +1,4 @@
-const { sendEmail } = require("../services/emailService");
+const { addToQueue } = require("../services/emailQueueService");
 const Invoice = require("../models/Invoice");
 const Quotation = require("../models/Quotation");
 const Settings = require("../models/Settings");
@@ -167,7 +167,13 @@ const sendInvoiceEmail = async (req, res) => {
       },
     ];
 
-    await sendEmail(customerEmail, subject, text, html, attachments);
+    await addToQueue({
+      to: customerEmail,
+      subject,
+      text,
+      html,
+      attachments,
+    });
 
     res.json({ message: "Email sent successfully" });
   } catch (error) {
@@ -342,7 +348,13 @@ const sendQuotationEmail = async (req, res) => {
       },
     ];
 
-    await sendEmail(customerEmail, subject, text, html, attachments);
+    await addToQueue({
+      to: customerEmail,
+      subject,
+      text,
+      html,
+      attachments,
+    });
 
     res.json({ message: "Email sent successfully" });
   } catch (error) {
