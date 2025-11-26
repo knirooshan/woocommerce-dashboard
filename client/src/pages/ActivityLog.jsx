@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ENDPOINTS, API_URL } from "../config/api";
+import { ENDPOINTS } from "../config/api";
 import { useSelector } from "react-redux";
 import { ArrowLeft, RefreshCw, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -25,7 +25,7 @@ const ActivityLog = () => {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.get(
-        `${API_URL}/activity-logs?pageNumber=${pageNumber}`,
+        ENDPOINTS.ACTIVITY_LOGS + `?pageNumber=${pageNumber}`,
         config
       );
       setLogs(data.logs);
