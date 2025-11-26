@@ -69,9 +69,12 @@ export const ENDPOINTS = {
   EMAIL_SEND: `${API_URL}/email/send`,
   EMAIL_SEND_INVOICE: (id) => `${API_URL}/email/send-invoice/${id}`,
   EMAIL_SEND_QUOTATION: (id) => `${API_URL}/email/send-quotation/${id}`,
-  
+
   // Invoice specific
   INVOICE_WRITE_OFF: (id) => `${API_URL}/invoices/${id}/write-off`,
+
+  //Activity Log
+  ACTIVITY_LOGS: `${API_URL}/activity-logs`,
 };
 
 export default API_URL;
