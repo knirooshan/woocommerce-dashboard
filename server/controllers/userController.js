@@ -25,7 +25,7 @@ const createUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Only allow creating manager or staff users
+    // Only allow creating manager or editor users
     if (role === "admin") {
       return res
         .status(403)
@@ -36,7 +36,7 @@ const createUser = async (req, res) => {
       name,
       email,
       password,
-      role: role || "staff",
+      role: role || "editor",
     });
 
     if (user) {

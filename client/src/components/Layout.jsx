@@ -18,6 +18,7 @@ import {
   BarChart3,
   Image,
 } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
@@ -76,6 +77,7 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 flex">
+      <Toaster position="top-right" />
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div

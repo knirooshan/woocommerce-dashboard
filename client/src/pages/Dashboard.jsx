@@ -133,21 +133,21 @@ const Dashboard = () => {
           <div className="space-y-3">
             {activities.length > 0 ? (
               activities.map((activity, index) => {
-                const method = activity.method;
-                const url = activity.url || "";
+                const action = activity.action || "Unknown";
+                const collection = activity.collectionName || "Unknown";
                 const userName = activity.user?.name || "System";
 
-                // Determine icon and color based on method
+                // Determine icon and color based on action
                 let activityIcon = Package;
                 let activityColor = "bg-slate-500/20 text-slate-400";
 
-                if (method === "POST") {
+                if (action === "create") {
                   activityIcon = Package;
                   activityColor = "bg-green-500/20 text-green-400";
-                } else if (method === "PUT") {
+                } else if (action === "update") {
                   activityIcon = Package;
                   activityColor = "bg-blue-500/20 text-blue-400";
-                } else if (method === "DELETE") {
+                } else if (action === "delete") {
                   activityIcon = Package;
                   activityColor = "bg-red-500/20 text-red-400";
                 }
@@ -166,8 +166,8 @@ const Dashboard = () => {
                         <ActivityIcon size={20} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-white font-medium text-sm font-mono">
-                          {method} {url}
+                        <p className="text-white font-medium text-sm font-mono capitalize">
+                          {action} {collection}
                         </p>
                         <p className="text-slate-400 text-xs mt-0.5">
                           {userName} • {activity.ip || "Unknown IP"}

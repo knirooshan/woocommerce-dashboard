@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS, API_URL } from "../config/api";
 import { useSelector } from "react-redux";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import ActivityLogModal from "../components/ActivityLogModal";
 
 const ActivityLog = () => {
   const { user } = useSelector((state) => state.auth);
@@ -11,6 +12,8 @@ const ActivityLog = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchLogs(page);
@@ -68,8 +71,8 @@ const ActivityLog = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Action
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  User Agent
+                <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -104,24 +107,29 @@ const ActivityLog = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          log.method === "GET"
+                          log.action === "create"
                             ? "bg-green-100 text-green-800"
-                            : log.method === "POST"
+                            : log.action === "update"
                             ? "bg-blue-100 text-blue-800"
-                            : log.method === "PUT"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                            : log.action === "delete"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-slate-100 text-slate-800"
                         }`}
                       >
-                        {log.method}
+                        {log.action} {log.collectionName}
                       </span>
-                      <span className="ml-2 text-slate-300">{log.url}</span>
                     </td>
-                    <td
-                      className="px-6 py-4 text-sm text-slate-400 truncate max-w-xs"
-                      title={log.userAgent}
-                    >
-                      {log.userAgent}
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => {
+                          setSelectedLog(log);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -181,6 +189,12 @@ const ActivityLog = () => {
           </div>
         )}
       </div>
+
+      <ActivityLogModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        log={selectedLog}
+      />
     </div>
   );
 };

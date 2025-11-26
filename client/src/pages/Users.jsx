@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { Plus, Edit2, Trash2, X } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Users = () => {
   const { user } = useSelector((state) => state.auth);
@@ -14,14 +16,19 @@ const Users = () => {
     name: "",
     email: "",
     password: "",
-    role: "staff",
+    role: "editor",
   });
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    if (user && user.role !== "admin") {
+      toast.error("Unauthorized access");
+      navigate("/");
+    }
     fetchUsers();
-  }, []);
+  }, [user]);
 
   const fetchUsers = async () => {
     try {
@@ -69,7 +76,7 @@ const Users = () => {
         setSuccess("User created successfully!");
       }
 
-      setFormData({ name: "", email: "", password: "", role: "staff" });
+      setFormData({ name: "", email: "", password: "", role: "editor" });
       setEditingUser(null);
       setShowModal(false);
       fetchUsers();
@@ -126,7 +133,7 @@ const Users = () => {
         <button
           onClick={() => {
             setEditingUser(null);
-            setFormData({ name: "", email: "", password: "", role: "staff" });
+            setFormData({ name: "", email: "", password: "", role: "editor" });
             setShowModal(true);
           }}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -235,7 +242,7 @@ const Users = () => {
                     name: "",
                     email: "",
                     password: "",
-                    role: "staff",
+                    role: "editor",
                   });
                 }}
                 className="text-slate-400 hover:text-white"
@@ -302,7 +309,7 @@ const Users = () => {
                   }
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="staff">Staff</option>
+                  <option value="editor">Editor</option>
                   <option value="manager">Manager</option>
                 </select>
               </div>
@@ -317,7 +324,7 @@ const Users = () => {
                       name: "",
                       email: "",
                       password: "",
-                      role: "staff",
+                      role: "editor",
                     });
                   }}
                   className="flex-1 px-4 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-600 transition-colors"

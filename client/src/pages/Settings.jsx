@@ -8,6 +8,8 @@ import { fetchSettings } from "../store/slices/settingsSlice";
 
 import MediaLibraryModal from "../components/MediaLibraryModal";
 
+import { toast } from "react-hot-toast";
+
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
   const { data: settings, loading: settingsLoading } = useSelector(
@@ -33,6 +35,7 @@ const Settings = () => {
 
   useEffect(() => {
     if (user && user.role !== "admin") {
+      toast.error("Unauthorized access");
       navigate("/");
     }
   }, [user, navigate]);
@@ -88,12 +91,14 @@ const Settings = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-white">Store Settings</h1>
         <div className="flex items-center gap-4">
-          <Link
-            to="/activity-log"
-            className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors text-sm font-medium"
-          >
-            View Activity Log
-          </Link>
+          {user?.role === "admin" && (
+            <Link
+              to="/activity-log"
+              className="px-4 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors text-sm font-medium"
+            >
+              View Activity Log
+            </Link>
+          )}
           {message && (
             <span
               className={`px-4 py-2 rounded text-sm ${

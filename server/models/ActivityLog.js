@@ -7,21 +7,38 @@ const activityLogSchema = mongoose.Schema(
       ref: "User",
       required: false,
     },
-    method: {
+    action: {
       type: String,
       required: true,
+      enum: ["create", "update", "delete", "api_call"],
+    },
+    collectionName: {
+      type: String,
+      required: false,
+    },
+    documentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false,
+    },
+    changes: {
+      type: Object,
+      required: false,
+    },
+    method: {
+      type: String,
+      required: false,
     },
     url: {
       type: String,
-      required: true,
+      required: false,
     },
     ip: {
       type: String,
-      required: true,
+      required: false,
     },
     userAgent: {
       type: String,
-      required: true,
+      required: false,
     },
     body: {
       type: Object,
