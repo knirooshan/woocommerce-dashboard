@@ -33,10 +33,7 @@ const InvoiceView = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const invRes = await axios.get(
-        ENDPOINTS.INVOICE_BY_ID(id),
-        config
-      );
+      const invRes = await axios.get(ENDPOINTS.INVOICE_BY_ID(id), config);
 
       const invoiceData = invRes.data;
 
@@ -105,11 +102,7 @@ const InvoiceView = () => {
 
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        ENDPOINTS.EMAIL_SEND_INVOICE(id),
-        { pdfBase64 },
-        config
-      );
+      await axios.post(ENDPOINTS.EMAIL_SEND_INVOICE(id), { pdfBase64 }, config);
       alert("Email sent successfully!");
     } catch (error) {
       console.error("Error sending email:", error);
@@ -127,11 +120,7 @@ const InvoiceView = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        ENDPOINTS.PAYMENTS,
-        paymentData,
-        config
-      );
+      await axios.post(ENDPOINTS.PAYMENTS, paymentData, config);
       setIsPaymentModalOpen(false);
       fetchData(); // Refresh invoice data
     } catch (error) {
@@ -150,12 +139,8 @@ const InvoiceView = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
-        ENDPOINTS.INVOICE_WRITE_OFF(id),
-        {},
-        config
-      );
-      fetchData(); // Refresh invoice data
+      await axios.put(ENDPOINTS.INVOICE_WRITE_OFF(id), {}, config);
+      fetchData();
     } catch (error) {
       console.error("Error writing off invoice:", error);
       alert("Failed to write off invoice");
