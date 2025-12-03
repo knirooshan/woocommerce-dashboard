@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Check } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { ENDPOINTS } from "../config/api";
 
 const MediaGrid = ({ onSelect, selectable = false, refreshTrigger }) => {
   const { user } = useSelector((state) => state.auth);
@@ -21,7 +22,7 @@ const MediaGrid = ({ onSelect, selectable = false, refreshTrigger }) => {
         },
       };
       const response = await axios.get(
-        "http://localhost:5000/api/media",
+        ENDPOINTS.MEDIA,
         config
       );
       setMedia(response.data);
@@ -43,7 +44,7 @@ const MediaGrid = ({ onSelect, selectable = false, refreshTrigger }) => {
           Authorization: `Bearer ${token}`,
         },
       };
-      await axios.delete(`http://localhost:5000/api/media/${id}`, config);
+      await axios.delete(ENDPOINTS.MEDIA_BY_ID(id), config);
       fetchMedia();
     } catch (error) {
       console.error("Error deleting media:", error);

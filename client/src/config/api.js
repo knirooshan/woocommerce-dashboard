@@ -75,6 +75,11 @@ export const ENDPOINTS = {
 
   //Activity Log
   ACTIVITY_LOGS: `${API_URL}/activity-logs`,
+
+  //media
+  MEDIA_UPLOAD: `${API_URL}/media/upload`,
+  MEDIA: `${API_URL}/media`,
+  MEDIA_BY_ID: (id) => `${API_URL}/media/${id}`,
 };
 
 export default API_URL;
