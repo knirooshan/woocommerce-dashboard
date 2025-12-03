@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Upload, X, Loader } from "lucide-react";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { ENDPOINTS } from "../config/api";
 
 const MediaUpload = ({ onUploadComplete }) => {
   const { user } = useSelector((state) => state.auth);
@@ -48,7 +49,7 @@ const MediaUpload = ({ onUploadComplete }) => {
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/media/upload",
+        ENDPOINTS.MEDIA_UPLOAD,
         formData,
         config
       );
