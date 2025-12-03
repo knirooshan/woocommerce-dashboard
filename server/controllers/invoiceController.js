@@ -77,7 +77,7 @@ const createInvoice = async (req, res) => {
     // If invoice status is paid, create a payment record
     if (status === "paid") {
       const Payment = require("../models/Payment");
-      
+
       const payment = new Payment({
         invoice: createdInvoice._id,
         customer: customer,
