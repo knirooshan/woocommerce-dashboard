@@ -83,31 +83,85 @@ const POS = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
     const { subtotal, tax, total } = calculateTotals();
-    const invoiceData = {
-      customer: selectedCustomer || customers[0]?._id,
-      items: cart.map((item) => ({
-        product: item.product,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity,
-      })),
-      subtotal,
-      tax,
-      discount,
-      total,
-      status: "paid",
-      paymentMethod: "Cash",
-      dueDate: new Date(),
-    };
+
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(ENDPOINTS.INVOICES, invoiceData, config);
+
+      // Check if walk-in customer is selected
+      const isWalkIn =
+        !selectedCustomer || selectedCustomer === "0000-0000-0001";
+      const customerId = isWalkIn ? "walk-in" : selectedCustomer;
+      const selectedCustomerData = !isWalkIn
+        ? customers.find((c) => c._id === customerId)
+        : null;
+
+      const orderData = {
+        orderNumber: `POS-${Date.now()}`,
+        customer: customerId,
+        customerInfo: {
+          firstName: selectedCustomerData?.firstName || "Walk-in",
+          lastName: selectedCustomerData?.lastName || "Customer",
+          email: selectedCustomerData?.email || "",
+          phone: selectedCustomerData?.billing?.phone || "",
+        },
+        items: cart.map((item) => ({
+          productId: item.product,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        subtotal,
+        tax,
+        discount,
+        total,
+        status: "completed",
+        paymentMethod: "Cash",
+        paymentMethodTitle: "Cash Payment",
+        dateCreated: new Date(),
+        datePaid: new Date(),
+        dateCompleted: new Date(),
+      };
+
+      // Create order first (this will handle walk-in customer creation)
+      const orderRes = await axios.post(ENDPOINTS.ORDERS, orderData, config);
+
+      // Use the customer from the created order for the invoice
+      const invoiceData = {
+        customer: orderRes.data.customer._id || orderRes.data.customer,
+        items: cart.map((item) => ({
+          product: item.product,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          total: item.price * item.quantity,
+        })),
+        subtotal,
+        tax,
+        discount,
+        total,
+        status: "paid",
+        paymentMethod: "Cash",
+        dueDate: new Date(),
+      };
+
+      // Create invoice with the actual customer ID
+      const invoiceRes = await axios.post(ENDPOINTS.INVOICES, invoiceData, config);
+
+      // Link invoice to order
+      if (orderRes.data._id && invoiceRes.data._id) {
+        await axios.put(
+          `${ENDPOINTS.ORDERS}/${orderRes.data._id}`,
+          { invoice: invoiceRes.data._id },
+          config
+        );
+      }
+
       alert("Order completed successfully!");
       setCart([]);
       setDiscount(0);
-      setSelectedCustomer("");
+      setSelectedCustomer("0000-0000-0001");
     } catch (error) {
       console.error("Error processing checkout:", error);
       alert("Error processing checkout");

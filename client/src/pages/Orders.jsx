@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { Eye, ExternalLink } from "lucide-react";
+import { Eye, ExternalLink, Trash } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
+import SearchBar from "../components/SearchBar";
+import FilterBar from "../components/FilterBar";
 
 const Orders = () => {
   const { user } = useSelector((state) => state.auth);
@@ -11,17 +13,32 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    status: "all",
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [search, filters]);
 
   const fetchData = async () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      const ordersRes = await axios.get(ENDPOINTS.ORDERS, config);
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (filters.status !== "all") params.append("status", filters.status);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+
+      const ordersRes = await axios.get(
+        `${ENDPOINTS.ORDERS}?${params.toString()}`,
+        config
+      );
 
       setOrders(ordersRes.data);
       setLoading(false);
@@ -29,6 +46,19 @@ const Orders = () => {
       console.error("Error fetching data:", error);
       setLoading(false);
     }
+  };
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilters({
+      status: "all",
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const hasActiveFilters = () => {
+    return search || filters.status !== "all" || filters.startDate || filters.endDate;
   };
 
   const handleSync = async () => {
@@ -42,11 +72,7 @@ const Orders = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.post(
-        ENDPOINTS.ORDERS_SYNC,
-        {},
-        config
-      );
+      const { data } = await axios.post(ENDPOINTS.ORDERS_SYNC, {}, config);
       alert(`Successfully synced ${data.orders.length} orders!`);
       fetchData(); // Refresh the orders list
     } catch (error) {
@@ -57,6 +83,27 @@ const Orders = () => {
       );
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const handleDelete = async (orderId, orderNumber) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete order ${orderNumber}?\n\nThis will permanently delete:\n- The order record\n- Associated invoice\n- All payment records\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(`${ENDPOINTS.ORDERS}/${orderId}`, config);
+      alert("Order deleted successfully");
+      fetchData(); // Refresh the orders list
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      alert(error.response?.data?.message || "Failed to delete order");
     }
   };
 
@@ -90,14 +137,71 @@ const Orders = () => {
           <div className="text-sm text-slate-400">
             {orders.length} total orders
           </div>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {syncing ? "Syncing..." : "Sync from WooCommerce"}
-          </button>
+          {!(settings?.modules?.woocommerce === false) && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {syncing ? "Syncing..." : "Sync from WooCommerce"}
+            </button>
+          )}
         </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search orders..."
+        />
+
+        <FilterBar showReset={hasActiveFilters()} onReset={resetFilters}>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">Status:</label>
+            <select
+              value={filters.status}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="all">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="processing">Processing</option>
+              <option value="pending">Pending</option>
+              <option value="on-hold">On Hold</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">From:</label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) =>
+                setFilters({ ...filters, startDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">To:</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) =>
+                setFilters({ ...filters, endDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+        </FilterBar>
       </div>
 
       <div className="bg-slate-900 shadow rounded-lg overflow-hidden border border-slate-800">
@@ -160,17 +264,30 @@ const Orders = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {order.invoice ? (
-                      <a
-                        href={`/invoices/${order.invoice}`}
-                        className="text-blue-400 hover:text-blue-300 inline-flex items-center"
+                    <div className="flex items-center justify-end gap-3">
+                      {order.invoice ? (
+                        <a
+                          href={`/invoices/${order.invoice}`}
+                          className="text-blue-400 hover:text-blue-300 inline-flex items-center"
+                        >
+                          <Eye className="h-5 w-5 mr-1" />
+                          View Invoice
+                        </a>
+                      ) : (
+                        <span className="text-slate-500 text-xs">
+                          No invoice
+                        </span>
+                      )}
+                      <button
+                        onClick={() =>
+                          handleDelete(order._id, order.orderNumber)
+                        }
+                        className="text-red-400 hover:text-red-300"
+                        title="Delete order"
                       >
-                        <Eye className="h-5 w-5 mr-1" />
-                        View Invoice
-                      </a>
-                    ) : (
-                      <span className="text-slate-500 text-xs">No invoice</span>
-                    )}
+                        <Trash className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -182,26 +299,32 @@ const Orders = () => {
         )}
       </div>
 
-      <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <ExternalLink className="h-5 w-5 text-blue-400" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-400">
-              WooCommerce Orders
-            </h3>
-            <div className="mt-2 text-sm text-slate-400">
-              <p>
-                This page displays orders synced from your WooCommerce store.
-                Click "Sync from WooCommerce" to fetch the latest orders. Make
-                sure your WooCommerce credentials are configured in the server
-                settings.
-              </p>
+      {!(
+        settings &&
+        settings.modules &&
+        settings.modules.woocommerce === false
+      ) && (
+        <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <ExternalLink className="h-5 w-5 text-blue-400" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-400">
+                WooCommerce Orders
+              </h3>
+              <div className="mt-2 text-sm text-slate-400">
+                <p>
+                  This page displays orders synced from your WooCommerce store.
+                  Click "Sync from WooCommerce" to fetch the latest orders. Make
+                  sure your WooCommerce credentials are configured in the server
+                  settings.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

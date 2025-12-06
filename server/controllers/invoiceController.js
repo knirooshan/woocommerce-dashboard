@@ -5,7 +5,37 @@ const Invoice = require("../models/Invoice");
 // @access  Private
 const getInvoices = async (req, res) => {
   try {
-    const invoices = await Invoice.find({ status: { $ne: "deleted" } })
+    const { search, status, customer, startDate, endDate } = req.query;
+
+    // Build filter object
+    const filter = { status: { $ne: "deleted" } };
+
+    // Search in invoice number or notes
+    if (search) {
+      filter.$or = [
+        { invoiceNumber: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by status
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    // Filter by customer
+    if (customer && customer !== "all") {
+      filter.customer = customer;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.invoiceDate = {};
+      if (startDate) filter.invoiceDate.$gte = new Date(startDate);
+      if (endDate) filter.invoiceDate.$lte = new Date(endDate);
+    }
+
+    const invoices = await Invoice.find(filter)
       .populate("customer", "firstName lastName email")
       .populate("payments")
       .sort({ createdAt: -1 });
@@ -40,7 +70,7 @@ const getInvoiceById = async (req, res) => {
 // @access  Private
 const createInvoice = async (req, res) => {
   try {
-    const {
+    let {
       customer,
       items,
       subtotal,
@@ -55,6 +85,31 @@ const createInvoice = async (req, res) => {
       paymentMethod,
       status,
     } = req.body;
+
+    // Check if this is a walk-in customer invoice
+    if (customer === "walk-in") {
+      const Customer = require("../models/Customer");
+      // Find or create walk-in customer
+      let walkInCustomer = await Customer.findOne({
+        email: "walkin@pos.local",
+        firstName: "Walk-in",
+      });
+
+      if (!walkInCustomer) {
+        walkInCustomer = await Customer.create({
+          firstName: "Walk-in",
+          lastName: "Customer",
+          email: "walkin@pos.local",
+          billing: {
+            first_name: "Walk-in",
+            last_name: "Customer",
+            phone: "",
+          },
+        });
+      }
+
+      customer = walkInCustomer._id;
+    }
 
     const invoice = new Invoice({
       customer,
@@ -186,16 +241,16 @@ const deleteInvoice = async (req, res) => {
     const invoice = await Invoice.findById(req.params.id);
 
     if (invoice) {
-      // Soft delete the invoice
-      invoice.status = "deleted";
-      await invoice.save();
-
       // Soft delete associated payments
       const Payment = require("../models/Payment");
       await Payment.updateMany(
         { invoice: req.params.id },
         { status: "deleted" }
       );
+
+      // Soft delete the invoice
+      invoice.status = "deleted";
+      await invoice.save();
 
       res.json({ message: "Invoice deleted successfully" });
     } else {

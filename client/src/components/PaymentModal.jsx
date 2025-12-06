@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import DateInput from "./DateInput";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 
@@ -89,19 +90,13 @@ const PaymentModal = ({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Date
-            </label>
-            <input
-              type="date"
-              name="date"
-              required
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-            />
-          </div>
+          <DateInput
+            label="Date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">

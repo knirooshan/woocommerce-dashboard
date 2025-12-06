@@ -4,6 +4,7 @@ import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import CustomerForm from "../components/CustomerForm";
+import SearchBar from "../components/SearchBar";
 
 const Customers = () => {
   const { user } = useSelector((state) => state.auth);
@@ -11,16 +12,24 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [search]);
 
   const fetchCustomers = async () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.get(ENDPOINTS.CUSTOMERS, config);
+      
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      
+      const { data } = await axios.get(
+        `${ENDPOINTS.CUSTOMERS}?${params.toString()}`,
+        config
+      );
       setCustomers(data);
       setLoading(false);
     } catch (error) {
@@ -53,11 +62,7 @@ const Customers = () => {
         );
       } else {
         // Create
-        await axios.post(
-          ENDPOINTS.CUSTOMERS,
-          formData,
-          config
-        );
+        await axios.post(ENDPOINTS.CUSTOMERS, formData, config);
       }
 
       closeModal();
@@ -98,6 +103,13 @@ const Customers = () => {
           Add Customer
         </button>
       </div>
+
+      {/* Search */}
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Search customers by name, email, or phone..."
+      />
 
       <div className="bg-slate-900 shadow rounded-lg overflow-hidden border border-slate-800">
         <div className="overflow-x-auto">

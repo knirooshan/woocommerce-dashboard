@@ -34,6 +34,13 @@ const updateSettings = async (req, res) => {
       settings.bank = req.body.bank || settings.bank;
       settings.currency = req.body.currency || settings.currency;
       settings.tax = req.body.tax || settings.tax;
+      // support updating modules toggles
+      if (req.body.modules) {
+        settings.modules = {
+          ...settings.modules,
+          ...req.body.modules,
+        };
+      }
 
       const updatedSettings = await settings.save();
       res.json(updatedSettings);

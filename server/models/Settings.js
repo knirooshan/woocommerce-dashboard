@@ -38,6 +38,11 @@ const settingsSchema = new mongoose.Schema(
       rate: { type: Number, default: 0, min: 0, max: 100 }, // Tax rate as percentage (0-100)
       label: { type: String, default: "Tax" }, // Label for tax (e.g., "VAT", "GST", "Sales Tax")
     },
+    // Feature module toggles
+    modules: {
+      woocommerce: { type: Boolean, default: true },
+      pos: { type: Boolean, default: true },
+    },
   },
   {
     timestamps: true,

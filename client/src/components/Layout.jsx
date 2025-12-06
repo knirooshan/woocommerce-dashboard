@@ -22,7 +22,9 @@ import { Toaster } from "react-hot-toast";
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
-  const { loaded: settingsLoaded } = useSelector((state) => state.settings);
+  const { loaded: settingsLoaded, data: settings } = useSelector(
+    (state) => state.settings
+  );
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,13 +36,17 @@ const Layout = () => {
     }
   }, [user, settingsLoaded, dispatch]);
 
-  const navigation = [
+  const allNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "POS", href: "/pos", icon: Monitor },
+    { name: "POS", href: "/pos", icon: Monitor, requiresModule: "pos" },
     { name: "Products", href: "/products", icon: Package },
     { name: "Quotations", href: "/quotations", icon: FileText },
     { name: "Invoices", href: "/invoices", icon: FileText },
-    { name: "Orders", href: "/orders", icon: ShoppingCart },
+    {
+      name: "Orders",
+      href: "/orders",
+      icon: ShoppingCart,
+    },
     { name: "Customers", href: "/customers", icon: Users },
     { name: "Vendors", href: "/vendors", icon: Users },
     { name: "Payments", href: "/payments", icon: FileText },
@@ -54,6 +60,14 @@ const Layout = () => {
         ]
       : []),
   ];
+
+  // Filter navigation based on module settings
+  const navigation = allNavigation.filter((item) => {
+    if (item.requiresModule) {
+      return settings?.modules?.[item.requiresModule] !== false;
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     try {

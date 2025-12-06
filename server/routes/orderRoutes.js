@@ -5,11 +5,18 @@ const {
   getOrders,
   syncOrders,
   getOrderById,
+  createOrder,
+  updateOrder,
+  deleteOrder,
 } = require("../controllers/orderController");
 
 // Routes
-router.route("/").get(protect, getOrders);
+router.route("/").get(protect, getOrders).post(protect, createOrder);
 router.route("/sync").post(protect, admin, syncOrders);
-router.route("/:id").get(protect, getOrderById);
+router
+  .route("/:id")
+  .get(protect, getOrderById)
+  .put(protect, updateOrder)
+  .delete(protect, deleteOrder);
 
 module.exports = router;

@@ -66,13 +66,48 @@ const createPayment = async (req, res) => {
 // @access  Private
 const getPayments = async (req, res) => {
   try {
+    const { search, method, source, customer, startDate, endDate } = req.query;
     const pageSize = 20;
     const page = Number(req.query.pageNumber) || 1;
 
-    const count = await Payment.countDocuments({});
-    const payments = await Payment.find({})
+    // Build filter object
+    const filter = { status: { $ne: "deleted" } };
+
+    // Search in reference or notes
+    if (search) {
+      filter.$or = [
+        { reference: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by payment method
+    if (method && method !== "all") {
+      filter.method = method;
+    }
+
+    // Filter by source
+    if (source && source !== "all") {
+      filter.source = source;
+    }
+
+    // Filter by customer
+    if (customer && customer !== "all") {
+      filter.customer = customer;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const count = await Payment.countDocuments(filter);
+    const payments = await Payment.find(filter)
       .populate("customer", "firstName lastName email")
       .populate("invoice", "invoiceNumber")
+      .populate("order", "orderNumber")
       .sort({ date: -1 })
       .limit(pageSize)
       .skip(pageSize * (page - 1));
@@ -117,10 +152,10 @@ const updatePayment = async (req, res) => {
 
       const updatedPayment = await payment.save();
 
-      // Update invoice balance if amount changed
+      // Update invoice balance if amount changed and invoice is not deleted
       if (payment.invoice && difference !== 0) {
         const invoice = await Invoice.findById(payment.invoice);
-        if (invoice) {
+        if (invoice && invoice.status !== "deleted") {
           invoice.amountPaid = (invoice.amountPaid || 0) + difference;
 
           // Update status based on new balance
@@ -148,7 +183,7 @@ const updatePayment = async (req, res) => {
   }
 };
 
-// @desc    Delete payment
+// @desc    Delete payment (soft delete)
 // @route   DELETE /api/payments/:id
 // @access  Private
 const deletePayment = async (req, res) => {
@@ -156,10 +191,10 @@ const deletePayment = async (req, res) => {
     const payment = await Payment.findById(req.params.id);
 
     if (payment) {
-      // Revert invoice balance
+      // Revert invoice balance only if invoice is not deleted
       if (payment.invoice) {
         const invoice = await Invoice.findById(payment.invoice);
-        if (invoice) {
+        if (invoice && invoice.status !== "deleted") {
           invoice.amountPaid = (invoice.amountPaid || 0) - payment.amount;
 
           // Remove payment from invoice's payments array
@@ -183,7 +218,10 @@ const deletePayment = async (req, res) => {
         }
       }
 
-      await payment.deleteOne();
+      // Soft delete the payment
+      payment.status = "deleted";
+      await payment.save();
+
       res.json({ message: "Payment removed" });
     } else {
       res.status(404).json({ message: "Payment not found" });

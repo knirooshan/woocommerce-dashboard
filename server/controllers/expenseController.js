@@ -5,7 +5,38 @@ const Expense = require("../models/Expense");
 // @access  Private
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({})
+    const { search, category, vendor, startDate, endDate } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search in description, reference, or notes
+    if (search) {
+      filter.$or = [
+        { description: { $regex: search, $options: "i" } },
+        { reference: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by category
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+
+    // Filter by vendor
+    if (vendor && vendor !== "all") {
+      filter.vendor = vendor;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const expenses = await Expense.find(filter)
       .populate("vendor", "name")
       .sort({ date: -1 });
     res.json(expenses);

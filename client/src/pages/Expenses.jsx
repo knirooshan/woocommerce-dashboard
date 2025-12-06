@@ -3,8 +3,11 @@ import axios from "axios";
 import { Plus, Trash, DollarSign, Edit } from "lucide-react";
 import ReasonModal from "../components/ReasonModal";
 import VendorForm from "../components/VendorForm";
+import SearchBar from "../components/SearchBar";
+import FilterBar from "../components/FilterBar";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import DateInput from "../components/DateInput";
 import { ENDPOINTS } from "../config/api";
 
 const Expenses = () => {
@@ -17,6 +20,13 @@ const Expenses = () => {
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState(null);
   const [showVendorModal, setShowVendorModal] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    category: "all",
+    vendor: "all",
+    startDate: "",
+    endDate: "",
+  });
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -32,7 +42,7 @@ const Expenses = () => {
   useEffect(() => {
     fetchExpenses();
     fetchVendors();
-  }, [user.token]);
+  }, [user.token, search, filters]);
 
   const fetchVendors = async () => {
     try {
@@ -49,13 +59,44 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const expensesRes = await axios.get(ENDPOINTS.EXPENSES, config);
+      
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (filters.category !== "all") params.append("category", filters.category);
+      if (filters.vendor !== "all") params.append("vendor", filters.vendor);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+      
+      const expensesRes = await axios.get(
+        `${ENDPOINTS.EXPENSES}?${params.toString()}`,
+        config
+      );
       setExpenses(expensesRes.data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching expenses:", error);
       setLoading(false);
     }
+  };
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilters({
+      category: "all",
+      vendor: "all",
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const hasActiveFilters = () => {
+    return (
+      search ||
+      filters.category !== "all" ||
+      filters.vendor !== "all" ||
+      filters.startDate ||
+      filters.endDate
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -107,11 +148,7 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.post(
-        ENDPOINTS.VENDORS,
-        vendorData,
-        config
-      );
+      const { data } = await axios.post(ENDPOINTS.VENDORS, vendorData, config);
       setVendors([...vendors, data]);
       setFormData({ ...formData, vendor: data._id });
       setShowVendorModal(false);
@@ -181,6 +218,78 @@ const Expenses = () => {
         </button>
       </div>
 
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search expenses..."
+        />
+
+        <FilterBar showReset={hasActiveFilters()} onReset={resetFilters}>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">Category:</label>
+            <select
+              value={filters.category}
+              onChange={(e) =>
+                setFilters({ ...filters, category: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="all">All Categories</option>
+              <option value="General">General</option>
+              <option value="Rent">Rent</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Supplies">Supplies</option>
+              <option value="Salary">Salary</option>
+              <option value="Marketing">Marketing</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">Vendor:</label>
+            <select
+              value={filters.vendor}
+              onChange={(e) =>
+                setFilters({ ...filters, vendor: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="all">All Vendors</option>
+              {vendors.map((vendor) => (
+                <option key={vendor._id} value={vendor._id}>
+                  {vendor.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">From:</label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) =>
+                setFilters({ ...filters, startDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">To:</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) =>
+                setFilters({ ...filters, endDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+        </FilterBar>
+      </div>
+
       {showForm && (
         <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800 mb-6">
           <h2 className="text-lg font-medium text-white mb-4">
@@ -238,16 +347,13 @@ const Expenses = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Date
-              </label>
-              <input
-                type="date"
+              <DateInput
+                label="Date"
+                name="date"
                 value={formData.date}
                 onChange={(e) =>
                   setFormData({ ...formData, date: e.target.value })
                 }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
               />
             </div>
             <div>

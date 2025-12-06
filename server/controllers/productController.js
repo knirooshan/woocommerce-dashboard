@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const { getWooProducts } = require("../services/wooService");
+const Settings = require("../models/Settings");
 
 // @desc    Get all products
 // @route   GET /api/products
@@ -18,6 +19,11 @@ const getProducts = async (req, res) => {
 // @access  Private/Admin
 const syncProducts = async (req, res) => {
   try {
+    // Check feature toggle
+    const settings = await Settings.findOne();
+    if (settings && settings.modules && settings.modules.woocommerce === false) {
+      return res.status(403).json({ message: "WooCommerce sync disabled" });
+    }
     let page = 1;
     let wooProducts = [];
 

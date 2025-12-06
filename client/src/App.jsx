@@ -39,6 +39,7 @@ function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -100,7 +101,9 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/pos" element={<POS />} />
+              {settings?.modules?.pos !== false && (
+                <Route path="/pos" element={<POS />} />
+              )}
               <Route path="/products" element={<Products />} />
               <Route path="/customers" element={<Customers />} />
               <Route path="/orders" element={<Orders />} />

@@ -1,12 +1,28 @@
 const Customer = require("../models/Customer");
 const { getWooCustomers } = require("../services/wooService");
+const Settings = require("../models/Settings");
 
 // @desc    Get all customers
 // @route   GET /api/customers
 // @access  Private
 const getCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find({});
+    const { search } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search in name, email, or phone
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { "billing.phone": { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const customers = await Customer.find(filter);
     res.json(customers);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -110,6 +126,12 @@ const deleteCustomer = async (req, res) => {
 // @access  Private/Admin
 const syncCustomers = async (req, res) => {
   try {
+    // Check feature toggle
+    const settings = await Settings.findOne();
+    if (settings && settings.modules && settings.modules.woocommerce === false) {
+      return res.status(403).json({ message: "WooCommerce sync disabled" });
+    }
+    
     const wooCustomers = await getWooCustomers(1, 100);
 
     const syncedCustomers = [];
