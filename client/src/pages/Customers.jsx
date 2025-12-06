@@ -22,10 +22,10 @@ const Customers = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      
+
       const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      
+      if (search && search.length >= 3) params.append("search", search);
+
       const { data } = await axios.get(
         `${ENDPOINTS.CUSTOMERS}?${params.toString()}`,
         config
