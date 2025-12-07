@@ -119,6 +119,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: "#1F2937",
   },
+  tableCellSub: {
+    fontSize: 8,
+    color: "#6B7280",
+    marginTop: 2,
+  },
   totals: {
     marginTop: 10,
     alignItems: "flex-end",
@@ -324,7 +329,14 @@ const InvoicePDF = ({ invoice, settings }) => {
                 )}
               </View>
               <View style={styles.colItem}>
-                <Text style={styles.tableCell}>{item.name}</Text>
+                <View>
+                  <Text style={styles.tableCell}>{item.name}</Text>
+                  {item.shortDescription && (
+                    <Text style={styles.tableCellSub}>
+                      {item.shortDescription}
+                    </Text>
+                  )}
+                </View>
               </View>
               <View style={styles.colPrice}>
                 <Text style={styles.tableCell}>
