@@ -366,7 +366,7 @@ const InvoiceView = () => {
                 </td>
                 <td className="py-3 text-slate-900">
                   <div>{item.name}</div>
-                  {item.product?.longDescription && (
+                  {item.product?.shortDescription && (
                     <div className="text-xs text-slate-500 mt-1">
                       {item.product.shortDescription}
                     </div>
