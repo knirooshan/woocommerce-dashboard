@@ -1,16 +1,39 @@
 // API Configuration
-export const API_URL = "https://dashboard.ceyloncanecrafts.lk/api";
+// API Configuration
+const getBaseUrl = () => {
+  // If running in browser
+  if (typeof window !== "undefined") {
+    // Development: Vite default port is 5173, Backend is 5000
+    if (window.location.port === "5173") {
+      return `${window.location.protocol}//${window.location.hostname}:5000/api`;
+    }
+    // Production: Backend is served via Nginx proxy at /api on the same domain
+    return "/api";
+  }
+  // Fallback for non-browser envs
+  return "http://localhost:5000/api";
+};
+
+export const API_URL = getBaseUrl();
 
 // API Endpoints
 export const ENDPOINTS = {
+  // Tenants
+  TENANTS: `${API_URL}/tenants`,
+  TENANT_BY_ID: (id) => `${API_URL}/tenants/${id}`,
+  TENANT_PASSKEY: (id) => `${API_URL}/tenants/${id}/passkey`,
+  TENANT_RESEND_WELCOME: (id) => `${API_URL}/tenants/${id}/resend-welcome`,
+
   // Auth
   AUTH_LOGIN: `${API_URL}/auth/login`,
   AUTH_LOGOUT: `${API_URL}/auth/logout`,
   AUTH_REGISTER: `${API_URL}/auth/register`,
 
-  // First Run
+  // First Run / Setup
   FIRST_RUN_CHECK: `${API_URL}/first-run/check`,
   FIRST_RUN_SETUP: `${API_URL}/first-run/setup`,
+  SETUP_VALIDATE: `${API_URL}/setup/validate`,
+  SETUP_COMPLETE: `${API_URL}/setup/complete`,
 
   // Users
   USERS: `${API_URL}/users`,
@@ -56,6 +79,7 @@ export const ENDPOINTS = {
 
   // Settings
   SETTINGS: `${API_URL}/settings`,
+  ADMIN_SETTINGS: `${API_URL}/admin/settings`,
 
   // Reports
   REPORTS: `${API_URL}/reports`,

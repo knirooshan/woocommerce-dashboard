@@ -1,10 +1,11 @@
-const ActivityLog = require("../models/ActivityLog");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get activity logs
 // @route   GET /api/activity-logs
 // @access  Private/Admin
 const getLogs = async (req, res) => {
   try {
+    const { ActivityLog } = getTenantModels(req.dbConnection);
     const pageSize = 20;
     const page = Number(req.query.pageNumber) || 1;
 

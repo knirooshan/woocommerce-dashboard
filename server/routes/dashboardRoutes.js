@@ -1,18 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
-const Invoice = require("../models/Invoice");
-const Customer = require("../models/Customer");
-const Product = require("../models/Product");
-const Expense = require("../models/Expense");
-const Payment = require("../models/Payment");
-const ActivityLog = require("../models/ActivityLog");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/dashboard/stats
 // @access  Private
 router.get("/stats", protect, async (req, res) => {
   try {
+    const { Payment, Invoice, Customer, Product, Expense } = getTenantModels(
+      req.dbConnection
+    );
+
     // Get current month date range
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -84,6 +83,7 @@ router.get("/stats", protect, async (req, res) => {
       monthlyNetProfit,
     });
   } catch (error) {
+    console.error("Dashboard Stats Error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -93,6 +93,8 @@ router.get("/stats", protect, async (req, res) => {
 // @access  Private
 router.get("/chart", protect, async (req, res) => {
   try {
+    const { Payment } = getTenantModels(req.dbConnection);
+
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
@@ -128,6 +130,7 @@ router.get("/chart", protect, async (req, res) => {
 
     res.json(chartData);
   } catch (error) {
+    console.error("Dashboard Chart Error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -137,6 +140,8 @@ router.get("/chart", protect, async (req, res) => {
 // @access  Private
 router.get("/activities", protect, async (req, res) => {
   try {
+    const { ActivityLog } = getTenantModels(req.dbConnection);
+
     const logs = await ActivityLog.find({})
       .populate("user", "name email")
       .sort({ createdAt: -1 })
@@ -144,6 +149,7 @@ router.get("/activities", protect, async (req, res) => {
 
     res.json(logs);
   } catch (error) {
+    console.error("Dashboard Activities Error:", error);
     res.status(500).json({ message: error.message });
   }
 });

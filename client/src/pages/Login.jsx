@@ -22,10 +22,9 @@ const Login = () => {
 
     try {
       const { data } = await axios.post(ENDPOINTS.AUTH_LOGIN, {
-          email,
-          password,
-        }
-      );
+        email,
+        password,
+      });
 
       dispatch(setUser(data));
       await dispatch(fetchSettings());
@@ -42,7 +41,7 @@ const Login = () => {
       <div className="bg-slate-900 p-8 rounded-lg shadow-2xl w-full max-w-md border border-slate-800">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-          <p className="text-slate-400">Sign in to wooDashboard</p>
+          <p className="text-slate-400">Sign in to MerchPilot</p>
         </div>
 
         {error && (

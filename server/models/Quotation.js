@@ -52,6 +52,5 @@ quotationSchema.pre("save", async function (next) {
   next();
 });
 
-const Quotation = mongoose.model("Quotation", quotationSchema);
-
-module.exports = Quotation;
+// Don't compile model here
+module.exports = quotationSchema;

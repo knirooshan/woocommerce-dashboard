@@ -94,6 +94,5 @@ invoiceSchema.pre("save", async function (next) {
   next();
 });
 
-const Invoice = mongoose.model("Invoice", invoiceSchema);
-
-module.exports = Invoice;
+// Don't compile model here
+module.exports = invoiceSchema;

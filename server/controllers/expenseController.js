@@ -1,11 +1,43 @@
-const Expense = require("../models/Expense");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get all expenses
 // @route   GET /api/expenses
 // @access  Private
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await Expense.find({})
+    const { Expense } = getTenantModels(req.dbConnection);
+    const { search, category, vendor, startDate, endDate } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search in description, reference, or notes
+    if (search) {
+      filter.$or = [
+        { description: { $regex: search, $options: "i" } },
+        { reference: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by category
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+
+    // Filter by vendor
+    if (vendor && vendor !== "all") {
+      filter.vendor = vendor;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    const expenses = await Expense.find(filter)
       .populate("vendor", "name")
       .sort({ date: -1 });
     res.json(expenses);
@@ -19,6 +51,7 @@ const getExpenses = async (req, res) => {
 // @access  Private
 const createExpense = async (req, res) => {
   try {
+    const { Expense } = getTenantModels(req.dbConnection);
     const { description, amount, category, date, vendor, reference, notes } =
       req.body;
 
@@ -44,6 +77,7 @@ const createExpense = async (req, res) => {
 // @access  Private
 const deleteExpense = async (req, res) => {
   try {
+    const { Expense } = getTenantModels(req.dbConnection);
     const expense = await Expense.findById(req.params.id);
 
     if (expense) {
@@ -62,6 +96,7 @@ const deleteExpense = async (req, res) => {
 // @access  Private
 const updateExpense = async (req, res) => {
   try {
+    const { Expense } = getTenantModels(req.dbConnection);
     const expense = await Expense.findById(req.params.id);
 
     if (expense) {

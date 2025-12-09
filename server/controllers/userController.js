@@ -1,10 +1,11 @@
-const User = require("../models/User");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private (Admin only)
 const getUsers = async (req, res) => {
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const users = await User.find().select("-password");
     res.json(users);
   } catch (error) {
@@ -19,6 +20,7 @@ const createUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -59,6 +61,7 @@ const createUser = async (req, res) => {
 // @access  Private (Admin only)
 const deleteUser = async (req, res) => {
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const user = await User.findById(req.params.id);
 
     if (!user) {
@@ -82,6 +85,7 @@ const deleteUser = async (req, res) => {
 // @access  Private (Admin only)
 const updateUser = async (req, res) => {
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const user = await User.findById(req.params.id);
 
     if (!user) {

@@ -243,7 +243,7 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
-                  marginBottom: 4,
+                  marginBottom: 8,
                 }}
               >
                 <Text style={styles.text}>Payment Status:</Text>
@@ -257,63 +257,139 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
                 </Text>
               </View>
 
-              {paymentStatusText === "PARTIALLY PAID" && (
-                <>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: 2,
-                    }}
-                  >
-                    <Text style={styles.text}>Total Amount:</Text>
-                    <Text style={styles.text}>
-                      {formatCurrency(invoice.total, settings)}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: 2,
-                    }}
-                  >
-                    <Text style={styles.text}>Amount Paid:</Text>
-                    <Text style={styles.text}>
-                      {formatCurrency(amountPaid, settings)}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>
-                      Balance Due:
-                    </Text>
-                    <Text style={[styles.text, { fontWeight: "bold" }]}>
-                      {formatCurrency(balanceDue, settings)}
-                    </Text>
-                  </View>
-                </>
-              )}
-
-              {paymentStatusText === "NOT PAID" && (
+              {/* Price Breakdown */}
+              <View
+                style={{
+                  paddingTop: 8,
+                  borderTopWidth: 1,
+                  borderTopColor: "#E5E7EB",
+                }}
+              >
                 <View
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
+                    marginBottom: 3,
                   }}
                 >
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    Balance Due:
-                  </Text>
-                  <Text style={[styles.text, { fontWeight: "bold" }]}>
-                    {formatCurrency(balanceDue, settings)}
+                  <Text style={styles.text}>Subtotal:</Text>
+                  <Text style={styles.text}>
+                    {formatCurrency(invoice.subtotal, settings)}
                   </Text>
                 </View>
-              )}
+
+                {invoice.tax > 0 && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>
+                      {settings?.tax?.label || "Tax"}:
+                    </Text>
+                    <Text style={styles.text}>
+                      {formatCurrency(invoice.tax, settings)}
+                    </Text>
+                  </View>
+                )}
+
+                {invoice.discount > 0 && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>Discount:</Text>
+                    <Text style={styles.text}>
+                      -{formatCurrency(invoice.discount, settings)}
+                    </Text>
+                  </View>
+                )}
+
+                {invoice.deliveryCharge > 0 && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 3,
+                    }}
+                  >
+                    <Text style={styles.text}>Delivery Charge:</Text>
+                    <Text style={styles.text}>
+                      {formatCurrency(invoice.deliveryCharge, settings)}
+                    </Text>
+                  </View>
+                )}
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginTop: 6,
+                    paddingTop: 6,
+                    borderTopWidth: 1,
+                    borderTopColor: "#D1D5DB",
+                  }}
+                >
+                  <Text
+                    style={[styles.text, { fontWeight: "bold", fontSize: 11 }]}
+                  >
+                    Total Amount:
+                  </Text>
+                  <Text
+                    style={[styles.text, { fontWeight: "bold", fontSize: 11 }]}
+                  >
+                    {formatCurrency(invoice.total, settings)}
+                  </Text>
+                </View>
+
+                {paymentStatusText !== "PAID" && (
+                  <>
+                    {amountPaid > 0 && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          marginTop: 3,
+                        }}
+                      >
+                        <Text style={styles.text}>Amount Paid:</Text>
+                        <Text style={styles.text}>
+                          {formatCurrency(amountPaid, settings)}
+                        </Text>
+                      </View>
+                    )}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        marginTop: 3,
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.text,
+                          { fontWeight: "bold", color: "#DC2626" },
+                        ]}
+                      >
+                        Balance Due:
+                      </Text>
+                      <Text
+                        style={[
+                          styles.text,
+                          { fontWeight: "bold", color: "#DC2626" },
+                        ]}
+                      >
+                        {formatCurrency(balanceDue, settings)}
+                      </Text>
+                    </View>
+                  </>
+                )}
+              </View>
             </View>
           </View>
         </View>

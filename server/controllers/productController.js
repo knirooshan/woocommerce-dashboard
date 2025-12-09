@@ -1,4 +1,4 @@
-const Product = require("../models/Product");
+const { getTenantModels } = require("../models/tenantModels");
 const { getWooProducts } = require("../services/wooService");
 
 // @desc    Get all products
@@ -6,6 +6,7 @@ const { getWooProducts } = require("../services/wooService");
 // @access  Private
 const getProducts = async (req, res) => {
   try {
+    const { Product } = getTenantModels(req.dbConnection);
     const products = await Product.find({});
     res.json(products);
   } catch (error) {
@@ -18,6 +19,17 @@ const getProducts = async (req, res) => {
 // @access  Private/Admin
 const syncProducts = async (req, res) => {
   try {
+    const { Product, Settings } = getTenantModels(req.dbConnection);
+
+    // Check feature toggle
+    const settings = await Settings.findOne();
+    if (
+      settings &&
+      settings.modules &&
+      settings.modules.woocommerce === false
+    ) {
+      return res.status(403).json({ message: "WooCommerce sync disabled" });
+    }
     let page = 1;
     let wooProducts = [];
 
@@ -74,8 +86,7 @@ const syncProducts = async (req, res) => {
 // @access  Private/Admin
 const createProduct = async (req, res) => {
   try {
-    // Log the incoming request body to debug
-    console.log("Create product request body:", req.body);
+    const { Product } = getTenantModels(req.dbConnection);
 
     const {
       name,
@@ -133,6 +144,7 @@ const createProduct = async (req, res) => {
 // @access  Private/Admin
 const updateProduct = async (req, res) => {
   try {
+    const { Product } = getTenantModels(req.dbConnection);
     const {
       name,
       sku,
@@ -183,6 +195,7 @@ const updateProduct = async (req, res) => {
 // @access  Private/Admin
 const deleteProduct = async (req, res) => {
   try {
+    const { Product } = getTenantModels(req.dbConnection);
     const product = await Product.findById(req.params.id);
 
     if (product) {

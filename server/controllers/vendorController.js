@@ -1,10 +1,11 @@
-const Vendor = require("../models/Vendor");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get all vendors
 // @route   GET /api/vendors
 // @access  Private
 const getVendors = async (req, res) => {
   try {
+    const { Vendor } = getTenantModels(req.dbConnection);
     const vendors = await Vendor.find({});
     res.json(vendors);
   } catch (error) {
@@ -17,6 +18,7 @@ const getVendors = async (req, res) => {
 // @access  Private/Admin
 const createVendor = async (req, res) => {
   try {
+    const { Vendor } = getTenantModels(req.dbConnection);
     const { name, email, phone, address, contactPerson } = req.body;
 
     const vendor = new Vendor({
@@ -39,6 +41,7 @@ const createVendor = async (req, res) => {
 // @access  Private/Admin
 const updateVendor = async (req, res) => {
   try {
+    const { Vendor } = getTenantModels(req.dbConnection);
     const { name, email, phone, address, contactPerson } = req.body;
 
     const vendor = await Vendor.findById(req.params.id);
@@ -65,6 +68,7 @@ const updateVendor = async (req, res) => {
 // @access  Private/Admin
 const deleteVendor = async (req, res) => {
   try {
+    const { Vendor } = getTenantModels(req.dbConnection);
     const vendor = await Vendor.findById(req.params.id);
 
     if (vendor) {

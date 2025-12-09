@@ -5,6 +5,8 @@ import { formatCurrency } from "../utils/currency";
 import { Edit, Trash2, Plus } from "lucide-react";
 import PaymentModal from "../components/PaymentModal";
 import ReasonModal from "../components/ReasonModal";
+import SearchBar from "../components/SearchBar";
+import FilterBar from "../components/FilterBar";
 import { ENDPOINTS } from "../config/api";
 
 const Payments = () => {
@@ -19,18 +21,32 @@ const Payments = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingPaymentData, setPendingPaymentData] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({
+    method: "all",
+    source: "all",
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, [page, search, filters]);
 
   const fetchData = async () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      const params = new URLSearchParams({ pageNumber: page });
+      if (search) params.append("search", search);
+      if (filters.method !== "all") params.append("method", filters.method);
+      if (filters.source !== "all") params.append("source", filters.source);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+
       const paymentsRes = await axios.get(
-        `${ENDPOINTS.PAYMENTS}?pageNumber=${page}`,
+        `${ENDPOINTS.PAYMENTS}?${params.toString()}`,
         config
       );
 
@@ -41,6 +57,26 @@ const Payments = () => {
       console.error("Error fetching data:", error);
       setLoading(false);
     }
+  };
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilters({
+      method: "all",
+      source: "all",
+      startDate: "",
+      endDate: "",
+    });
+  };
+
+  const hasActiveFilters = () => {
+    return (
+      search ||
+      filters.method !== "all" ||
+      filters.source !== "all" ||
+      filters.startDate ||
+      filters.endDate
+    );
   };
 
   const handleDelete = async (id) => {
@@ -139,6 +175,75 @@ const Payments = () => {
           <Plus className="mr-2 h-5 w-5" />
           Create Payment
         </button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search payments..."
+        />
+
+        <FilterBar showReset={hasActiveFilters()} onReset={resetFilters}>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">Method:</label>
+            <select
+              value={filters.method}
+              onChange={(e) =>
+                setFilters({ ...filters, method: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="all">All Methods</option>
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Check">Check</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">Source:</label>
+            <select
+              value={filters.source}
+              onChange={(e) =>
+                setFilters({ ...filters, source: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+              <option value="all">All Sources</option>
+              <option value="Manual">Manual</option>
+              <option value="WooCommerce">WooCommerce</option>
+              <option value="POS">POS</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">From:</label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) =>
+                setFilters({ ...filters, startDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-400">To:</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) =>
+                setFilters({ ...filters, endDate: e.target.value })
+              }
+              className="bg-slate-950 border border-slate-700 text-white rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            />
+          </div>
+        </FilterBar>
       </div>
 
       <div className="bg-slate-900 shadow rounded-lg overflow-hidden border border-slate-800">

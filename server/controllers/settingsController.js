@@ -1,10 +1,11 @@
-const Settings = require("../models/Settings");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get store settings
 // @route   GET /api/settings
 // @access  Private
 const getSettings = async (req, res) => {
   try {
+    const { Settings } = getTenantModels(req.dbConnection);
     let settings = await Settings.findOne();
 
     if (!settings) {
@@ -22,6 +23,7 @@ const getSettings = async (req, res) => {
 // @access  Private/Admin
 const updateSettings = async (req, res) => {
   try {
+    const { Settings } = getTenantModels(req.dbConnection);
     const settings = await Settings.findOne();
 
     if (settings) {
@@ -34,6 +36,13 @@ const updateSettings = async (req, res) => {
       settings.bank = req.body.bank || settings.bank;
       settings.currency = req.body.currency || settings.currency;
       settings.tax = req.body.tax || settings.tax;
+      // support updating modules toggles
+      if (req.body.modules) {
+        settings.modules = {
+          ...settings.modules,
+          ...req.body.modules,
+        };
+      }
 
       const updatedSettings = await settings.save();
       res.json(updatedSettings);

@@ -6,6 +6,7 @@ import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import CustomerForm from "../components/CustomerForm";
+import DateInput from "../components/DateInput";
 
 const CreateInvoice = () => {
   const { user } = useSelector((state) => state.auth);
@@ -226,30 +227,24 @@ const CreateInvoice = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Invoice Date
-              </label>
-              <input
-                type="date"
+              <DateInput
+                label="Invoice Date"
+                name="invoiceDate"
                 value={formData.invoiceDate}
                 onChange={(e) =>
                   setFormData({ ...formData, invoiceDate: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Due Date
-              </label>
-              <input
-                type="date"
+              <DateInput
+                label="Due Date"
+                name="dueDate"
                 value={formData.dueDate}
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -434,6 +429,7 @@ const CreateInvoice = () => {
               >
                 <option value="draft">Draft</option>
                 <option value="sent">Sent</option>
+                <option value="partially_paid">Partially Paid</option>
                 <option value="paid">Paid</option>
               </select>
             </div>

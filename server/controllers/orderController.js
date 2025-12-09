@@ -1,6 +1,4 @@
-const Order = require("../models/Order");
-const Customer = require("../models/Customer");
-const Invoice = require("../models/Invoice");
+const { getTenantModels } = require("../models/tenantModels");
 const { getWooOrders } = require("../services/wooService");
 
 // @desc    Get all orders
@@ -8,7 +6,38 @@ const { getWooOrders } = require("../services/wooService");
 // @access  Private
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
+    const { Order } = getTenantModels(req.dbConnection);
+    const { search, status, customer, startDate, endDate } = req.query;
+
+    // Build filter object
+    const filter = {};
+
+    // Search in order number or notes
+    if (search) {
+      filter.$or = [
+        { orderNumber: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by status
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    // Filter by customer
+    if (customer && customer !== "all") {
+      filter.customer = customer;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.dateCreated = {};
+      if (startDate) filter.dateCreated.$gte = new Date(startDate);
+      if (endDate) filter.dateCreated.$lte = new Date(endDate);
+    }
+
+    const orders = await Order.find(filter)
       .populate("customer")
       .sort({ dateCreated: -1 });
     res.json(orders);
@@ -23,6 +52,19 @@ const getOrders = async (req, res) => {
 // @access  Private/Admin
 const syncOrders = async (req, res) => {
   try {
+    const { Order, Customer, Invoice, Payment, Settings } = getTenantModels(
+      req.dbConnection
+    );
+
+    // Check feature toggle
+    const settings = await Settings.findOne();
+    if (
+      settings &&
+      settings.modules &&
+      settings.modules.woocommerce === false
+    ) {
+      return res.status(403).json({ message: "WooCommerce sync disabled" });
+    }
     // Fetch orders from WooCommerce (first 100 for now)
     const wooOrders = await getWooOrders(1, 100);
 
@@ -186,12 +228,7 @@ const syncOrders = async (req, res) => {
       syncedOrders.push(savedOrder);
 
       // Create Payment record if order is paid and doesn't have one (simplified check)
-      // In a real scenario, we'd check if a payment for this order already exists to avoid duplicates
-      // For now, we'll assume if it's being synced and is 'completed' or 'processing', we record it.
-      // Better approach: Check if Payment exists for this order.
-
       if (order.status === "completed" || order.status === "processing") {
-        const Payment = require("../models/Payment");
         const existingPayment = await Payment.findOne({
           order: savedOrder._id,
         });
@@ -251,6 +288,7 @@ const syncOrders = async (req, res) => {
 // @access  Private
 const getOrderById = async (req, res) => {
   try {
+    const { Order } = getTenantModels(req.dbConnection);
     const order = await Order.findById(req.params.id).populate("customer");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -262,8 +300,108 @@ const getOrderById = async (req, res) => {
   }
 };
 
+// @desc    Create a new order
+// @route   POST /api/orders
+// @access  Private
+const createOrder = async (req, res) => {
+  try {
+    const { Order, Customer } = getTenantModels(req.dbConnection);
+    let orderData = req.body;
+
+    // Check if this is a walk-in customer order (no customer ID or special identifier)
+    if (!orderData.customer || orderData.customer === "walk-in") {
+      // Find or create walk-in customer
+      let walkInCustomer = await Customer.findOne({
+        email: "walkin@pos.local",
+        firstName: "Walk-in",
+      });
+
+      if (!walkInCustomer) {
+        walkInCustomer = await Customer.create({
+          firstName: "Walk-in",
+          lastName: "Customer",
+          email: "walkin@pos.local",
+          billing: {
+            first_name: "Walk-in",
+            last_name: "Customer",
+            phone: "",
+          },
+        });
+      }
+
+      // Assign walk-in customer to order
+      orderData.customer = walkInCustomer._id;
+    }
+
+    const order = await Order.create(orderData);
+    const populatedOrder = await Order.findById(order._id).populate("customer");
+    res.status(201).json(populatedOrder);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Update an order
+// @route   PUT /api/orders/:id
+// @access  Private
+const updateOrder = async (req, res) => {
+  try {
+    const { Order } = getTenantModels(req.dbConnection);
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate("customer");
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error("Error updating order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete an order and associated invoice/payments
+// @route   DELETE /api/orders/:id
+// @access  Private
+const deleteOrder = async (req, res) => {
+  try {
+    const { Order, Invoice, Payment } = getTenantModels(req.dbConnection);
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Soft delete associated payments
+    await Payment.updateMany({ order: order._id }, { status: "deleted" });
+
+    // Delete associated invoice and soft delete its payments
+    if (order.invoice) {
+      await Payment.updateMany(
+        { invoice: order.invoice },
+        { status: "deleted" }
+      );
+      await Invoice.findByIdAndDelete(order.invoice);
+    }
+
+    // Delete the order
+    await order.deleteOne();
+
+    res.json({ message: "Order and associated records deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getOrders,
   syncOrders,
   getOrderById,
+  createOrder,
+  updateOrder,
+  deleteOrder,
 };

@@ -31,6 +31,7 @@ const Settings = () => {
     bank: { accountName: "", accountNumber: "", bankName: "", branch: "" },
     currency: { code: "USD", symbol: "$", position: "before" },
     tax: { rate: 0, label: "Tax" },
+    modules: { woocommerce: true, pos: true },
   });
 
   useEffect(() => {
@@ -458,6 +459,55 @@ const Settings = () => {
                 <option value="before">Before (e.g., $100)</option>
                 <option value="after">After (e.g., 100$)</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Modules */}
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+            Feature Modules
+          </h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  WooCommerce Sync
+                </label>
+                <p className="text-xs text-slate-400 mt-1">
+                  Enable syncing products and orders from WooCommerce. When disabled, sync buttons and features will be hidden.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="woocommerce"
+                  checked={formData.modules?.woocommerce ?? true}
+                  onChange={(e) => handleChange(e, "modules")}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  POS (Point of Sale)
+                </label>
+                <p className="text-xs text-slate-400 mt-1">
+                  Enable the POS module. When disabled, the POS page and navigation will be hidden.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="pos"
+                  checked={formData.modules?.pos ?? true}
+                  onChange={(e) => handleChange(e, "modules")}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import CustomerForm from "../components/CustomerForm";
+import DateInput from "../components/DateInput";
 
 const CreateQuotation = () => {
   const { user } = useSelector((state) => state.auth);
@@ -181,30 +182,24 @@ const CreateQuotation = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Quotation Date
-              </label>
-              <input
-                type="date"
+              <DateInput
+                label="Quotation Date"
+                name="quotationDate"
                 value={formData.quotationDate}
                 onChange={(e) =>
                   setFormData({ ...formData, quotationDate: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Valid Until (Expiry Date)
-              </label>
-              <input
-                type="date"
+              <DateInput
+                label="Valid Until (Expiry Date)"
+                name="validUntil"
                 value={formData.validUntil}
                 onChange={(e) =>
                   setFormData({ ...formData, validUntil: e.target.value })
                 }
-                className="block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600"
               />
             </div>
           </div>

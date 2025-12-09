@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema(
     },
     items: [
       {
-        productId: Number,
+        productId: mongoose.Schema.Types.Mixed,
         name: String,
         sku: String,
         quantity: Number,
@@ -122,4 +122,5 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Order", orderSchema);
+// Don't compile model here
+module.exports = orderSchema;

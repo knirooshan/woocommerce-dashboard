@@ -22,7 +22,9 @@ import { Toaster } from "react-hot-toast";
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
-  const { loaded: settingsLoaded } = useSelector((state) => state.settings);
+  const { loaded: settingsLoaded, data: settings } = useSelector(
+    (state) => state.settings
+  );
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,13 +36,17 @@ const Layout = () => {
     }
   }, [user, settingsLoaded, dispatch]);
 
-  const navigation = [
+  const allNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "POS", href: "/pos", icon: Monitor },
+    { name: "POS", href: "/pos", icon: Monitor, requiresModule: "pos" },
     { name: "Products", href: "/products", icon: Package },
     { name: "Quotations", href: "/quotations", icon: FileText },
     { name: "Invoices", href: "/invoices", icon: FileText },
-    { name: "Orders", href: "/orders", icon: ShoppingCart },
+    {
+      name: "Orders",
+      href: "/orders",
+      icon: ShoppingCart,
+    },
     { name: "Customers", href: "/customers", icon: Users },
     { name: "Vendors", href: "/vendors", icon: Users },
     { name: "Payments", href: "/payments", icon: FileText },
@@ -53,7 +59,29 @@ const Layout = () => {
           { name: "Settings", href: "/settings", icon: Settings },
         ]
       : []),
+    ...(user?.isSuperAdmin
+      ? [
+          { name: "Tenants", href: "/tenants", icon: Users },
+          { name: "System Settings", href: "/admin/settings", icon: Settings },
+        ]
+      : []),
   ];
+
+  // Filter navigation based on module settings and user role
+  const navigation = allNavigation.filter((item) => {
+    // Super Admin only sees Tenants and System Settings
+    if (user?.isSuperAdmin) {
+      return item.name === "Tenants" || item.name === "System Settings";
+    }
+
+    // Hide Tenants from non-Super Admins (already handled by logic above, but safety check)
+    if (item.name === "Tenants") return false;
+
+    if (item.requiresModule) {
+      return settings?.modules?.[item.requiresModule] !== false;
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     try {
@@ -102,8 +130,8 @@ const Layout = () => {
             className="flex items-center gap-3"
             aria-label="Go to dashboard home"
           >
-            <img src="/vite.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-bold text-white">wooDashboard</span>
+            <img src="/merchpilot.svg" alt="Logo" className="h-8 w-8" />
+            <span className="text-xl font-bold text-white">MerchPilot</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

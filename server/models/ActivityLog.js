@@ -58,6 +58,5 @@ const activityLogSchema = mongoose.Schema(
   }
 );
 
-const ActivityLog = mongoose.model("ActivityLog", activityLogSchema);
-
-module.exports = ActivityLog;
+// Don't compile model here
+module.exports = activityLogSchema;

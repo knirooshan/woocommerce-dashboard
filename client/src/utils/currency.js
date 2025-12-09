@@ -5,13 +5,16 @@
  * @returns {string} Formatted currency string
  */
 export const formatCurrency = (amount, settings) => {
+  const numAmount = Number(amount);
+  if (isNaN(numAmount)) return `$0.00`;
+
   if (!settings?.currency) {
     // Fallback to USD if no settings
-    return `$${amount.toFixed(2)}`;
+    return `$${numAmount.toFixed(2)}`;
   }
 
   const { symbol, position } = settings.currency;
-  const formattedAmount = amount.toFixed(2);
+  const formattedAmount = numAmount.toFixed(2);
 
   if (position === "after") {
     return `${formattedAmount}${symbol}`;

@@ -1,13 +1,12 @@
-const { addToQueue } = require("../services/emailQueueService");
-const Invoice = require("../models/Invoice");
-const Quotation = require("../models/Quotation");
-const Settings = require("../models/Settings");
+const { sendEmail } = require("../services/emailService");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Send Invoice via Email
 // @route   POST /api/email/send-invoice/:id
 // @access  Private
 const sendInvoiceEmail = async (req, res) => {
   try {
+    const { Invoice, Settings } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id).populate("customer");
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
@@ -186,6 +185,7 @@ const sendInvoiceEmail = async (req, res) => {
 // @access  Private
 const sendQuotationEmail = async (req, res) => {
   try {
+    const { Quotation, Settings } = getTenantModels(req.dbConnection);
     const quotation = await Quotation.findById(req.params.id).populate(
       "customer"
     );

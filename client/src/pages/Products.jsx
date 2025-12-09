@@ -120,16 +120,18 @@ const Products = () => {
             <Plus className="mr-2 h-5 w-5" />
             Add Product
           </button>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw
-              className={`mr-2 h-5 w-5 ${syncing ? "animate-spin" : ""}`}
-            />
-            {syncing ? "Syncing..." : "Sync from WooCommerce"}
-          </button>
+          {!(settings?.modules?.woocommerce === false) && (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw
+                className={`mr-2 h-5 w-5 ${syncing ? "animate-spin" : ""}`}
+              />
+              {syncing ? "Syncing..." : "Sync from WooCommerce"}
+            </button>
+          )}
         </div>
       </div>
 

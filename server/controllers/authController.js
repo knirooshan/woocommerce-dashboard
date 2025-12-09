@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const { getTenantModels } = require("../models/tenantModels");
 
 // Generate JWT
 const generateToken = (id) => {
@@ -15,6 +15,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
@@ -24,6 +25,7 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         token: generateToken(user._id),
+        isSuperAdmin: req.isSuperAdmin || false,
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
@@ -40,6 +42,7 @@ const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const userExists = await User.findOne({ email });
 
     if (userExists) {
@@ -74,6 +77,7 @@ const registerUser = async (req, res) => {
 // @access  Public
 const checkFirstRun = async (req, res) => {
   try {
+    const { User } = getTenantModels(req.dbConnection);
     const userCount = await User.countDocuments();
     res.json({ isFirstRun: userCount === 0 });
   } catch (error) {
@@ -88,6 +92,7 @@ const setupFirstUser = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
+    const { User } = getTenantModels(req.dbConnection);
     // Check if any users exist
     const userCount = await User.countDocuments();
     if (userCount > 0) {
@@ -109,6 +114,7 @@ const setupFirstUser = async (req, res) => {
         email: user.email,
         role: user.role,
         token: generateToken(user._id),
+        isSuperAdmin: req.isSuperAdmin || false,
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });

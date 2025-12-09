@@ -1,11 +1,42 @@
-const Quotation = require("../models/Quotation");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get all quotations
 // @route   GET /api/quotations
 // @access  Private
 const getQuotations = async (req, res) => {
   try {
-    const quotations = await Quotation.find({ status: { $ne: "deleted" } })
+    const { Quotation } = getTenantModels(req.dbConnection);
+    const { search, status, customer, startDate, endDate } = req.query;
+
+    // Build filter object
+    const filter = { status: { $ne: "deleted" } };
+
+    // Search in quotation number or notes
+    if (search) {
+      filter.$or = [
+        { quotationNumber: { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter by status (in addition to not deleted)
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    // Filter by customer
+    if (customer && customer !== "all") {
+      filter.customer = customer;
+    }
+
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.quotationDate = {};
+      if (startDate) filter.quotationDate.$gte = new Date(startDate);
+      if (endDate) filter.quotationDate.$lte = new Date(endDate);
+    }
+
+    const quotations = await Quotation.find(filter)
       .populate("customer", "firstName lastName email")
       .sort({ createdAt: -1 });
     res.json(quotations);
@@ -19,6 +50,7 @@ const getQuotations = async (req, res) => {
 // @access  Private
 const getQuotationById = async (req, res) => {
   try {
+    const { Quotation } = getTenantModels(req.dbConnection);
     const quotation = await Quotation.findById(req.params.id)
       .populate("customer")
       .populate("items.product");
@@ -38,6 +70,7 @@ const getQuotationById = async (req, res) => {
 // @access  Private
 const createQuotation = async (req, res) => {
   try {
+    const { Quotation } = getTenantModels(req.dbConnection);
     const {
       customer,
       items,
@@ -78,6 +111,7 @@ const createQuotation = async (req, res) => {
 // @access  Private
 const updateQuotationStatus = async (req, res) => {
   try {
+    const { Quotation } = getTenantModels(req.dbConnection);
     const { status } = req.body;
     const quotation = await Quotation.findById(req.params.id);
 
@@ -98,6 +132,7 @@ const updateQuotationStatus = async (req, res) => {
 // @access  Private
 const updateQuotation = async (req, res) => {
   try {
+    const { Quotation } = getTenantModels(req.dbConnection);
     const quotation = await Quotation.findById(req.params.id);
 
     if (quotation) {
@@ -123,6 +158,7 @@ const updateQuotation = async (req, res) => {
 // @access Private
 const deleteQuotation = async (req, res) => {
   try {
+    const { Quotation } = getTenantModels(req.dbConnection);
     const quotation = await Quotation.findById(req.params.id);
 
     if (quotation) {

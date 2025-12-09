@@ -27,4 +27,5 @@ const mediaSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Media", mediaSchema);
+// Don't compile model here
+module.exports = mediaSchema;
