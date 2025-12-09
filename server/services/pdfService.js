@@ -18,7 +18,14 @@ const formatCurrency = (amount, settings) => {
 };
 
 // Helper to fetch and embed logo
-const embedLogo = async (doc, logoUrl, x, y, maxWidth = 100, maxHeight = 50) => {
+const embedLogo = async (
+  doc,
+  logoUrl,
+  x,
+  y,
+  maxWidth = 100,
+  maxHeight = 50
+) => {
   try {
     if (!logoUrl) return;
 
@@ -28,7 +35,10 @@ const embedLogo = async (doc, logoUrl, x, y, maxWidth = 100, maxHeight = 50) => 
     });
 
     const imageBuffer = Buffer.from(response.data, "binary");
-    doc.image(imageBuffer, x, y, { fit: [maxWidth, maxHeight], align: "right" });
+    doc.image(imageBuffer, x, y, {
+      fit: [maxWidth, maxHeight],
+      align: "right",
+    });
   } catch (error) {
     console.error("Error embedding logo:", error.message);
     // Continue without logo if fetch fails
@@ -63,11 +73,29 @@ const addTableHeader = (doc, y, settings) => {
 
 // Helper to add table row
 const addTableRow = (doc, y, item, settings, isLast = false) => {
+  const startY = y;
+
   doc
     .fillColor("#1F2937")
     .fontSize(10)
     .font("Helvetica")
-    .text(item.name, 55, y + 5, { width: 225, align: "left" })
+    .text(item.name, 55, y + 5, { width: 225, align: "left" });
+
+  if (item.product?.shortDescription) {
+    doc
+      .fillColor("#6B7280")
+      .fontSize(8)
+      .font("Helvetica")
+      .text(item.product.shortDescription, 55, y + 17, {
+        width: 225,
+        align: "left",
+      });
+  }
+
+  doc
+    .fillColor("#1F2937")
+    .fontSize(10)
+    .font("Helvetica")
     .text(formatCurrency(item.price, settings), 280, y + 5, {
       width: 80,
       align: "right",
@@ -79,11 +107,13 @@ const addTableRow = (doc, y, item, settings, isLast = false) => {
       align: "right",
     });
 
+  const rowHeight = item.product?.shortDescription ? 40 : 30;
+
   if (!isLast) {
-    drawLine(doc, y + 25, "#E5E7EB", 0.5);
+    drawLine(doc, y + rowHeight - 5, "#E5E7EB", 0.5);
   }
 
-  return y + 30;
+  return y + rowHeight;
 };
 
 // Generate Invoice PDF
@@ -105,7 +135,11 @@ const generateInvoicePDF = async (invoice, settings) => {
       doc.on("error", reject);
 
       // Header Section
-      doc.fillColor("#2563EB").fontSize(32).font("Helvetica-Bold").text("INVOICE", 50, 50);
+      doc
+        .fillColor("#2563EB")
+        .fontSize(32)
+        .font("Helvetica-Bold")
+        .text("INVOICE", 50, 50);
 
       // Logo (top right)
       if (settings?.logo) {
@@ -186,7 +220,7 @@ const generateInvoicePDF = async (invoice, settings) => {
 
       // Bill To & Invoice Details
       let detailsY = headerLineY + 20;
-      
+
       // Bill To (Left)
       doc
         .fillColor("#9CA3AF")
@@ -202,21 +236,27 @@ const generateInvoicePDF = async (invoice, settings) => {
         .text(
           `${invoice.customer?.salutation || ""}${
             invoice.customer?.salutation ? " " : ""
-          }${invoice.customer?.firstName || ""} ${invoice.customer?.lastName || ""}`,
+          }${invoice.customer?.firstName || ""} ${
+            invoice.customer?.lastName || ""
+          }`,
           50,
           detailsY
         );
 
-      detailsY += 15;
-      doc
-        .fillColor("#1F2937")
-        .fontSize(10)
-        .font("Helvetica")
-        .text(invoice.customer?.email || "", 50, detailsY);
+      if (invoice.customer?.billing?.company) {
+        detailsY += 15;
+        doc
+          .fillColor("#1F2937")
+          .font("Helvetica")
+          .text(invoice.customer.billing.company, 50, detailsY);
+      }
 
       if (invoice.customer?.billing?.address_1) {
-        detailsY += 12;
-        doc.text(invoice.customer.billing.address_1, 50, detailsY);
+        detailsY += 15;
+        doc
+          .fillColor("#1F2937")
+          .font("Helvetica")
+          .text(invoice.customer.billing.address_1, 50, detailsY);
       }
 
       if (
@@ -236,6 +276,16 @@ const generateInvoicePDF = async (invoice, settings) => {
         );
       }
 
+      if (invoice.customer?.email) {
+        detailsY += 12;
+        doc.text(invoice.customer.email, 50, detailsY);
+      }
+
+      if (invoice.customer?.billing?.phone) {
+        detailsY += 12;
+        doc.text(invoice.customer.billing.phone, 50, detailsY);
+      }
+
       // Invoice Details (Right)
       let invoiceDetailsY = detailsY;
       doc
@@ -249,7 +299,10 @@ const generateInvoicePDF = async (invoice, settings) => {
         .fillColor("#1F2937")
         .fontSize(10)
         .font("Helvetica")
-        .text("Date Issued:", 350, invoiceDetailsY, { width: 100, align: "left" });
+        .text("Date Issued:", 350, invoiceDetailsY, {
+          width: 100,
+          align: "left",
+        });
       doc
         .font("Helvetica-Bold")
         .text(
@@ -261,9 +314,10 @@ const generateInvoicePDF = async (invoice, settings) => {
 
       if (invoice.dueDate) {
         invoiceDetailsY += 15;
-        doc
-          .font("Helvetica")
-          .text("Due Date:", 350, invoiceDetailsY, { width: 100, align: "left" });
+        doc.font("Helvetica").text("Due Date:", 350, invoiceDetailsY, {
+          width: 100,
+          align: "left",
+        });
         doc
           .font("Helvetica-Bold")
           .text(
@@ -313,7 +367,10 @@ const generateInvoicePDF = async (invoice, settings) => {
         .fillColor("#6B7280")
         .fontSize(10)
         .font("Helvetica")
-        .text("Subtotal", totalsX - 100, tableY, { width: 100, align: "right" });
+        .text("Subtotal", totalsX - 100, tableY, {
+          width: 100,
+          align: "right",
+        });
       doc
         .fillColor("#111827")
         .font("Helvetica")
@@ -342,15 +399,21 @@ const generateInvoicePDF = async (invoice, settings) => {
       // Discount
       if (invoice.discount > 0) {
         tableY += 20;
-        doc
-          .fillColor("#6B7280")
-          .text("Discount", totalsX - 100, tableY, { width: 100, align: "right" });
+        doc.fillColor("#6B7280").text("Discount", totalsX - 100, tableY, {
+          width: 100,
+          align: "right",
+        });
         doc
           .fillColor("#EF4444")
-          .text(`-${formatCurrency(invoice.discount, settings)}`, totalsX, tableY, {
-            width: 125,
-            align: "right",
-          });
+          .text(
+            `-${formatCurrency(invoice.discount, settings)}`,
+            totalsX,
+            tableY,
+            {
+              width: 125,
+              align: "right",
+            }
+          );
       }
 
       // Grand Total
@@ -394,12 +457,10 @@ const generateInvoicePDF = async (invoice, settings) => {
           });
 
         tableY += 20;
-        doc
-          .font("Helvetica-Bold")
-          .text("Balance Due", totalsX - 100, tableY, {
-            width: 100,
-            align: "right",
-          });
+        doc.font("Helvetica-Bold").text("Balance Due", totalsX - 100, tableY, {
+          width: 100,
+          align: "right",
+        });
         doc
           .font("Helvetica-Bold")
           .text(formatCurrency(balanceDue, settings), totalsX, tableY, {
@@ -411,7 +472,7 @@ const generateInvoicePDF = async (invoice, settings) => {
       // Notes
       if (invoice.notes) {
         tableY += 40;
-        
+
         // Check if we need a new page for notes
         if (tableY > 650) {
           doc.addPage();
@@ -434,7 +495,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             width: 480,
             align: "left",
           });
-        
+
         tableY += 70;
       }
 
@@ -457,36 +518,36 @@ const generateInvoicePDF = async (invoice, settings) => {
 
       // Bank Details
       if (settings?.bank?.accountName) {
-          doc
-            .fontSize(8)
-            .font("Helvetica-Bold")
-            .text("Bank Details:", 50, 775, { width: 500, align: "center" });
+        doc
+          .fontSize(8)
+          .font("Helvetica-Bold")
+          .text("Bank Details:", 50, 775, { width: 500, align: "center" });
 
-          doc
-            .font("Helvetica")
-            .text(
-              `${settings.bank.bankName || ""}${
-                settings.bank.branch ? `, ${settings.bank.branch}` : ""
-              }`,
-              50,
-              787,
-              { width: 500, align: "center" }
-            );
-
-          doc.text(
-            `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
+        doc
+          .font("Helvetica")
+          .text(
+            `${settings.bank.bankName || ""}${
+              settings.bank.branch ? `, ${settings.bank.branch}` : ""
+            }`,
             50,
-            797,
+            787,
             { width: 500, align: "center" }
           );
 
-          if (settings.bank.swiftCode) {
-            doc.text(`Swift Code: ${settings.bank.swiftCode}`, 50, 807, {
-              width: 500,
-              align: "center",
-            });
-          }
+        doc.text(
+          `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
+          50,
+          797,
+          { width: 500, align: "center" }
+        );
+
+        if (settings.bank.swiftCode) {
+          doc.text(`Swift Code: ${settings.bank.swiftCode}`, 50, 807, {
+            width: 500,
+            align: "center",
+          });
         }
+      }
 
       doc.end();
     } catch (error) {
@@ -610,16 +671,20 @@ const generateQuotationPDF = async (quotation, settings) => {
           detailsY
         );
 
-      detailsY += 15;
-      doc
-        .fillColor("#1F2937")
-        .fontSize(10)
-        .font("Helvetica")
-        .text(quotation.customer?.email || "", 50, detailsY);
+      if (quotation.customer?.billing?.company) {
+        detailsY += 15;
+        doc
+          .fillColor("#1F2937")
+          .font("Helvetica")
+          .text(quotation.customer.billing.company, 50, detailsY);
+      }
 
       if (quotation.customer?.billing?.address_1) {
-        detailsY += 12;
-        doc.text(quotation.customer.billing.address_1, 50, detailsY);
+        detailsY += 15;
+        doc
+          .fillColor("#1F2937")
+          .font("Helvetica")
+          .text(quotation.customer.billing.address_1, 50, detailsY);
       }
 
       if (
@@ -637,6 +702,16 @@ const generateQuotationPDF = async (quotation, settings) => {
           50,
           detailsY
         );
+      }
+
+      if (quotation.customer?.email) {
+        detailsY += 12;
+        doc.text(quotation.customer.email, 50, detailsY);
+      }
+
+      if (quotation.customer?.billing?.phone) {
+        detailsY += 12;
+        doc.text(quotation.customer.billing.phone, 50, detailsY);
       }
 
       // Quotation Details (Right)
@@ -667,12 +742,10 @@ const generateQuotationPDF = async (quotation, settings) => {
 
       if (quotation.validUntil) {
         quotationDetailsY += 15;
-        doc
-          .font("Helvetica")
-          .text("Valid Until:", 350, quotationDetailsY, {
-            width: 100,
-            align: "left",
-          });
+        doc.font("Helvetica").text("Valid Until:", 350, quotationDetailsY, {
+          width: 100,
+          align: "left",
+        });
         doc
           .font("Helvetica-Bold")
           .text(
@@ -722,7 +795,10 @@ const generateQuotationPDF = async (quotation, settings) => {
         .fillColor("#6B7280")
         .fontSize(10)
         .font("Helvetica")
-        .text("Subtotal", totalsX - 100, tableY, { width: 100, align: "right" });
+        .text("Subtotal", totalsX - 100, tableY, {
+          width: 100,
+          align: "right",
+        });
       doc
         .fillColor("#111827")
         .font("Helvetica")
@@ -751,9 +827,10 @@ const generateQuotationPDF = async (quotation, settings) => {
       // Discount
       if (quotation.discount > 0) {
         tableY += 20;
-        doc
-          .fillColor("#6B7280")
-          .text("Discount", totalsX - 100, tableY, { width: 100, align: "right" });
+        doc.fillColor("#6B7280").text("Discount", totalsX - 100, tableY, {
+          width: 100,
+          align: "right",
+        });
         doc
           .fillColor("#EF4444")
           .text(
@@ -806,7 +883,7 @@ const generateQuotationPDF = async (quotation, settings) => {
             width: 480,
             align: "left",
           });
-        
+
         tableY += 70;
       }
 
@@ -829,36 +906,36 @@ const generateQuotationPDF = async (quotation, settings) => {
 
       // Bank Details
       if (settings?.bank?.accountName) {
-          doc
-            .fontSize(8)
-            .font("Helvetica-Bold")
-            .text("Bank Details:", 50, 775, { width: 500, align: "center" });
+        doc
+          .fontSize(8)
+          .font("Helvetica-Bold")
+          .text("Bank Details:", 50, 775, { width: 500, align: "center" });
 
-          doc
-            .font("Helvetica")
-            .text(
-              `${settings.bank.bankName || ""}${
-                settings.bank.branch ? `, ${settings.bank.branch}` : ""
-              }`,
-              50,
-              787,
-              { width: 500, align: "center" }
-            );
-
-          doc.text(
-            `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
+        doc
+          .font("Helvetica")
+          .text(
+            `${settings.bank.bankName || ""}${
+              settings.bank.branch ? `, ${settings.bank.branch}` : ""
+            }`,
             50,
-            797,
+            787,
             { width: 500, align: "center" }
           );
 
-          if (settings.bank.swiftCode) {
-            doc.text(`Swift Code: ${settings.bank.swiftCode}`, 50, 807, {
-              width: 500,
-              align: "center",
-            });
-          }
+        doc.text(
+          `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
+          50,
+          797,
+          { width: 500, align: "center" }
+        );
+
+        if (settings.bank.swiftCode) {
+          doc.text(`Swift Code: ${settings.bank.swiftCode}`, 50, 807, {
+            width: 500,
+            align: "center",
+          });
         }
+      }
 
       doc.end();
     } catch (error) {

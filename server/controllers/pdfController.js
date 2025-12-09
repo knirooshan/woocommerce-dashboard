@@ -10,7 +10,9 @@ const {
 const getInvoicePDF = async (req, res) => {
   try {
     const { Invoice, Settings } = getTenantModels(req.dbConnection);
-    const invoice = await Invoice.findById(req.params.id).populate("customer");
+    const invoice = await Invoice.findById(req.params.id)
+      .populate("customer")
+      .populate("items.product");
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
@@ -39,9 +41,9 @@ const getInvoicePDF = async (req, res) => {
 const getQuotationPDF = async (req, res) => {
   try {
     const { Quotation, Settings } = getTenantModels(req.dbConnection);
-    const quotation = await Quotation.findById(req.params.id).populate(
-      "customer"
-    );
+    const quotation = await Quotation.findById(req.params.id)
+      .populate("customer")
+      .populate("items.product");
     if (!quotation) {
       return res.status(404).json({ message: "Quotation not found" });
     }

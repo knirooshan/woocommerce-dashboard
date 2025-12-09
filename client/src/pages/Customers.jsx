@@ -120,6 +120,9 @@ const Customers = () => {
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
@@ -138,6 +141,9 @@ const Customers = () => {
                 <tr key={customer._id} className="hover:bg-slate-800/50">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
                     {customer.firstName} {customer.lastName}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-slate-400">
+                    {customer.billing?.company || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.email || "-"}
