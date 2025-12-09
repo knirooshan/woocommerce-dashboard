@@ -12,7 +12,7 @@ const getDashboardStats = async (req, res) => {
     const { Invoice, Expense, Payment } = getTenantModels(req.dbConnection);
     // Calculate Total Sales (sum of all non-deleted payments)
     const salesResult = await Payment.aggregate([
-      { $match: { status: { $ne: "deleted" } } },
+      { $match: { status: "active" } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
@@ -52,7 +52,7 @@ const getSalesReport = async (req, res) => {
     const { Expense, Payment } = getTenantModels(req.dbConnection);
     // 1. Get Monthly Sales (from payments)
     const sales = await Payment.aggregate([
-      { $match: { status: { $ne: "deleted" } } },
+      { $match: { status: "active" } },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$date" } },

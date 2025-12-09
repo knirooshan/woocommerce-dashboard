@@ -162,6 +162,19 @@ const Payments = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "bg-green-900/50 text-green-400 border border-green-800";
+      case "refunded":
+        return "bg-yellow-900/50 text-yellow-400 border border-yellow-800";
+      case "deleted":
+        return "bg-red-900/50 text-red-400 border border-red-800";
+      default:
+        return "bg-slate-800 text-slate-400 border border-slate-700";
+    }
+  };
+
   if (loading) return <div className="text-white">Loading payments...</div>;
 
   return (
@@ -269,6 +282,9 @@ const Payments = () => {
                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Amount
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Status
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
@@ -294,6 +310,16 @@ const Payments = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right font-medium text-white">
                     {formatCurrency(payment.amount, settings)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
+                        payment.status
+                      )}`}
+                    >
+                      {payment.status.charAt(0).toUpperCase() +
+                        payment.status.slice(1)}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
                     <button

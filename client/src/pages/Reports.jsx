@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
@@ -126,7 +127,14 @@ const Reports = () => {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="profit" fill="#10B981" name="Net Profit" />
+                <Bar dataKey="profit" name="Net Profit">
+                  {salesData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.profit >= 0 ? "#10B981" : "#EF4444"}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
