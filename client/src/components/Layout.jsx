@@ -130,7 +130,7 @@ const Layout = () => {
             className="flex items-center gap-3"
             aria-label="Go to dashboard home"
           >
-            <img src="/merchpilot.svg" alt="Logo" className="h-8 w-8" />
+            <img src="/merchpilot.png" alt="Logo" className="h-8 w-8" />
             <span className="text-xl font-bold text-white">MerchPilot</span>
           </Link>
           <button
