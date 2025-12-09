@@ -1,6 +1,7 @@
 # WooCommerce Dashboard - Deployment Guide
 
 ## Table of Contents
+
 1. [Pre-deployment Checklist](#pre-deployment-checklist)
 2. [Environment Configuration](#environment-configuration)
 3. [Building for Production](#building-for-production)
@@ -14,12 +15,14 @@
 ## Pre-deployment Checklist
 
 ### System Requirements
+
 - **Server**: Node.js 18+ (check with hosting provider)
 - **Database**: MongoDB Atlas account (free tier available)
 - **Domain**: Your domain with SSL certificate
 - **Email**: SMTP credentials (optional, for sending invoices)
 
 ### Before You Deploy
+
 - [ ] MongoDB Atlas cluster created and connection string ready
 - [ ] WooCommerce store API credentials ready
 - [ ] Domain/subdomain configured
@@ -68,6 +71,7 @@ EMAIL_FROM=your-email@gmail.com
 ```
 
 **Important Notes:**
+
 - Replace ALL placeholder values with your actual credentials
 - Never commit `.env` file to git
 - For Gmail, use App Password (not regular password)
@@ -107,6 +111,7 @@ npm install --production
 3. Navigate to your domain's root (usually `public_html/yourdomain.com`)
 
 4. **Upload Backend:**
+
    - Create folder: `api`
    - Upload entire `server/` contents to `api/` folder
    - Upload your `.env` file to `api/` folder
@@ -116,6 +121,7 @@ npm install --production
    - Make sure `index.html` is in the root
 
 **Final Structure:**
+
 ```
 public_html/yourdomain.com/
 ├── api/                    # Backend
@@ -139,6 +145,7 @@ public_html/yourdomain.com/
 2. Click **"Create Application"**
 
 3. **Configure:**
+
    - **Node.js version**: 18.x or higher
    - **Application mode**: Production
    - **Application root**: `api` (or full path like `/home/username/public_html/yourdomain.com/api`)
@@ -149,8 +156,10 @@ public_html/yourdomain.com/
 4. Click **"Create"**
 
 5. **Install Dependencies:**
+
    - After creation, cPanel shows a command to enter in terminal
    - Click **"Run NPM Install"** button, or use Terminal:
+
    ```bash
    source /home/username/nodevenv/yourdomain.com/api/18/bin/activate
    cd /home/username/public_html/yourdomain.com/api
@@ -169,7 +178,7 @@ RewriteEngine On
 
 # API Proxy (redirect /api to Node.js app)
 RewriteCond %{REQUEST_URI} ^/api
-RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+RewriteRule ^api/(.*)$ https://127.0.0.1:5000/api/$1 [P,L]
 
 # Frontend SPA routing (React Router)
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -183,10 +192,12 @@ RewriteRule . /index.html [L]
 If API and frontend are on different subdomains, update `server/index.js`:
 
 ```javascript
-app.use(cors({
-  origin: ['https://yourdomain.com', 'https://www.yourdomain.com'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["https://yourdomain.com", "https://www.yourdomain.com"],
+    credentials: true,
+  })
+);
 ```
 
 ---
@@ -194,6 +205,7 @@ app.use(cors({
 ### Method 2: Using Git Deployment (Advanced)
 
 1. **Setup Git in cPanel:**
+
    - Navigate to "Git Version Control"
    - Clone your repository
 
@@ -211,6 +223,7 @@ deployment:
 ```
 
 3. **Push to trigger deployment:**
+
 ```bash
 git push origin main
 ```
@@ -222,6 +235,7 @@ git push origin main
 ### Step 1: Upload Files via FTP/SFTP
 
 1. **Connect via FTP** (FileZilla, WinSCP, etc.)
+
    - Host: yourdomain.com
    - Username: your_username
    - Password: your_password
@@ -241,6 +255,7 @@ git push origin main
 2. **Navigate to "Custom HTTPD Configurations"** or **"Terminal"**
 
 3. **Install Node.js** (if not available):
+
 ```bash
 # Check if Node.js is installed
 node --version
@@ -257,6 +272,7 @@ node index.js
 ```
 
 5. **Make executable:**
+
 ```bash
 chmod +x start.sh
 ```
@@ -302,6 +318,7 @@ WantedBy=multi-user.target
 ```
 
 Enable and start:
+
 ```bash
 systemctl enable woocommerce-dashboard
 systemctl start woocommerce-dashboard
@@ -316,7 +333,7 @@ RewriteEngine On
 
 # API Proxy
 RewriteCond %{REQUEST_URI} ^/api
-RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+RewriteRule ^api/(.*)$ https://127.0.0.1:5000/api/$1 [P,L]
 
 # SPA Routing
 RewriteCond %{REQUEST_FILENAME} !-f
@@ -336,7 +353,7 @@ server {
 
     # API Proxy
     location /api {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass https://127.0.0.1:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -354,6 +371,7 @@ server {
 ```
 
 Restart Nginx:
+
 ```bash
 systemctl restart nginx
 ```
@@ -414,6 +432,7 @@ systemctl restart nginx
 **Symptoms**: Frontend can't connect to backend
 
 **Solutions:**
+
 1. Check `.htaccess` proxy rules are correct
 2. Verify Node.js app is running: `pm2 status` or check cPanel
 3. Check API_URL in `client/src/config/api.js` matches your domain
@@ -425,6 +444,7 @@ systemctl restart nginx
 **Symptoms**: Server crashes with MongoDB connection error
 
 **Solutions:**
+
 1. Verify MongoDB Atlas allows connections from hosting IP
 2. Check MONGO_URI in `.env` is correct
 3. MongoDB Atlas → Network Access → Add hosting server IP
@@ -435,6 +455,7 @@ systemctl restart nginx
 **Symptoms**: React routes work initially but 404 on refresh
 
 **Solutions:**
+
 1. Check `.htaccess` has SPA routing rules
 2. Ensure `index.html` is in domain root
 3. Clear browser cache
@@ -444,6 +465,7 @@ systemctl restart nginx
 **Symptoms**: Application won't start in cPanel/DirectAdmin
 
 **Solutions:**
+
 1. Check `package.json` has correct start script
 2. Verify all dependencies installed: `npm install`
 3. Check `.env` file exists and is readable
@@ -455,6 +477,7 @@ systemctl restart nginx
 **Symptoms**: Cannot write files, upload images
 
 **Solutions:**
+
 1. Check folder permissions: `chmod 755 api`
 2. Check file ownership: `chown username:username api -R`
 3. Ensure uploads directory is writable
@@ -464,6 +487,7 @@ systemctl restart nginx
 **Symptoms**: Cannot sync products/orders
 
 **Solutions:**
+
 1. Verify WooCommerce API credentials
 2. Check WooCommerce → Settings → Advanced → REST API
 3. Ensure API has read permissions
@@ -475,6 +499,7 @@ systemctl restart nginx
 **Symptoms**: Invoices won't send via email
 
 **Solutions:**
+
 1. Check SMTP credentials in Settings
 2. For Gmail: Use App Password, enable 2FA
 3. Check port 587/465 is not blocked by hosting
@@ -496,6 +521,7 @@ systemctl restart nginx
 ### Performance Optimization
 
 1. **Enable Compression** (in .htaccess):
+
 ```apache
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
@@ -503,6 +529,7 @@ systemctl restart nginx
 ```
 
 2. **Browser Caching** (in .htaccess):
+
 ```apache
 <IfModule mod_expires.c>
   ExpiresActive On

@@ -59,7 +59,7 @@ WOO_URL=https://your-woocommerce-site.com
 npm run dev
 ```
 
-The server will run on `http://localhost:5000`
+The server will run on `https://localhost:5000`
 
 ### Client Setup
 
@@ -81,7 +81,7 @@ npm install
 npm run dev
 ```
 
-The client will run on `http://localhost:5173`
+The client will run on `https://localhost:5173`
 
 ## Usage
 

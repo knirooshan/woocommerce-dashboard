@@ -159,7 +159,7 @@ const Tenants = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <a
-                      href={`http://${tenant.subdomain}.merchpilot.xyz`}
+                      href={`https://${tenant.subdomain}.merchpilot.xyz`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-400 hover:text-blue-300 hover:underline"

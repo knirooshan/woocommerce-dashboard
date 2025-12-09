@@ -24,52 +24,68 @@ See `server/docs/AUTOMATED-DEPLOYMENT.md` for recommended automated deploy setup
 The app provides a complete small-business dashboard. Each feature below includes a short explanation of what it does and where to look in the code.
 
 - Authentication & Users
+
   - Login, logout, and user management. User model lives in `server/models/User.js` and routes/controllers in `server/controllers` and `server/routes/userRoutes.js`.
   - Roles: at least `admin` and regular users — admin-only pages (Users, Settings) appear for admin users.
 
 - Dashboard / Stats
+
   - High-level metrics and charts on the landing dashboard page (sales totals, recent orders, quick stats). Frontend components under `client/src/components` like `SalesChart.jsx` and `StatsCard.jsx`.
 
 - Point-of-Sale (POS)
+
   - POS grid and cart experience for in-person sales. Files: `client/src/components/POSProductGrid.jsx`, `POSCart.jsx` and POS page under `client/src/pages/pos` (or `pages/POS.jsx`).
 
 - Products
+
   - Product CRUD operations, including images/media. Server controller: `server/controllers/productController.js`. Client forms: `ProductForm.jsx` and product pages.
 
 - Customers
+
   - Customer management (CRUD) with quick search and import/exports. Server: `server/controllers/customerController.js`. Client: `CustomerForm.jsx`, pages under `client/src/pages/Customers.jsx`.
 
 - Vendors
+
   - Vendor CRUD and management (for purchase/expense tracking). Server: `server/controllers/vendorController.js` and `client/src/components/VendorForm.jsx`.
 
 - Quotations & Invoices
+
   - Create, send, and manage quotations and invoices. PDF generation for printable documents uses server-side PDF service (`server/services/pdfService.js`) and related controllers (`quotationController.js`, `invoiceController.js`). Client pages include `CreateQuotation.jsx`, `CreateInvoice.jsx` and PDF components in `client/src/components/*PDF.jsx`.
 
 - Orders
+
   - Basic order handling and integration with WooCommerce (if configured). Server: `server/controllers/orderController.js` and `server/services/wooService.js`.
 
 - Payments
+
   - Record payments against invoices/orders and mark statuses. Server: `server/controllers/paymentController.js` and `client/src/components/PaymentModal.jsx`.
 
 - Expenses
+
   - Track business expenses and link to vendors. Server: `server/controllers/expenseController.js` and client expense UI.
 
 - Media Library
+
   - Upload and manage product/media images and files. Server: `server/controllers/mediaController.js` and `server/uploads/` for stored files; client: `MediaLibraryModal.jsx`, `MediaUpload.jsx`, `MediaGrid.jsx`.
 
 - Activity Log / Audit Trail
+
   - Record important actions (create/update/delete) for accountability. Server: `activityLogController.js` and model `ActivityLog.js`. Client page: `ActivityLog.jsx`.
 
 - Reporting
+
   - Sales and expense reports with date filters and aggregates. Server: `server/controllers/reportController.js` and client reports UI.
 
 - Settings
+
   - App-level settings (store info, currency, tax settings) managed via `server/controllers/settingsController.js` and client `Settings` page.
 
 - Email & Notifications
+
   - Server-side email service in `server/services/emailService.js` for sending invoices/quotations and other notifications.
 
 - PDF generation
+
   - PDF service to create downloadable/printable invoices, quotations, delivery receipts. See `server/services/pdfService.js` and client PDF components: `InvoicePDF.jsx`, `QuotationPDF.jsx`, `DeliveryReceiptPDF.jsx`.
 
 - Reports & Exports
@@ -93,6 +109,7 @@ The app provides a complete small-business dashboard. Each feature below include
 ## Installation — local development
 
 Prerequisites:
+
 - Node.js (LTS, e.g. 18+)
 - npm or yarn
 - MongoDB (local or Atlas connection)
@@ -119,7 +136,7 @@ MONGODB_URI=your_mongo_connection_string
 JWT_SECRET=your_jwt_secret
 PORT=3000
 # Optional SMTP vars used by email service
-SMTP_HOST=... 
+SMTP_HOST=...
 SMTP_PORT=...
 SMTP_USER=...
 SMTP_PASS=...
@@ -134,7 +151,7 @@ Running locally:
 npm run dev      # or `npm start` depending on package.json
 
 # From client/
-npm run dev      # runs Vite dev server (usually http://localhost:5173)
+npm run dev      # runs Vite dev server (usually https://localhost:5173)
 ```
 
 Open the client app (Vite) in the browser and ensure the server API endpoint is reachable.
@@ -144,6 +161,7 @@ Open the client app (Vite) in the browser and ensure the server API endpoint is 
 ## Deployment summary
 
 See `server/docs/AUTOMATED-DEPLOYMENT.md` for a complete A→Z guide covering:
+
 - Creating a `deploy` user on your Ubuntu VPS
 - Generating an SSH key and storing it in GitHub Secrets
 - A `deploy.sh` script example that pulls latest code, installs deps, builds the client and restarts the service
@@ -200,6 +218,7 @@ Use the example above; these are common keys — check `server` code and `server
 ## Contributing
 
 Contributions are welcome. Common tasks:
+
 - Bug fixes and tests
 - Improve documentation
 - Add features or improve UI components in `client/src/components`
@@ -216,6 +235,7 @@ Please open an issue describing the feature or bug before sending a big pull req
 ---
 
 If you want, I can also:
+
 - Add a short `CONTRIBUTING.md` with contribution guidelines and branching rules.
 - Create a `server/.env.example` based on the variables used in server code (I can scan the repo and list all env keys).
 

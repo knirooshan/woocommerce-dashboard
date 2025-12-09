@@ -10,7 +10,7 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # API Proxy - Forward /api requests to Node.js backend
 RewriteCond %{REQUEST_URI} ^/api
-RewriteRule ^api/(.*)$ http://127.0.0.1:5000/api/$1 [P,L]
+RewriteRule ^api/(.*)$ https://127.0.0.1:5000/api/$1 [P,L]
 
 # Frontend SPA Routing - Handle React Router
 RewriteCond %{REQUEST_FILENAME} !-f
