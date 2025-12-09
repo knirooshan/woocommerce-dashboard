@@ -59,11 +59,26 @@ const getTenantConnection = async (tenantId) => {
   // Simplest strategy: Replace database name in connection string if possible,
   // or use a configured URI pattern.
   // For this local setup, and generally:
-  const baseUri = process.env.CENTRAL_DB_URI.substring(
-    0,
-    process.env.CENTRAL_DB_URI.lastIndexOf("/")
-  );
-  const tenantUri = `${baseUri}/${dbName}`;
+  // Robust URI construction using URL class to handle all edge cases (auth, special chars, query params)
+  let tenantUri;
+  try {
+    const centralUrl = new URL(process.env.CENTRAL_DB_URI);
+    // centralUrl.pathname is like "/merchpilot_central"
+    // We want to replace the db name but keep the leading slash
+    centralUrl.pathname = `/${dbName}`;
+    tenantUri = centralUrl.toString();
+  } catch (parseError) {
+    console.error(
+      "Failed to parse CENTRAL_DB_URI with URL class, falling back to simple replacement:",
+      parseError
+    );
+    // Fallback for some malformed URIs (though they shouldn't work for central connection either)
+    const baseUri = process.env.CENTRAL_DB_URI.substring(
+      0,
+      process.env.CENTRAL_DB_URI.lastIndexOf("/")
+    );
+    tenantUri = `${baseUri}/${dbName}`;
+  }
 
   try {
     const conn = await mongoose.createConnection(tenantUri).asPromise();
