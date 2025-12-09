@@ -1,4 +1,4 @@
-const Media = require("../models/Media");
+const { getTenantModels } = require("../models/tenantModels");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
@@ -39,6 +39,7 @@ exports.uploadMedia = [
   upload.single("file"),
   async (req, res) => {
     try {
+      const { Media } = getTenantModels(req.dbConnection);
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded" });
       }
@@ -75,6 +76,7 @@ exports.uploadMedia = [
 // Get All Media
 exports.getMedia = async (req, res) => {
   try {
+    const { Media } = getTenantModels(req.dbConnection);
     const media = await Media.find().sort({ createdAt: -1 });
     res.json(media);
   } catch (error) {
@@ -86,6 +88,7 @@ exports.getMedia = async (req, res) => {
 // Delete Media
 exports.deleteMedia = async (req, res) => {
   try {
+    const { Media } = getTenantModels(req.dbConnection);
     const media = await Media.findById(req.params.id);
     if (!media) {
       return res.status(404).json({ message: "Media not found" });

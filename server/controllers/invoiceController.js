@@ -1,10 +1,11 @@
-const Invoice = require("../models/Invoice");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get all invoices
 // @route   GET /api/invoices
 // @access  Private
 const getInvoices = async (req, res) => {
   try {
+    const { Invoice } = getTenantModels(req.dbConnection);
     const { search, status, customer, startDate, endDate } = req.query;
 
     // Build filter object
@@ -50,6 +51,7 @@ const getInvoices = async (req, res) => {
 // @access  Private
 const getInvoiceById = async (req, res) => {
   try {
+    const { Invoice } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id)
       .populate("customer")
       .populate("items.product")
@@ -70,6 +72,8 @@ const getInvoiceById = async (req, res) => {
 // @access  Private
 const createInvoice = async (req, res) => {
   try {
+    const { Invoice, Customer, Payment } = getTenantModels(req.dbConnection);
+
     let {
       customer,
       items,
@@ -88,7 +92,6 @@ const createInvoice = async (req, res) => {
 
     // Check if this is a walk-in customer invoice
     if (customer === "walk-in") {
-      const Customer = require("../models/Customer");
       // Find or create walk-in customer
       let walkInCustomer = await Customer.findOne({
         email: "walkin@pos.local",
@@ -131,8 +134,6 @@ const createInvoice = async (req, res) => {
 
     // If invoice status is paid, create a payment record
     if (status === "paid") {
-      const Payment = require("../models/Payment");
-
       const payment = new Payment({
         invoice: createdInvoice._id,
         customer: customer,
@@ -162,6 +163,7 @@ const createInvoice = async (req, res) => {
 // @access  Private
 const updateInvoiceStatus = async (req, res) => {
   try {
+    const { Invoice } = getTenantModels(req.dbConnection);
     const { status } = req.body;
     const invoice = await Invoice.findById(req.params.id);
 
@@ -182,6 +184,7 @@ const updateInvoiceStatus = async (req, res) => {
 // @access  Private
 const writeOffInvoice = async (req, res) => {
   try {
+    const { Invoice } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id);
 
     if (invoice) {
@@ -204,6 +207,7 @@ const writeOffInvoice = async (req, res) => {
 // @access Private
 const updateInvoice = async (req, res) => {
   try {
+    const { Invoice } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id);
 
     if (invoice) {
@@ -238,11 +242,11 @@ const updateInvoice = async (req, res) => {
 // @access Private
 const deleteInvoice = async (req, res) => {
   try {
+    const { Invoice, Payment } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id);
 
     if (invoice) {
       // Soft delete associated payments
-      const Payment = require("../models/Payment");
       await Payment.updateMany(
         { invoice: req.params.id },
         { status: "deleted" }

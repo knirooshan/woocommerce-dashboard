@@ -40,6 +40,5 @@ const customerSchema = new mongoose.Schema(
   }
 );
 
-const Customer = mongoose.model("Customer", customerSchema);
-
-module.exports = Customer;
+// Don't compile model here
+module.exports = customerSchema;

@@ -9,10 +9,14 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "./store/slices/authSlice";
 import axios from "axios";
+import { Toaster } from "react-hot-toast";
 import PrivateRoute from "./components/PrivateRoute";
 import Layout from "./components/Layout";
+import Tenants from "./pages/Tenants";
+import AdminSettings from "./pages/AdminSettings";
+import SetupPage from "./pages/SetupPage";
+import FirstTimeSetup from "./pages/FirstTimeSetup"; // Kept for backward compatibility or special cases
 import Login from "./pages/Login";
-import FirstTimeSetup from "./pages/FirstTimeSetup";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
@@ -37,30 +41,64 @@ import MediaLibrary from "./pages/MediaLibrary";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
+  const [setupRequired, setSetupRequired] = useState(false);
   const [loading, setLoading] = useState(true);
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const isSuperAdmin = useSelector((state) => state.auth.user?.isSuperAdmin);
   const { data: settings } = useSelector((state) => state.settings);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const checkFirstRun = async () => {
+    // Response Interceptor for Setup
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.data?.code === "SETUP_REQUIRED") {
+          setSetupRequired(true);
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Request Interceptor for Auth Token
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user.token) {
+          config.headers.Authorization = `Bearer ${user.token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    const checkState = async () => {
       try {
+        // Try a lightweight public call or the first-run check
+        // If we need setup, the interceptor will catch it
         const { data } = await axios.get(ENDPOINTS.FIRST_RUN_CHECK);
         setIsFirstRun(data.isFirstRun);
 
-        // If it's first run, clear any existing auth state
         if (data.isFirstRun) {
           dispatch(logout());
         }
       } catch (error) {
-        console.error("Failed to check first run status:", error);
-        setIsFirstRun(false);
+        // If 403, interceptor handles it. If 404/500, log it.
+        if (error.response?.status !== 403) {
+          console.error("Failed to check status:", error);
+          setIsFirstRun(false);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    checkFirstRun();
+    checkState();
+
+    return () => {
+      axios.interceptors.response.eject(responseInterceptor);
+      axios.interceptors.request.eject(requestInterceptor);
+    };
   }, [dispatch]);
 
   if (loading) {
@@ -76,20 +114,30 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" />
       <Routes>
-        {/* First-time setup route - highest priority */}
-        {isFirstRun && !isAuthenticated && (
+        {/* Setup Route - Highest Priority */}
+        {setupRequired && (
+          <>
+            <Route path="/setup" element={<SetupPage />} />
+            <Route path="*" element={<Navigate to="/setup" replace />} />
+          </>
+        )}
+
+        {/* First-time setup (Legacy/Single Tenant) */}
+        {!setupRequired && isFirstRun && !isAuthenticated && (
           <>
             <Route path="/first-time-setup" element={<FirstTimeSetup />} />
+
             <Route
-              path="*"
+              path="/tenants"
               element={<Navigate to="/first-time-setup" replace />}
             />
           </>
         )}
 
         {/* Login route */}
-        {!isFirstRun && !isAuthenticated && (
+        {!setupRequired && !isFirstRun && !isAuthenticated && (
           <>
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
@@ -97,10 +145,21 @@ function App() {
         )}
 
         {/* Protected routes */}
-        {isAuthenticated && (
+        {!setupRequired && isAuthenticated && (
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
-              <Route path="/" element={<Dashboard />} />
+              {/* Super Admin Redirect */}
+              <Route
+                path="/"
+                element={
+                  isSuperAdmin ? (
+                    <Navigate to="/tenants" replace />
+                  ) : (
+                    <Dashboard />
+                  )
+                }
+              />
+
               {settings?.modules?.pos !== false && (
                 <Route path="/pos" element={<POS />} />
               )}
@@ -123,6 +182,13 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/media-library" element={<MediaLibrary />} />
               <Route path="/activity-log" element={<ActivityLog />} />
+              <Route path="/tenants" element={<Tenants />} />
+              <Route
+                path="/admin/settings"
+                element={
+                  isSuperAdmin ? <AdminSettings /> : <Navigate to="/" replace />
+                }
+              />
             </Route>
           </Route>
         )}

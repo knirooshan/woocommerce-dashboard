@@ -59,10 +59,24 @@ const Layout = () => {
           { name: "Settings", href: "/settings", icon: Settings },
         ]
       : []),
+    ...(user?.isSuperAdmin
+      ? [
+          { name: "Tenants", href: "/tenants", icon: Users },
+          { name: "System Settings", href: "/admin/settings", icon: Settings },
+        ]
+      : []),
   ];
 
-  // Filter navigation based on module settings
+  // Filter navigation based on module settings and user role
   const navigation = allNavigation.filter((item) => {
+    // Super Admin only sees Tenants and System Settings
+    if (user?.isSuperAdmin) {
+      return item.name === "Tenants" || item.name === "System Settings";
+    }
+
+    // Hide Tenants from non-Super Admins (already handled by logic above, but safety check)
+    if (item.name === "Tenants") return false;
+
     if (item.requiresModule) {
       return settings?.modules?.[item.requiresModule] !== false;
     }
@@ -116,8 +130,8 @@ const Layout = () => {
             className="flex items-center gap-3"
             aria-label="Go to dashboard home"
           >
-            <img src="/vite.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-bold text-white">wooDashboard</span>
+            <img src="/merchpilot.svg" alt="Logo" className="h-8 w-8" />
+            <span className="text-xl font-bold text-white">MerchPilot</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

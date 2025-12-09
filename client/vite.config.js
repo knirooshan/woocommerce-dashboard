@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true, // Listen on all addresses
+    allowedHosts: [".merchpilot.xyz"], // Allow our custom domain
     open: true, // Automatically open browser
     hmr: {
       overlay: true, // Show errors overlay

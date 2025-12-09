@@ -1,14 +1,12 @@
-const Order = require("../models/Order");
-const Customer = require("../models/Customer");
-const Invoice = require("../models/Invoice");
+const { getTenantModels } = require("../models/tenantModels");
 const { getWooOrders } = require("../services/wooService");
-const Settings = require("../models/Settings");
 
 // @desc    Get all orders
 // @route   GET /api/orders
 // @access  Private
 const getOrders = async (req, res) => {
   try {
+    const { Order } = getTenantModels(req.dbConnection);
     const { search, status, customer, startDate, endDate } = req.query;
 
     // Build filter object
@@ -54,6 +52,10 @@ const getOrders = async (req, res) => {
 // @access  Private/Admin
 const syncOrders = async (req, res) => {
   try {
+    const { Order, Customer, Invoice, Payment, Settings } = getTenantModels(
+      req.dbConnection
+    );
+
     // Check feature toggle
     const settings = await Settings.findOne();
     if (
@@ -226,12 +228,7 @@ const syncOrders = async (req, res) => {
       syncedOrders.push(savedOrder);
 
       // Create Payment record if order is paid and doesn't have one (simplified check)
-      // In a real scenario, we'd check if a payment for this order already exists to avoid duplicates
-      // For now, we'll assume if it's being synced and is 'completed' or 'processing', we record it.
-      // Better approach: Check if Payment exists for this order.
-
       if (order.status === "completed" || order.status === "processing") {
-        const Payment = require("../models/Payment");
         const existingPayment = await Payment.findOne({
           order: savedOrder._id,
         });
@@ -291,6 +288,7 @@ const syncOrders = async (req, res) => {
 // @access  Private
 const getOrderById = async (req, res) => {
   try {
+    const { Order } = getTenantModels(req.dbConnection);
     const order = await Order.findById(req.params.id).populate("customer");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -307,6 +305,7 @@ const getOrderById = async (req, res) => {
 // @access  Private
 const createOrder = async (req, res) => {
   try {
+    const { Order, Customer } = getTenantModels(req.dbConnection);
     let orderData = req.body;
 
     // Check if this is a walk-in customer order (no customer ID or special identifier)
@@ -348,6 +347,7 @@ const createOrder = async (req, res) => {
 // @access  Private
 const updateOrder = async (req, res) => {
   try {
+    const { Order } = getTenantModels(req.dbConnection);
     const order = await Order.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -369,13 +369,13 @@ const updateOrder = async (req, res) => {
 // @access  Private
 const deleteOrder = async (req, res) => {
   try {
+    const { Order, Invoice, Payment } = getTenantModels(req.dbConnection);
     const order = await Order.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Soft delete associated payments
-    const Payment = require("../models/Payment");
     await Payment.updateMany({ order: order._id }, { status: "deleted" });
 
     // Delete associated invoice and soft delete its payments

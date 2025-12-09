@@ -1,12 +1,12 @@
-const Customer = require("../models/Customer");
+const { getTenantModels } = require("../models/tenantModels");
 const { getWooCustomers } = require("../services/wooService");
-const Settings = require("../models/Settings");
 
 // @desc    Get all customers
 // @route   GET /api/customers
 // @access  Private
 const getCustomers = async (req, res) => {
   try {
+    const { Customer } = getTenantModels(req.dbConnection);
     const { search } = req.query;
 
     // Build filter object
@@ -34,6 +34,7 @@ const getCustomers = async (req, res) => {
 // @access  Private
 const getCustomerById = async (req, res) => {
   try {
+    const { Customer } = getTenantModels(req.dbConnection);
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -51,6 +52,7 @@ const getCustomerById = async (req, res) => {
 // @access  Private
 const createCustomer = async (req, res) => {
   try {
+    const { Customer } = getTenantModels(req.dbConnection);
     const { salutation, email, firstName, lastName, billing, shipping } =
       req.body;
 
@@ -85,6 +87,7 @@ const createCustomer = async (req, res) => {
 // @access  Private
 const updateCustomer = async (req, res) => {
   try {
+    const { Customer } = getTenantModels(req.dbConnection);
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -108,6 +111,7 @@ const updateCustomer = async (req, res) => {
 // @access  Private/Admin
 const deleteCustomer = async (req, res) => {
   try {
+    const { Customer } = getTenantModels(req.dbConnection);
     const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
@@ -126,12 +130,18 @@ const deleteCustomer = async (req, res) => {
 // @access  Private/Admin
 const syncCustomers = async (req, res) => {
   try {
+    const { Customer, Settings } = getTenantModels(req.dbConnection);
+
     // Check feature toggle
     const settings = await Settings.findOne();
-    if (settings && settings.modules && settings.modules.woocommerce === false) {
+    if (
+      settings &&
+      settings.modules &&
+      settings.modules.woocommerce === false
+    ) {
       return res.status(403).json({ message: "WooCommerce sync disabled" });
     }
-    
+
     const wooCustomers = await getWooCustomers(1, 100);
 
     const syncedCustomers = [];

@@ -1,12 +1,11 @@
-const Payment = require("../models/Payment");
-const Invoice = require("../models/Invoice");
-const Order = require("../models/Order");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Create a new payment
 // @route   POST /api/payments
 // @access  Private
 const createPayment = async (req, res) => {
   try {
+    const { Payment, Invoice } = getTenantModels(req.dbConnection);
     const {
       amount,
       date,
@@ -66,6 +65,7 @@ const createPayment = async (req, res) => {
 // @access  Private
 const getPayments = async (req, res) => {
   try {
+    const { Payment } = getTenantModels(req.dbConnection);
     const { search, method, source, customer, startDate, endDate } = req.query;
     const pageSize = 20;
     const page = Number(req.query.pageNumber) || 1;
@@ -127,6 +127,7 @@ const getPayments = async (req, res) => {
 // @access  Private
 const updatePayment = async (req, res) => {
   try {
+    const { Payment, Invoice } = getTenantModels(req.dbConnection);
     const payment = await Payment.findById(req.params.id);
 
     if (payment) {
@@ -188,6 +189,7 @@ const updatePayment = async (req, res) => {
 // @access  Private
 const deletePayment = async (req, res) => {
   try {
+    const { Payment, Invoice } = getTenantModels(req.dbConnection);
     const payment = await Payment.findById(req.params.id);
 
     if (payment) {

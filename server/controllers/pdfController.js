@@ -1,6 +1,4 @@
-const Invoice = require("../models/Invoice");
-const Quotation = require("../models/Quotation");
-const Settings = require("../models/Settings");
+const { getTenantModels } = require("../models/tenantModels");
 const {
   generateInvoicePDF,
   generateQuotationPDF,
@@ -11,6 +9,7 @@ const {
 // @access  Private
 const getInvoicePDF = async (req, res) => {
   try {
+    const { Invoice, Settings } = getTenantModels(req.dbConnection);
     const invoice = await Invoice.findById(req.params.id).populate("customer");
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
@@ -39,6 +38,7 @@ const getInvoicePDF = async (req, res) => {
 // @access  Private
 const getQuotationPDF = async (req, res) => {
   try {
+    const { Quotation, Settings } = getTenantModels(req.dbConnection);
     const quotation = await Quotation.findById(req.params.id).populate(
       "customer"
     );

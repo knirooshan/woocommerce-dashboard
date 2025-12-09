@@ -122,4 +122,5 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Order", orderSchema);
+// Don't compile model here
+module.exports = orderSchema;

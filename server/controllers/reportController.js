@@ -1,12 +1,15 @@
-const Invoice = require("../models/Invoice");
-const Expense = require("../models/Expense");
-const Payment = require("../models/Payment");
+const { getTenantModels } = require("../models/tenantModels");
 
 // @desc    Get Dashboard Stats
 // @route   GET /api/reports/dashboard
 // @access  Private
 const getDashboardStats = async (req, res) => {
   try {
+    if (!req.dbConnection) {
+      return res.status(500).json({ message: "No Database Connection" });
+    }
+
+    const { Invoice, Expense, Payment } = getTenantModels(req.dbConnection);
     // Calculate Total Sales (sum of all non-deleted payments)
     const salesResult = await Payment.aggregate([
       { $match: { status: { $ne: "deleted" } } },
@@ -46,6 +49,7 @@ const getDashboardStats = async (req, res) => {
 // @access  Private
 const getSalesReport = async (req, res) => {
   try {
+    const { Expense, Payment } = getTenantModels(req.dbConnection);
     // 1. Get Monthly Sales (from payments)
     const sales = await Payment.aggregate([
       { $match: { status: { $ne: "deleted" } } },

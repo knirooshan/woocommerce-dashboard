@@ -39,4 +39,5 @@ const emailJobSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("EmailJob", emailJobSchema);
+// Don't compile model here
+module.exports = emailJobSchema;

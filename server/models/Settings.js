@@ -49,6 +49,5 @@ const settingsSchema = new mongoose.Schema(
   }
 );
 
-const Settings = mongoose.model("Settings", settingsSchema);
-
-module.exports = Settings;
+// Don't compile model here
+module.exports = settingsSchema;
