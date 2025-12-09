@@ -256,7 +256,11 @@ const InvoicePDF = ({ invoice, settings }) => {
                 : ""}
               {invoice.customer?.firstName} {invoice.customer?.lastName}
             </Text>
-            <Text style={styles.text}>{invoice.customer?.email}</Text>
+            {invoice.customer?.billing?.company && (
+              <Text style={styles.text}>
+                {invoice.customer.billing.company}
+              </Text>
+            )}
             <Text style={styles.text}>
               {invoice.customer?.billing?.address_1}
             </Text>
@@ -267,6 +271,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                 ", "}
               {invoice.customer?.billing?.postcode}
             </Text>
+            <Text style={styles.text}>{invoice.customer?.email}</Text>
           </View>
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Invoice Details</Text>
@@ -331,9 +336,9 @@ const InvoicePDF = ({ invoice, settings }) => {
               <View style={styles.colItem}>
                 <View>
                   <Text style={styles.tableCell}>{item.name}</Text>
-                  {item.shortDescription && (
+                  {item.product?.shortDescription && (
                     <Text style={styles.tableCellSub}>
-                      {item.shortDescription}
+                      {item.product.shortDescription}
                     </Text>
                   )}
                 </View>
