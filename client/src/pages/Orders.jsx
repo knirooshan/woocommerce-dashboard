@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { Eye, ExternalLink, Trash } from "lucide-react";
+import { Eye, ExternalLink, RefreshCcw } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
@@ -58,7 +58,9 @@ const Orders = () => {
   };
 
   const hasActiveFilters = () => {
-    return search || filters.status !== "all" || filters.startDate || filters.endDate;
+    return (
+      search || filters.status !== "all" || filters.startDate || filters.endDate
+    );
   };
 
   const handleSync = async () => {
@@ -86,10 +88,10 @@ const Orders = () => {
     }
   };
 
-  const handleDelete = async (orderId, orderNumber) => {
+  const handleRefund = async (orderId, orderNumber) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete order ${orderNumber}?\n\nThis will permanently delete:\n- The order record\n- Associated invoice\n- All payment records\n\nThis action cannot be undone.`
+        `Are you sure you want to refund order ${orderNumber}?\n\nThis will:\n- Mark the order as 'Refunded'\n- Mark associated invoice as 'Refunded'\n- Mark all payment records as 'Refunded'\n\nThis action cannot be undone.`
       )
     ) {
       return;
@@ -98,12 +100,12 @@ const Orders = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`${ENDPOINTS.ORDERS}/${orderId}`, config);
-      alert("Order deleted successfully");
+      await axios.put(`${ENDPOINTS.ORDERS}/${orderId}/refund`, {}, config);
+      alert("Order refunded successfully");
       fetchData(); // Refresh the orders list
     } catch (error) {
-      console.error("Error deleting order:", error);
-      alert(error.response?.data?.message || "Failed to delete order");
+      console.error("Error refunding order:", error);
+      alert(error.response?.data?.message || "Failed to refund order");
     }
   };
 
@@ -280,12 +282,12 @@ const Orders = () => {
                       )}
                       <button
                         onClick={() =>
-                          handleDelete(order._id, order.orderNumber)
+                          handleRefund(order._id, order.orderNumber)
                         }
-                        className="text-red-400 hover:text-red-300"
-                        title="Delete order"
+                        className="text-orange-400 hover:text-orange-300"
+                        title="Refund order"
                       >
-                        <Trash className="h-5 w-5" />
+                        <RefreshCcw className="h-5 w-5" />
                       </button>
                     </div>
                   </td>

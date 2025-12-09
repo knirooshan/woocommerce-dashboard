@@ -8,6 +8,7 @@ const {
   createOrder,
   updateOrder,
   deleteOrder,
+  refundOrder,
 } = require("../controllers/orderController");
 
 // Routes
@@ -18,5 +19,7 @@ router
   .get(protect, getOrderById)
   .put(protect, updateOrder)
   .delete(protect, deleteOrder);
+
+router.route("/:id/refund").put(protect, refundOrder);
 
 module.exports = router;

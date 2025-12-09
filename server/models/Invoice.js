@@ -54,6 +54,7 @@ const invoiceSchema = new mongoose.Schema(
         "cancelled",
         "written-off",
         "deleted",
+        "refunded",
       ],
       default: "draft",
     },
