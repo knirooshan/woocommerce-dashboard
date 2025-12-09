@@ -231,7 +231,11 @@ const QuotationPDF = ({ quotation, settings }) => (
               : ""}
             {quotation.customer?.firstName} {quotation.customer?.lastName}
           </Text>
-          <Text style={styles.text}>{quotation.customer?.email}</Text>
+          {quotation.customer?.billing?.company && (
+            <Text style={styles.text}>
+              {quotation.customer.billing.company}
+            </Text>
+          )}
           <Text style={styles.text}>
             {quotation.customer?.billing?.address_1}
           </Text>
@@ -242,6 +246,7 @@ const QuotationPDF = ({ quotation, settings }) => (
               ", "}
             {quotation.customer?.billing?.postcode}
           </Text>
+          <Text style={styles.text}>{quotation.customer?.email}</Text>
         </View>
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Quotation Details</Text>
@@ -304,9 +309,9 @@ const QuotationPDF = ({ quotation, settings }) => (
               <View style={styles.colItem}>
                 <View>
                   <Text style={styles.tableCell}>{item.name}</Text>
-                  {item.shortDescription && (
+                  {item.product?.shortDescription && (
                     <Text style={styles.tableCellSub}>
-                      {item.shortDescription}
+                      {item.product.shortDescription}
                     </Text>
                   )}
                 </View>
