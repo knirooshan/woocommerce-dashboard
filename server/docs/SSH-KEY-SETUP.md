@@ -5,6 +5,7 @@ A → Z CI/CD guide: GitHub Actions → Ubuntu 24 VPS (Nginx, Node 24, PM2)
 This document contains a complete step-by-step guide (commands + explanations) to set up CI/CD that deploys the repository to an Ubuntu 24 VPS using GitHub Actions and SSH. Follow the sections in order on either your local machine (Windows/WSL) or the VPS as noted.
 
 Overview
+
 - Create a dedicated `deploy` user on the VPS and prepare the server (Node.js v24, PM2, Nginx).
 - Create a deploy script on the VPS that pulls `main`, installs deps, builds the client, and restarts PM2.
 - Create a CI SSH keypair (private key stored as `VPS_SSH_KEY` secret) and add the public key to `/home/deploy/.ssh/authorized_keys`.
@@ -12,7 +13,7 @@ Overview
 
 Important: run the VPS commands as a privileged user (root or via an account with sudo). Replace `dashboard.ceyloncanecrafts.lk` and paths with your actual domain and app path.
 
-1) Prepare the VPS: create `deploy` user, directories, and SSH
+1. Prepare the VPS: create `deploy` user, directories, and SSH
 
 Commands (run on the VPS as root):
 
@@ -43,7 +44,7 @@ ufw status verbose
 
 Explanation: `deploy` is the user GitHub Actions will SSH into. The sudoers entry is optional — it limits passwordless sudo to common deploy commands.
 
-2) Install runtime and system services
+2. Install runtime and system services
 
 Commands (run on the VPS):
 
@@ -66,7 +67,7 @@ apt install -y certbot python3-certbot-nginx
 
 Explanation: Node runs your server; PM2 manages processes; Nginx reverse-proxies and Certbot handles TLS.
 
-3) Clone the repository and prepare the app (run as `deploy`)
+3. Clone the repository and prepare the app (run as `deploy`)
 
 Commands (switch to deploy or use sudo -u deploy):
 
@@ -99,7 +100,7 @@ pm2 startup systemd -u deploy --hp /home/deploy
 
 Explanation: clone the repo into the web root, create environment variables, install dependencies, build the client, and start the server under PM2.
 
-4) Create the deploy script on the VPS
+4. Create the deploy script on the VPS
 
 Create `/var/www/dashboard.ceyloncanecrafts.lk/server/scripts/deploy.sh` with these contents:
 
@@ -140,11 +141,12 @@ sudo chmod +x /var/www/dashboard.ceyloncanecrafts.lk/server/scripts/deploy.sh
 
 Explanation: This script pulls the latest code, installs deps, builds the client, and restarts the PM2 process.
 
-5) Create a CI SSH keypair (on your local machine or WSL) and add the public key to the VPS
+5. Create a CI SSH keypair (on your local machine or WSL) and add the public key to the VPS
 
 Commands (Windows PowerShell or WSL — pick one):
 
 PowerShell (example):
+
 ```powershell
 # Generate CI keypair (no passphrase for CI simplicity)
 ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\ci_deploy_key -C "github-actions@woocommerce-dashboard" -N ""
@@ -164,9 +166,10 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 Explanation: The private key (`ci_deploy_key`) stays on GitHub (as a secret); the public key is added to the VPS so that any client with the private key can authenticate as `deploy`.
 
-6) Add GitHub repository secrets
+6. Add GitHub repository secrets
 
 Required secrets:
+
 - `VPS_HOST` = your VPS host (e.g., `dashboard.ceyloncanecrafts.lk`)
 - `VPS_USER` = `deploy`
 - `VPS_SSH_PORT` = `22` (or custom port)
@@ -184,7 +187,7 @@ gh secret set VPS_USER --body "deploy" --repo knirooshan/woocommerce-dashboard
 gh secret set VPS_SSH_PORT --body "22" --repo knirooshan/woocommerce-dashboard
 ```
 
-7) Add or verify GitHub Actions workflow
+7. Add or verify GitHub Actions workflow
 
 Create `.github/workflows/deploy.yml` in the repo with this minimal workflow (adjust as needed):
 
@@ -217,7 +220,7 @@ jobs:
 
 Explanation: On push to `main`, Actions writes the private key into `/tmp/deploy_key` and uses it to SSH to the VPS and run the deploy script.
 
-8) Test the pipeline
+8. Test the pipeline
 
 - Push a small change to `main` to trigger the workflow.
 - Inspect the Actions run: ensure the key is created and that the SSH step connects.
@@ -239,14 +242,17 @@ pm2 logs woocommerce-dashboard --lines 200
 sudo -i -u deploy /var/www/dashboard.ceyloncanecrafts.lk/server/scripts/deploy.sh
 ```
 
-9) Healthchecks and rollback
+9. Healthchecks and rollback
 
 - Quick healthcheck:
+
 ```bash
-curl -I http://127.0.0.1:3000
+curl -I https://127.0.0.1:3000
 curl -I https://dashboard.ceyloncanecrafts.lk
 ```
+
 - To rollback to a previous commit:
+
 ```bash
 cd /var/www/dashboard.ceyloncanecrafts.lk
 git reflog
@@ -256,13 +262,14 @@ cd client && npm ci && npm run build
 pm2 restart woocommerce-dashboard
 ```
 
-10) Security notes
+10. Security notes
 
 - Use a dedicated CI key and rotate it if compromised.
 - Limit `deploy` sudo rights in `/etc/sudoers.d/` to only required commands.
 - Store other secrets (DB passwords, API keys) in GitHub Secrets and reference them in your deploy script or environment management.
 
 Checklist
+
 - [ ] Create `deploy` user and directories on VPS
 - [ ] Install Node 24, PM2, Nginx, git, certbot
 - [ ] Clone repo and configure `.env`
@@ -273,6 +280,7 @@ Checklist
 - [ ] Push to main and verify Actions and deploy
 
 If you want, I can:
+
 - (A) commit a ready-to-use `deploy.sh` and `.github/workflows/deploy.yml` into the repository (I can adapt the paths and process name), or
 - (B) produce a hardened `deploy.sh` that logs to `/var/log/deploy.log`, captures errors, and sends simple status output, or
 - (C) walk you through the commands interactively and check each step live.

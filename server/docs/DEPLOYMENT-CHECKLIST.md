@@ -3,15 +3,18 @@
 ## Before Deployment
 
 ### 1. Update API URL
+
 - [ ] Edit `client/src/config/api.js`
-- [ ] Change `http://localhost:5000/api` to `https://yourdomain.com/api`
+- [ ] Change `https://localhost:5000/api` to `https://yourdomain.com/api`
 
 ### 2. Build Application
+
 - [ ] Run `npm run build` in client folder
 - [ ] Run `npm install --production` in server folder
 - [ ] Or use provided `build.sh` / `build.bat` scripts
 
 ### 3. Prepare Environment Variables
+
 - [ ] Copy `server/.env.production` to `server/.env`
 - [ ] Update MongoDB URI
 - [ ] Set strong JWT_SECRET (32+ chars)
@@ -21,12 +24,14 @@
 ## Upload Files
 
 ### cPanel File Manager
+
 - [ ] Upload `client/dist/*` to domain root (e.g., `public_html/yourdomain.com/`)
 - [ ] Upload `server/*` to `api/` folder
 - [ ] Upload `server/.env` file
 - [ ] Copy `client/.htaccess.production` to domain root as `.htaccess`
 
 ### FTP/SFTP
+
 - [ ] Connect to server
 - [ ] Upload frontend (dist) to public_html
 - [ ] Upload backend (server) to api folder
@@ -35,6 +40,7 @@
 ## Configure Server
 
 ### cPanel
+
 - [ ] Open "Setup Node.js App"
 - [ ] Create new application:
   - Node.js version: 18+
@@ -46,6 +52,7 @@
 - [ ] Start/Restart application
 
 ### DirectAdmin
+
 - [ ] Install PM2: `npm install -g pm2`
 - [ ] Start app: `pm2 start api/index.js --name woocommerce-dashboard`
 - [ ] Save process: `pm2 save`
@@ -55,6 +62,7 @@
 ## Database Setup
 
 ### MongoDB Atlas
+
 - [ ] Create cluster (free tier available)
 - [ ] Create database user
 - [ ] Whitelist hosting server IP
@@ -64,11 +72,13 @@
 ## Post-Deployment
 
 ### First Access
+
 - [ ] Visit `https://yourdomain.com`
 - [ ] Complete first-time setup
 - [ ] Create admin account
 
 ### Configure Settings
+
 - [ ] Login to dashboard
 - [ ] Go to Settings
 - [ ] Enter company information
@@ -77,11 +87,13 @@
 - [ ] Configure email settings (optional)
 
 ### Initial Data
+
 - [ ] Sync products from WooCommerce
 - [ ] Sync orders from WooCommerce
 - [ ] Add/import customers
 
 ### Security
+
 - [ ] Force HTTPS (SSL)
 - [ ] Verify .env is not publicly accessible
 - [ ] Test MongoDB connection security
@@ -91,6 +103,7 @@
 ## Testing
 
 ### Functionality Tests
+
 - [ ] Login/Logout
 - [ ] Create quotation
 - [ ] Create invoice
@@ -102,12 +115,14 @@
 - [ ] Reports and dashboard
 
 ### Browser Tests
+
 - [ ] Chrome/Edge
 - [ ] Firefox
 - [ ] Safari
 - [ ] Mobile responsive
 
 ### Performance
+
 - [ ] Page load speed
 - [ ] API response times
 - [ ] PDF generation speed
@@ -115,6 +130,7 @@
 ## Monitoring
 
 ### Regular Checks
+
 - [ ] Application running (PM2/cPanel)
 - [ ] Database connection active
 - [ ] SSL certificate valid
@@ -122,6 +138,7 @@
 - [ ] Error logs clean
 
 ### Maintenance
+
 - [ ] Weekly: Check logs
 - [ ] Monthly: Update dependencies
 - [ ] Monthly: Database backup
@@ -130,6 +147,7 @@
 ## Rollback Plan
 
 If deployment fails:
+
 1. Restore previous backup
 2. Check error logs
 3. Verify environment variables

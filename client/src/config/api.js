@@ -11,7 +11,7 @@ const getBaseUrl = () => {
     return "/api";
   }
   // Fallback for non-browser envs
-  return "http://localhost:5000/api";
+  return "https://localhost:5000/api";
 };
 
 export const API_URL = getBaseUrl();

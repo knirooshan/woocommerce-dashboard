@@ -162,7 +162,7 @@ const sendEmail = async (
 
 const sendTenantWelcomeEmail = async (to, tenantName, subdomain, passkey) => {
   const subject = "Welcome to MerchPilot - Complete Your Setup";
-  const loginUrl = `http://${subdomain}.merchpilot.xyz`;
+  const loginUrl = `https://${subdomain}.merchpilot.xyz`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px; border-radius: 8px;">
@@ -229,7 +229,7 @@ const sendTenantWelcomeEmail = async (to, tenantName, subdomain, passkey) => {
 
 const sendPasskeyResetEmail = async (to, tenantName, subdomain, passkey) => {
   const subject = "MerchPilot - Your Setup Passkey Has Changed";
-  const loginUrl = `http://${subdomain}.merchpilot.xyz`;
+  const loginUrl = `https://${subdomain}.merchpilot.xyz`;
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px; border-radius: 8px;">

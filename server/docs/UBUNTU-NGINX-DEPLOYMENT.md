@@ -22,6 +22,7 @@ Complete step-by-step guide to deploy the WooCommerce Dashboard application on U
 ## Overview
 
 **Architecture:**
+
 - **OS**: Ubuntu 24.04 LTS
 - **Web Server**: Nginx (reverse proxy)
 - **Runtime**: Node.js 24.x LTS
@@ -30,6 +31,7 @@ Complete step-by-step guide to deploy the WooCommerce Dashboard application on U
 - **SSL**: Let's Encrypt (Certbot)
 
 **Application Structure:**
+
 ```
 /var/www/dashboard.ceyloncanecrafts.lk/
 ├── client/          # React frontend (built static files)
@@ -93,6 +95,7 @@ sudo reboot
 ```
 
 Reconnect after reboot:
+
 ```bash
 ssh root@YOUR_VPS_IP
 ```
@@ -135,6 +138,7 @@ sudo ufw status
 ```
 
 Expected output:
+
 ```
 Status: active
 
@@ -187,7 +191,7 @@ sudo systemctl enable nginx
 # Check status
 sudo systemctl status nginx
 
-# Test - visit http://YOUR_VPS_IP in browser
+# Test - visit https://YOUR_VPS_IP in browser
 # You should see "Welcome to nginx!" page
 ```
 
@@ -253,6 +257,7 @@ If you encounter any errors during MongoDB installation, follow these steps:
 **Error: "Unable to locate package mongodb-org" or "404 Not Found" or "does not have a Release file"**
 
 These errors occur because:
+
 - MongoDB doesn't have an official repository for Ubuntu 24.04 (noble) yet
 - The repository wasn't added correctly
 - Network connectivity issues
@@ -331,17 +336,20 @@ sudo nano /etc/mongod.conf
 ```
 
 Find and modify the security section:
+
 ```yaml
 security:
   authorization: enabled
 ```
 
 Restart MongoDB:
+
 ```bash
 sudo systemctl restart mongod
 ```
 
 Create application database and user:
+
 ```bash
 # Connect with admin user
 mongosh -u wd_admin -p --authenticationDatabase admin
@@ -361,6 +369,7 @@ exit
 ```
 
 Your MongoDB connection string will be:
+
 ```
 mongodb://wd_admin:ANOTHER_STRONG_PASSWORD@localhost:27017/woocommerce_dashboard
 ```
@@ -410,6 +419,7 @@ git pull origin main
 **Option B: Using SCP/SFTP**
 
 From your local machine:
+
 ```bash
 # Upload from local machine
 scp -r /path/to/woocommerce-dashboard/* deploy@YOUR_VPS_IP:/var/www/dashboard.ceyloncanecrafts.lk/
@@ -442,12 +452,14 @@ nano src/config/api.js
 ```
 
 Update the API URL:
+
 ```javascript
 // Use your actual domain
 export const API_URL = "https://dashboard.ceyloncanecrafts.lk/api";
 ```
 
 Build the application:
+
 ```bash
 # Build for production
 npm run build
@@ -496,12 +508,14 @@ EMAIL_FROM=your-email@gmail.com
 Save and exit (Ctrl+X, Y, Enter).
 
 **Generate a secure JWT secret:**
+
 ```bash
 # Generate random 64-character string
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Secure the .env file:
+
 ```bash
 chmod 600 .env
 ```
@@ -526,6 +540,7 @@ node index.js
 ```
 
 You should see:
+
 ```
 Server running on port 5000
 MongoDB Connected: localhost
@@ -589,9 +604,9 @@ server {
         limit_req zone=api_limit burst=20 nodelay;
 
         # Proxy settings
-        proxy_pass http://nodejs_backend;
+        proxy_pass https://nodejs_backend;
         proxy_http_version 1.1;
-        
+
         # Headers
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -599,15 +614,15 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
+
         # Timeouts
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
-        
+
         # Disable cache for API
         proxy_cache_bypass $http_upgrade;
-        
+
         # Buffer settings
         proxy_buffering off;
         proxy_request_buffering off;
@@ -623,7 +638,7 @@ server {
     # Frontend - React SPA routing
     location / {
         try_files $uri $uri/ /index.html;
-        
+
         # Cache static assets
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             expires 1y;
@@ -699,6 +714,7 @@ sudo certbot --nginx -d dashboard.ceyloncanecrafts.lk
 ```
 
 Certbot will:
+
 - Obtain SSL certificate from Let's Encrypt
 - Automatically configure Nginx with HTTPS
 - Set up HTTP to HTTPS redirect
@@ -771,6 +787,7 @@ sudo reboot
 ```
 
 After reboot, reconnect and verify:
+
 ```bash
 # Check if app is running
 pm2 status
@@ -821,6 +838,7 @@ sudo nano /etc/ssh/sshd_config
 ```
 
 Update these settings:
+
 ```
 # Disable root login
 PermitRootLogin no
@@ -833,11 +851,13 @@ Port 2222  # Or any non-standard port
 ```
 
 Save and restart SSH:
+
 ```bash
 sudo systemctl restart sshd
 ```
 
 **Important:** If you change the SSH port, update firewall:
+
 ```bash
 sudo ufw allow 2222/tcp
 sudo ufw delete allow OpenSSH
@@ -857,6 +877,7 @@ sudo nano /etc/fail2ban/jail.local
 ```
 
 Find and update:
+
 ```ini
 [sshd]
 enabled = true
@@ -869,6 +890,7 @@ enabled = true
 ```
 
 Start Fail2Ban:
+
 ```bash
 sudo systemctl start fail2ban
 sudo systemctl enable fail2ban
@@ -897,6 +919,7 @@ sudo nano /etc/mongod.conf
 ```
 
 Verify this setting:
+
 ```yaml
 net:
   port: 27017
@@ -904,6 +927,7 @@ net:
 ```
 
 Restart MongoDB:
+
 ```bash
 sudo systemctl restart mongod
 ```
@@ -930,6 +954,7 @@ chmod 755 /var/www/dashboard.ceyloncanecrafts.lk/server/uploads
 ### Step 34: Set Up Monitoring Tools
 
 **Install htop (resource monitoring):**
+
 ```bash
 sudo apt install htop -y
 
@@ -938,6 +963,7 @@ htop
 ```
 
 **Monitor disk usage:**
+
 ```bash
 # Check disk space
 df -h
@@ -947,6 +973,7 @@ du -sh /var/www/dashboard.ceyloncanecrafts.lk/*
 ```
 
 **Monitor logs:**
+
 ```bash
 # Nginx access logs
 sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.access.log
@@ -975,6 +1002,7 @@ nano /home/deploy/backup.sh
 ```
 
 Add the following:
+
 ```bash
 #!/bin/bash
 
@@ -1008,6 +1036,7 @@ echo "Backup completed: $BACKUP_DIR/$DATE"
 ```
 
 Make executable and test:
+
 ```bash
 chmod +x /home/deploy/backup.sh
 
@@ -1047,6 +1076,7 @@ sudo apt install mailutils -y
 2. **First-time setup screen** should appear
 
 3. **Create admin account:**
+
    - Full Name
    - Email Address
    - Password (minimum 6 characters)
@@ -1059,21 +1089,25 @@ sudo apt install mailutils -y
 1. **Navigate to Settings** (`/settings`)
 
 2. **Configure Company Information:**
+
    - Company Name
    - Address
    - Phone
    - Email
 
 3. **Set Currency Settings:**
+
    - Currency Symbol (e.g., $, €, £)
    - Currency Position (before/after amount)
 
 4. **Add WooCommerce API Credentials:**
+
    - Consumer Key
    - Consumer Secret
    - Store URL
 
 5. **Configure Email Settings** (optional):
+
    - SMTP Host
    - SMTP Port
    - Username
@@ -1084,11 +1118,13 @@ sudo apt install mailutils -y
 ### Step 40: Sync Initial Data
 
 1. **Sync Products:**
+
    - Navigate to Products page
    - Click "Sync from WooCommerce"
    - Wait for sync to complete
 
 2. **Sync Orders:**
+
    - Navigate to Orders page
    - Click "Sync from WooCommerce"
 
@@ -1112,7 +1148,8 @@ sudo apt install mailutils -y
 
 ### Issue 0: MongoDB Connection Refused (ECONNREFUSED 127.0.0.1:27017)
 
-**Symptoms:** 
+**Symptoms:**
+
 - `MongoNetworkError: connect ECONNREFUSED 127.0.0.1:27017`
 - Can't connect to MongoDB with `mongosh`
 
@@ -1140,6 +1177,7 @@ sudo tail -50 /var/log/mongodb/mongod.log
 **Common Causes and Fixes:**
 
 **A) MongoDB data directory permission issues:**
+
 ```bash
 # Fix ownership
 sudo chown -R mongodb:mongodb /var/lib/mongodb
@@ -1153,6 +1191,7 @@ sudo systemctl start mongod
 ```
 
 **B) MongoDB data directory doesn't exist:**
+
 ```bash
 # Create data directory
 sudo mkdir -p /var/lib/mongodb
@@ -1165,6 +1204,7 @@ sudo systemctl start mongod
 ```
 
 **C) Port 27017 already in use:**
+
 ```bash
 # Check what's using the port
 sudo lsof -i :27017
@@ -1177,6 +1217,7 @@ sudo systemctl start mongod
 ```
 
 **D) Configuration file syntax error:**
+
 ```bash
 # Check MongoDB logs for YAML parsing errors
 sudo journalctl -u mongod -n 20
@@ -1213,6 +1254,7 @@ sudo systemctl status mongod
 ```
 
 **E) Complete reinstall if nothing works:**
+
 ```bash
 # Stop MongoDB
 sudo systemctl stop mongod
@@ -1249,17 +1291,20 @@ mongosh --eval "db.version()"
 ### Issue 1: Application Won't Start
 
 **Check PM2 logs:**
+
 ```bash
 pm2 logs woocommerce-dashboard --lines 100
 ```
 
 **Common causes:**
+
 - Missing environment variables in .env
 - MongoDB connection failed
 - Port 5000 already in use
 - Missing npm dependencies
 
 **Solutions:**
+
 ```bash
 # Check if port is in use
 sudo lsof -i :5000
@@ -1280,11 +1325,13 @@ cat /var/www/dashboard.ceyloncanecrafts.lk/server/.env
 **Symptoms:** Browser shows "502 Bad Gateway"
 
 **Causes:**
+
 - Node.js app is not running
 - Firewall blocking internal connection
 - Nginx can't connect to port 5000
 
 **Solutions:**
+
 ```bash
 # Check if Node.js app is running
 pm2 status
@@ -1296,7 +1343,7 @@ pm2 restart woocommerce-dashboard
 sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.error.log
 
 # Test if app responds locally
-curl http://localhost:5000/api
+curl https://localhost:5000/api
 
 # Check Nginx configuration
 sudo nginx -t
@@ -1310,6 +1357,7 @@ sudo systemctl reload nginx
 **Error in logs:** "MongoServerError: Authentication failed"
 
 **Solutions:**
+
 ```bash
 # Verify MongoDB is running
 sudo systemctl status mongod
@@ -1332,6 +1380,7 @@ cat /var/www/dashboard.ceyloncanecrafts.lk/server/.env | grep MONGO_URI
 **Symptoms:** Browser shows "Not Secure" or certificate error
 
 **Solutions:**
+
 ```bash
 # Check certificate status
 sudo certbot certificates
@@ -1354,6 +1403,7 @@ sudo systemctl reload nginx
 **Error:** "Permission denied" or upload fails
 
 **Solutions:**
+
 ```bash
 # Check uploads directory exists
 ls -la /var/www/dashboard.ceyloncanecrafts.lk/server/uploads
@@ -1371,6 +1421,7 @@ sudo nano /etc/nginx/sites-available/dashboard.ceyloncanecrafts.lk
 **Symptoms:** Frontend can't connect to backend
 
 **Solutions:**
+
 ```bash
 # Verify API URL in client
 cat /var/www/dashboard.ceyloncanecrafts.lk/client/dist/assets/*.js | grep -o "https://[^\"]*"
@@ -1388,6 +1439,7 @@ curl https://dashboard.ceyloncanecrafts.lk/api
 ### Issue 9: High Memory Usage
 
 **Monitor memory:**
+
 ```bash
 # Check memory usage
 free -h
@@ -1400,6 +1452,7 @@ pm2 monit
 ```
 
 **Solutions:**
+
 ```bash
 # Restart application
 pm2 restart woocommerce-dashboard
@@ -1459,6 +1512,7 @@ use woocommerce_dashboard
 ## Useful Commands Reference
 
 ### System Management
+
 ```bash
 # Check system resources
 htop
@@ -1473,6 +1527,7 @@ sudo journalctl -xe
 ```
 
 ### Nginx Commands
+
 ```bash
 # Test configuration
 sudo nginx -t
@@ -1489,6 +1544,7 @@ sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.error.log
 ```
 
 ### PM2 Commands
+
 ```bash
 # List applications
 pm2 list
@@ -1513,6 +1569,7 @@ pm2 delete woocommerce-dashboard
 ```
 
 ### MongoDB Commands
+
 ```bash
 # Check status
 sudo systemctl status mongod
@@ -1534,6 +1591,7 @@ mongorestore --db=woocommerce_dashboard --username=wd_admin --password=PASSWORD 
 ```
 
 ### Firewall Commands
+
 ```bash
 # Check status
 sudo ufw status
@@ -1562,12 +1620,14 @@ sudo nano /etc/nginx/sites-available/dashboard.ceyloncanecrafts.lk
 ```
 
 Add before server block:
+
 ```nginx
 # Cache zone definition
 proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=api_cache:10m max_size=100m inactive=60m use_temp_path=off;
 ```
 
 Add in location /api block:
+
 ```nginx
 # Enable caching for specific API routes
 proxy_cache api_cache;
@@ -1612,31 +1672,37 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ## Security Best Practices
 
 1. **Keep System Updated**
+
    ```bash
    sudo apt update && sudo apt upgrade -y
    ```
 
 2. **Regular Backups**
+
    - Daily automated backups
    - Test restore process monthly
    - Store backups off-site
 
 3. **Monitor Logs**
+
    - Review logs weekly
    - Set up alerts for errors
    - Monitor failed login attempts
 
 4. **Strong Passwords**
+
    - Use complex passwords
    - Change default passwords
    - Use different passwords for different services
 
 5. **Limit Access**
+
    - Use SSH keys instead of passwords
    - Disable root login
    - Use non-standard SSH port
 
 6. **Keep Dependencies Updated**
+
    ```bash
    cd /var/www/dashboard.ceyloncanecrafts.lk/server
    npm outdated
@@ -1694,7 +1760,7 @@ Your WooCommerce Dashboard application is now deployed on Ubuntu 24 with Nginx!
 ✅ Set up SSL certificate with Let's Encrypt  
 ✅ Implemented process management with PM2  
 ✅ Secured the server with firewall and Fail2Ban  
-✅ Set up monitoring and backups  
+✅ Set up monitoring and backups
 
 ### Next Steps
 
@@ -1721,6 +1787,7 @@ Your WooCommerce Dashboard application is now deployed on Ubuntu 24 with Nginx!
 **MongoDB:** Using jammy (Ubuntu 22.04) repository for Ubuntu 24.04 compatibility
 
 **Deployment Checklist:**
+
 - [ ] VPS provisioned with Ubuntu 24.04
 - [ ] Domain DNS configured
 - [ ] SSH access verified
