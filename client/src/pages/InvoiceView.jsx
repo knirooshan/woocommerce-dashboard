@@ -319,19 +319,25 @@ const InvoiceView = () => {
               : ""}
             {invoice.customer?.firstName} {invoice.customer?.lastName}
           </p>
-          <p className="text-slate-600">{invoice.customer?.email}</p>
+          {invoice.customer?.billing?.company && (
+            <p className="text-slate-600 font-medium">
+              {invoice.customer.billing.company}
+            </p>
+          )}
           <p className="text-slate-600">
             {invoice.customer?.billing?.address_1}
           </p>
           <p className="text-slate-600">
-            <p className="text-slate-600">
-              {invoice.customer?.billing?.city}
-              {invoice.customer?.billing?.city &&
-                invoice.customer?.billing?.postcode &&
-                ", "}
-              {invoice.customer?.billing?.postcode}
-            </p>
+            {invoice.customer?.billing?.city}
+            {invoice.customer?.billing?.city &&
+              invoice.customer?.billing?.postcode &&
+              ", "}
+            {invoice.customer?.billing?.postcode}
           </p>
+          <p className="text-slate-600">{invoice.customer?.email}</p>
+          {invoice.customer?.billing?.phone && (
+            <p className="text-slate-600">{invoice.customer.billing.phone}</p>
+          )}
         </div>
 
         {/* Items */}
@@ -358,7 +364,14 @@ const InvoiceView = () => {
                     />
                   )}
                 </td>
-                <td className="py-3 text-slate-900">{item.name}</td>
+                <td className="py-3 text-slate-900">
+                  <div>{item.name}</div>
+                  {item.product?.longDescription && (
+                    <div className="text-xs text-slate-500 mt-1">
+                      {item.product.shortDescription}
+                    </div>
+                  )}
+                </td>
                 <td className="text-right py-3 text-slate-600">
                   {formatCurrency(item.price, settings)}
                 </td>

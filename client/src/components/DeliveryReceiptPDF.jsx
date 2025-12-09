@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E7EB",
     alignItems: "center",
   },
+  tableColDescription: { width: "80%", paddingLeft: 4 },
   colItem: { width: "80%", paddingLeft: 4 },
   colQty: { width: "20%", textAlign: "center" },
 
@@ -135,6 +136,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
     paddingTop: 15,
+  },
+  billToText: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  billToSubText: {
+    fontSize: 10,
+    color: "#1F2937",
+    marginBottom: 2,
   },
 });
 
@@ -193,28 +205,33 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
         <View style={styles.infoGroup}>
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Deliver To</Text>
-            <Text style={[styles.text, { fontWeight: "bold" }]}>
+            <Text style={styles.billToText}>
               {invoice.customer?.salutation
                 ? `${invoice.customer.salutation} `
                 : ""}
               {invoice.customer?.firstName} {invoice.customer?.lastName}
             </Text>
-            <Text style={styles.text}>{invoice.customer?.email}</Text>
-            <Text style={styles.text}>
-              {invoice.customer?.shipping?.address_1 ||
-                invoice.customer?.billing?.address_1}
+            {invoice.customer?.billing?.company && (
+              <Text style={styles.billToText}>
+                {invoice.customer.billing.company}
+              </Text>
+            )}
+            <Text style={styles.billToSubText}>
+              {invoice.customer?.billing?.address_1}
             </Text>
-            <Text style={styles.text}>
-              {invoice.customer?.shipping?.city ||
-                invoice.customer?.billing?.city}
-              {(invoice.customer?.shipping?.city ||
-                invoice.customer?.billing?.city) &&
-                (invoice.customer?.shipping?.postcode ||
-                  invoice.customer?.billing?.postcode) &&
+            <Text style={styles.billToSubText}>
+              {invoice.customer?.billing?.city}
+              {invoice.customer?.billing?.city &&
+                invoice.customer?.billing?.postcode &&
                 ", "}
-              {invoice.customer?.shipping?.postcode ||
-                invoice.customer?.billing?.postcode}
+              {invoice.customer?.billing?.postcode}
             </Text>
+            <Text style={styles.billToSubText}>{invoice.customer?.email}</Text>
+            {invoice.customer?.billing?.phone && (
+              <Text style={styles.billToSubText}>
+                {invoice.customer.billing.phone}
+              </Text>
+            )}
           </View>
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Delivery Details</Text>
@@ -406,8 +423,19 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
           </View>
           {invoice.items.map((item, index) => (
             <View style={styles.tableRow} key={index}>
-              <View style={styles.colItem}>
+              <View style={styles.tableColDescription}>
                 <Text style={styles.tableCell}>{item.name}</Text>
+                {item.product?.shortDescription && (
+                  <Text
+                    style={{
+                      ...styles.tableCell,
+                      fontSize: 8,
+                      color: "#6B7280",
+                    }}
+                  >
+                    {item.product.shortDescription}
+                  </Text>
+                )}
               </View>
               <View style={styles.colQty}>
                 <Text

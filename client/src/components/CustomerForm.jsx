@@ -25,6 +25,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
         email: customer.email || "",
         billing: {
           phone: customer.billing?.phone || "",
+          company: customer.billing?.company || "",
           address_1: customer.billing?.address_1 || "",
           city: customer.billing?.city || "",
           postcode: customer.billing?.postcode || "",
@@ -113,6 +114,19 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
                 className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              Company Name
+            </label>
+            <input
+              type="text"
+              name="billing.company"
+              value={formData.billing.company || ""} // Handle undefined
+              onChange={handleChange}
+              className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           <div>
