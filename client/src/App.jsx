@@ -128,9 +128,8 @@ function App() {
         {!setupRequired && isFirstRun && !isAuthenticated && (
           <>
             <Route path="/first-time-setup" element={<FirstTimeSetup />} />
-
             <Route
-              path="/tenants"
+              path="*"
               element={<Navigate to="/first-time-setup" replace />}
             />
           </>
