@@ -8,6 +8,9 @@ const { contextMiddleware } = require("./utils/requestContext");
 
 const app = express();
 
+// Trust proxy for correct protocol detection
+app.set("trust proxy", 1);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
@@ -18,6 +21,12 @@ app.use(tenantMiddleware);
 
 // Database Connection
 connectCentralDB();
+
+// Serve static files from uploads directory (via /api/uploads to use existing proxy)
+app.use(
+  "/api/uploads",
+  express.static(require("path").join(__dirname, "uploads"))
+);
 
 // Routes
 app.use("/api/first-run", require("./routes/firstRunRoutes"));
@@ -44,8 +53,6 @@ app.use("/api/admin/settings", require("./routes/adminSettingsRoutes"));
 app.use("/api/media", require("./routes/mediaRoutes"));
 
 // Serve static files from uploads directory
-app.use("/uploads", express.static(require("path").join(__dirname, "uploads")));
-
 app.get("/", (req, res) => {
   res.send("WooCommerce Dashboard API is running");
 });

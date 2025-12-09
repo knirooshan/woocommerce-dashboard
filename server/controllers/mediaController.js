@@ -51,8 +51,12 @@ exports.uploadMedia = [
       // Construct URL (assuming server serves 'uploads' statically)
       // We need to know the base URL or just store relative path
       // Storing full URL as requested by user "directly use image url"
-      const baseUrl = `${req.protocol}://${req.get("host")}`;
-      const relativePath = `/uploads/${year}/${month}/${req.file.filename}`;
+      const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+      const host = req.get("host"); // Host header should be preserved by proxy
+      const baseUrl = `${protocol}://${host}`;
+
+      // Use /api/uploads as the path since we remapped it in index.js to support existing proxies
+      const relativePath = `/api/uploads/${year}/${month}/${req.file.filename}`;
       const fullUrl = `${baseUrl}${relativePath}`;
 
       const newMedia = new Media({
