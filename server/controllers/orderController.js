@@ -397,6 +397,52 @@ const deleteOrder = async (req, res) => {
   }
 };
 
+// @desc    Refund an order
+// @route   PUT /api/orders/:id/refund
+// @access  Private
+const refundOrder = async (req, res) => {
+  try {
+    const { Order, Invoice, Payment } = getTenantModels(req.dbConnection);
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.status === "refunded") {
+      return res.status(400).json({ message: "Order is already refunded" });
+    }
+
+    // Update order status
+    order.status = "refunded";
+    await order.save();
+
+    // Update associated invoice status
+    if (order.invoice) {
+      await Invoice.findByIdAndUpdate(order.invoice, { status: "refunded" });
+    }
+
+    // Update associated payments status
+    // Note: This updates existing payments to 'refunded'.
+    // If you wanted to KEEP the payment history and separate refund, you'd create a negative payment.
+    // Based on requirements "add a new status to invoice and payments... say refunded", we update status.
+    await Payment.updateMany({ order: order._id }, { status: "refunded" });
+
+    // Also update payments linked to the invoice if not linked to order directly (double check)
+    if (order.invoice) {
+      await Payment.updateMany(
+        { invoice: order.invoice },
+        { status: "refunded" }
+      );
+    }
+
+    res.json({ message: "Order and associated records marked as refunded" });
+  } catch (error) {
+    console.error("Error refunding order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getOrders,
   syncOrders,
@@ -404,4 +450,5 @@ module.exports = {
   createOrder,
   updateOrder,
   deleteOrder,
+  refundOrder,
 };

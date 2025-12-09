@@ -31,7 +31,7 @@ const paymentSchema = new mongoose.Schema(
     notes: { type: String },
     status: {
       type: String,
-      enum: ["active", "deleted"],
+      enum: ["active", "deleted", "refunded"],
       default: "active",
     },
     editHistory: [
