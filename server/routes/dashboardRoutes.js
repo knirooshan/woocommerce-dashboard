@@ -19,7 +19,7 @@ router.get("/stats", protect, async (req, res) => {
 
     // Total sales (sum of all non-deleted payments)
     const salesResult = await Payment.aggregate([
-      { $match: { status: { $ne: "deleted" } } },
+      { $match: { status: "active" } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
@@ -28,7 +28,7 @@ router.get("/stats", protect, async (req, res) => {
     const monthlySalesResult = await Payment.aggregate([
       {
         $match: {
-          status: { $ne: "deleted" },
+          status: "active",
           date: { $gte: firstDayOfMonth, $lte: lastDayOfMonth },
         },
       },
@@ -102,7 +102,7 @@ router.get("/chart", protect, async (req, res) => {
     const sales = await Payment.aggregate([
       {
         $match: {
-          status: { $ne: "deleted" },
+          status: "active",
           date: { $gte: start, $lte: end },
         },
       },
