@@ -28,7 +28,6 @@ const EditQuotation = () => {
     taxRate: 0,
     discount: 0,
     deliveryCharge: 0,
-    deliveryCharge: 0,
     deliveryNote: "",
     terms: "",
   });
@@ -68,7 +67,6 @@ const EditQuotation = () => {
             : "",
           taxRate: (quotation.tax / quotation.subtotal) * 100 || 0,
           discount: quotation.discount || 0,
-          deliveryCharge: quotation.deliveryCharge || 0,
           deliveryCharge: quotation.deliveryCharge || 0,
           deliveryNote: quotation.deliveryNote || "",
           terms: quotation.terms || "",

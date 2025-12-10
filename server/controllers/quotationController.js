@@ -81,6 +81,7 @@ const createQuotation = async (req, res) => {
       deliveryNote,
       total,
       notes,
+      terms,
       quotationDate,
       validUntil,
     } = req.body;
@@ -95,6 +96,7 @@ const createQuotation = async (req, res) => {
       deliveryNote,
       total,
       notes,
+      terms,
       quotationDate,
       validUntil,
     });

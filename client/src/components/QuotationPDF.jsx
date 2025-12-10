@@ -9,7 +9,7 @@ import {
 } from "@react-pdf/renderer";
 import { formatCurrency } from "../utils/currency";
 import { formatDate } from "../utils/date";
-import { renderHtmlToPdf } from "../utils/pdfUtils";
+import { renderHtmlToPdf } from "../utils/pdfUtils.jsx";
 
 const styles = StyleSheet.create({
   page: {

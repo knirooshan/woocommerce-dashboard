@@ -9,7 +9,7 @@ import {
 } from "@react-pdf/renderer";
 import { formatCurrency } from "../utils/currency";
 import { formatDate } from "../utils/date";
-import { renderHtmlToPdf } from "../utils/pdfUtils";
+import { renderHtmlToPdf } from "../utils/pdfUtils.jsx";
 
 const styles = StyleSheet.create({
   page: {
@@ -476,38 +476,16 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
           </View>
         </View>
 
-        {/* Notes & Terms */}
-        {(invoice.deliveryNote || invoice.terms) && (
-          <View
-            style={{
-              marginTop: 20,
-              padding: 15,
-              backgroundColor: "#F9FAFB",
-              borderRadius: 4,
-            }}
-          >
-            {invoice.deliveryNote && (
-              <View style={{ marginBottom: 10 }}>
-                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
-                  Delivery Note
-                </Text>
-                <View>{renderHtmlToPdf(invoice.deliveryNote)}</View>
-              </View>
-            )}
-            {invoice.terms && (
-              <View>
-                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
-                  Terms & Conditions
-                </Text>
-                <View>{renderHtmlToPdf(invoice.terms)}</View>
-              </View>
-            )}
-          </View>
-        )}
-
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>Please check all items upon delivery.</Text>
+          {settings?.terms?.deliveryReceipt ? (
+            renderHtmlToPdf(settings.terms.deliveryReceipt, {
+              fontSize: 8,
+              color: "#9CA3AF",
+            })
+          ) : (
+            <Text>Please check all items upon delivery.</Text>
+          )}
           {settings?.contact?.phone && (
             <Text style={{ marginTop: 4 }}>
               For any issues, please contact us at {settings.contact.phone}

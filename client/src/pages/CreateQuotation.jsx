@@ -27,7 +27,6 @@ const CreateQuotation = () => {
     taxRate: 0,
     discount: 0,
     deliveryCharge: 0,
-    deliveryCharge: 0,
     deliveryNote: "",
     terms: "",
   });
@@ -37,8 +36,8 @@ const CreateQuotation = () => {
       setFormData((prev) => ({
         ...prev,
         taxRate: settings.tax?.rate || 0,
-        terms: settings.terms?.quotation || "",
-        deliveryNote: settings.terms?.deliveryReceipt || "",
+        terms: prev.terms || settings.terms?.quotation || "",
+        deliveryNote: prev.deliveryNote || settings.terms?.deliveryReceipt || "",
       }));
     }
   }, [settings]);
@@ -110,7 +109,7 @@ const CreateQuotation = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
+      const { data } = await axios.post(
         ENDPOINTS.QUOTATIONS,
         {
           ...formData,
@@ -118,7 +117,7 @@ const CreateQuotation = () => {
         },
         config
       );
-      navigate("/quotations");
+      navigate(`/quotations/${data._id}`);
     } catch (error) {
       console.error("Error creating quotation:", error);
     }
