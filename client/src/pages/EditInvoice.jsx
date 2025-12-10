@@ -6,7 +6,6 @@ import { Plus, Trash, Save } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import ReasonModal from "../components/ReasonModal";
-import ReasonModal from "../components/ReasonModal";
 import CustomerForm from "../components/CustomerForm";
 import DateInput from "../components/DateInput";
 import RichTextEditor from "../components/RichTextEditor";
@@ -31,7 +30,6 @@ const EditInvoice = () => {
     paymentMethod: "Bank Transfer",
     taxRate: 0,
     discount: 0,
-    deliveryCharge: 0,
     deliveryCharge: 0,
     deliveryNote: "",
     terms: "",
@@ -72,7 +70,6 @@ const EditInvoice = () => {
           paymentMethod: invoice.paymentMethod || "Bank Transfer",
           taxRate: (invoice.tax / invoice.subtotal) * 100 || 0, // Approximate tax rate if not stored
           discount: invoice.discount || 0,
-          deliveryCharge: invoice.deliveryCharge || 0,
           deliveryCharge: invoice.deliveryCharge || 0,
           deliveryNote: invoice.deliveryNote || "",
           terms: invoice.terms || "",

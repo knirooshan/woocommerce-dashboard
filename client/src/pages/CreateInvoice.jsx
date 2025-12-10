@@ -29,7 +29,6 @@ const CreateInvoice = () => {
     taxRate: 0,
     discount: 0,
     deliveryCharge: 0,
-    deliveryCharge: 0,
     deliveryNote: "",
     terms: "",
     status: "draft",
@@ -40,8 +39,8 @@ const CreateInvoice = () => {
       setFormData((prev) => ({
         ...prev,
         taxRate: settings.tax?.rate || 0,
-        terms: settings.terms?.invoice || "",
-        deliveryNote: settings.terms?.deliveryReceipt || "",
+        terms: prev.terms || settings.terms?.invoice || "",
+        deliveryNote: prev.deliveryNote || settings.terms?.deliveryReceipt || "",
       }));
     }
   }, [settings]);
@@ -60,7 +59,7 @@ const CreateInvoice = () => {
 
         // Check for quotation data passed via navigation
         if (location.state?.quotationData) {
-          const { customer, items, tax, discount, notes } =
+          const { customer, items, tax, discount, notes, terms, deliveryNote, deliveryCharge } =
             location.state.quotationData;
 
           // Calculate tax rate from tax amount if possible, or use default
@@ -71,16 +70,27 @@ const CreateInvoice = () => {
           setFormData((prev) => ({
             ...prev,
             customer: customer._id,
-            items: items.map((item) => ({
-              product: item.product?._id || "", // Handle case where product might be populated or just ID
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              total: item.total,
-            })),
+            items: items.map((item) => {
+              // Find matching product in products array
+              const productId = item.product?._id || item.product;
+              const matchedProduct = prodRes.data.find(
+                (p) => p._id.toString() === productId.toString()
+              );
+              
+              return {
+                product: matchedProduct?._id || "",
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                total: item.total,
+              };
+            }),
             notes: notes || "",
+            terms: settings?.terms?.invoice || "",
+            deliveryNote: deliveryNote || settings?.terms?.deliveryReceipt || "",
             taxRate: defaultTaxRate,
             discount: discount || 0,
+            deliveryCharge: deliveryCharge || 0,
           }));
         }
 
@@ -156,7 +166,7 @@ const CreateInvoice = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.post(
+      const { data } = await axios.post(
         ENDPOINTS.INVOICES,
         {
           ...formData,
@@ -164,7 +174,7 @@ const CreateInvoice = () => {
         },
         config
       );
-      navigate("/invoices");
+      navigate(`/invoices/${data._id}`);
     } catch (error) {
       console.error("Error creating invoice:", error);
     }
