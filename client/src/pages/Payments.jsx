@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import { Edit, Trash2, Plus } from "lucide-react";
 import PaymentModal from "../components/PaymentModal";
 import ReasonModal from "../components/ReasonModal";
@@ -294,7 +295,7 @@ const Payments = () => {
               {payments.map((payment) => (
                 <tr key={payment._id} className="hover:bg-slate-800/50">
                   <td className="px-6 py-4 whitespace-nowrap text-slate-300">
-                    {new Date(payment.date).toLocaleDateString()}
+                    {formatDate(payment.date, settings)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-blue-400">
                     {payment.invoice?.invoiceNumber || "-"}

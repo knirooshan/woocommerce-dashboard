@@ -7,6 +7,7 @@ import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import DateInput from "../components/DateInput";
 import { ENDPOINTS } from "../config/api";
 
@@ -59,14 +60,15 @@ const Expenses = () => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      
+
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      if (filters.category !== "all") params.append("category", filters.category);
+      if (filters.category !== "all")
+        params.append("category", filters.category);
       if (filters.vendor !== "all") params.append("vendor", filters.vendor);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
-      
+
       const expensesRes = await axios.get(
         `${ENDPOINTS.EXPENSES}?${params.toString()}`,
         config
@@ -438,7 +440,7 @@ const Expenses = () => {
             {expenses.map((expense) => (
               <tr key={expense._id} className="hover:bg-slate-800/50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                  {new Date(expense.date).toLocaleDateString()}
+                  {formatDate(expense.date, settings)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                   {expense.description}

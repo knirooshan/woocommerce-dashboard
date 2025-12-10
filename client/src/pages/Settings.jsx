@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { fetchSettings } from "../store/slices/settingsSlice";
 
 import MediaLibraryModal from "../components/MediaLibraryModal";
+import RichTextEditor from "../components/RichTextEditor";
 
 import { toast } from "react-hot-toast";
 
@@ -31,6 +32,8 @@ const Settings = () => {
     bank: { accountName: "", accountNumber: "", bankName: "", branch: "" },
     currency: { code: "USD", symbol: "$", position: "before" },
     tax: { rate: 0, label: "Tax" },
+    dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
+    terms: { invoice: "", quotation: "", deliveryReceipt: "" },
     modules: { woocommerce: true, pos: true },
   });
 
@@ -405,6 +408,102 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Date & Time Configuration */}
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+            Date & Time Configuration
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Date Format
+              </label>
+              <select
+                name="dateFormat"
+                value={formData.dateTime?.dateFormat || "MM/DD/YYYY"}
+                onChange={(e) => handleChange(e, "dateTime")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              >
+                <option value="MM/DD/YYYY">MM/DD/YYYY (e.g. 12/31/2024)</option>
+                <option value="DD/MM/YYYY">DD/MM/YYYY (e.g. 31/12/2024)</option>
+                <option value="YYYY-MM-DD">YYYY-MM-DD (e.g. 2024-12-31)</option>
+                <option value="DD-MM-YYYY">DD-MM-YYYY (e.g. 31-12-2024)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Time Format
+              </label>
+              <select
+                name="timeFormat"
+                value={formData.dateTime?.timeFormat || "12h"}
+                onChange={(e) => handleChange(e, "dateTime")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              >
+                <option value="12h">12-hour (e.g. 01:30 PM)</option>
+                <option value="24h">24-hour (e.g. 13:30)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Terms & Conditions Defaults */}
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+          <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+            Default Terms & Conditions
+          </h2>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Invoice Terms
+              </label>
+              <RichTextEditor
+                value={formData.terms?.invoice || ""}
+                onChange={(val) =>
+                  handleChange(
+                    { target: { name: "invoice", value: val } },
+                    "terms"
+                  )
+                }
+                placeholder="Enter default terms for invoices..."
+                className="h-48"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Quotation Terms
+              </label>
+              <RichTextEditor
+                value={formData.terms?.quotation || ""}
+                onChange={(val) =>
+                  handleChange(
+                    { target: { name: "quotation", value: val } },
+                    "terms"
+                  )
+                }
+                placeholder="Enter default terms for quotations..."
+                className="h-48"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Delivery Receipt Notes
+              </label>
+              <RichTextEditor
+                value={formData.terms?.deliveryReceipt || ""}
+                onChange={(val) =>
+                  handleChange(
+                    { target: { name: "deliveryReceipt", value: val } },
+                    "terms"
+                  )
+                }
+                placeholder="Enter default delivery notes..."
+                className="h-48"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Currency Settings */}
         <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
           <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
@@ -475,7 +574,8 @@ const Settings = () => {
                   WooCommerce Sync
                 </label>
                 <p className="text-xs text-slate-400 mt-1">
-                  Enable syncing products and orders from WooCommerce. When disabled, sync buttons and features will be hidden.
+                  Enable syncing products and orders from WooCommerce. When
+                  disabled, sync buttons and features will be hidden.
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -495,7 +595,8 @@ const Settings = () => {
                   POS (Point of Sale)
                 </label>
                 <p className="text-xs text-slate-400 mt-1">
-                  Enable the POS module. When disabled, the POS page and navigation will be hidden.
+                  Enable the POS module. When disabled, the POS page and
+                  navigation will be hidden.
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
