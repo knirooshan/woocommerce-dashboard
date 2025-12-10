@@ -5,6 +5,7 @@ import { Plus, FileText, Eye, Edit, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
 
@@ -194,12 +195,12 @@ const Quotations = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {quotation.quotationDate
-                      ? new Date(quotation.quotationDate).toLocaleDateString()
-                      : new Date(quotation.createdAt).toLocaleDateString()}
+                      ? formatDate(quotation.quotationDate, settings)
+                      : formatDate(quotation.createdAt, settings)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {quotation.validUntil
-                      ? new Date(quotation.validUntil).toLocaleDateString()
+                      ? formatDate(quotation.validUntil, settings)
                       : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">

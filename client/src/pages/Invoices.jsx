@@ -5,6 +5,7 @@ import { Plus, FileText, Eye, DollarSign, Trash2, Edit } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import PaymentModal from "../components/PaymentModal";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
@@ -62,7 +63,9 @@ const Invoices = () => {
   };
 
   const hasActiveFilters = () => {
-    return search || filters.status !== "all" || filters.startDate || filters.endDate;
+    return (
+      search || filters.status !== "all" || filters.startDate || filters.endDate
+    );
   };
 
   const handleRecordPayment = (invoice) => {
@@ -212,12 +215,12 @@ const Invoices = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {invoice.invoiceDate
-                      ? new Date(invoice.invoiceDate).toLocaleDateString()
-                      : new Date(invoice.createdAt).toLocaleDateString()}
+                      ? formatDate(invoice.invoiceDate, settings)
+                      : formatDate(invoice.createdAt, settings)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {invoice.dueDate
-                      ? new Date(invoice.dueDate).toLocaleDateString()
+                      ? formatDate(invoice.dueDate, settings)
                       : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">

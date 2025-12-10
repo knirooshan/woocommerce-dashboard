@@ -33,6 +33,7 @@ const quotationSchema = new mongoose.Schema(
       default: "draft",
     },
     notes: String,
+    terms: String,
     quotationDate: { type: Date, default: Date.now },
     validUntil: Date,
   },

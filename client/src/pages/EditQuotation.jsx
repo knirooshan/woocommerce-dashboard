@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import CustomerForm from "../components/CustomerForm";
 import DateInput from "../components/DateInput";
+import RichTextEditor from "../components/RichTextEditor";
 
 const EditQuotation = () => {
   const { user } = useSelector((state) => state.auth);
@@ -27,7 +28,9 @@ const EditQuotation = () => {
     taxRate: 0,
     discount: 0,
     deliveryCharge: 0,
+    deliveryCharge: 0,
     deliveryNote: "",
+    terms: "",
   });
 
   useEffect(() => {
@@ -66,7 +69,9 @@ const EditQuotation = () => {
           taxRate: (quotation.tax / quotation.subtotal) * 100 || 0,
           discount: quotation.discount || 0,
           deliveryCharge: quotation.deliveryCharge || 0,
+          deliveryCharge: quotation.deliveryCharge || 0,
           deliveryNote: quotation.deliveryNote || "",
+          terms: quotation.terms || "",
         });
 
         // If we can't calculate tax rate easily (e.g. subtotal is 0), use settings default or 0
@@ -387,28 +392,35 @@ const EditQuotation = () => {
             <label className="block text-sm font-medium text-slate-300 mb-2">
               Notes
             </label>
-            <textarea
+            <RichTextEditor
               value={formData.notes}
-              onChange={(e) =>
-                setFormData({ ...formData, notes: e.target.value })
-              }
-              rows={3}
-              placeholder="Add any additional notes or terms..."
-              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onChange={(val) => setFormData({ ...formData, notes: val })}
+              placeholder="Add any additional notes..."
+              className="h-32"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Terms & Conditions
+            </label>
+            <RichTextEditor
+              value={formData.terms}
+              onChange={(val) => setFormData({ ...formData, terms: val })}
+              placeholder="Add terms and conditions..."
+              className="h-48"
             />
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-slate-300 mb-2">
               Delivery Note
             </label>
-            <textarea
+            <RichTextEditor
               value={formData.deliveryNote}
-              onChange={(e) =>
-                setFormData({ ...formData, deliveryNote: e.target.value })
+              onChange={(val) =>
+                setFormData({ ...formData, deliveryNote: val })
               }
-              rows={2}
               placeholder="Add delivery instructions or notes..."
-              className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="h-32"
             />
           </div>
         </div>

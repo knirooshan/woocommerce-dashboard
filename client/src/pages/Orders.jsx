@@ -4,6 +4,7 @@ import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { Eye, ExternalLink, RefreshCcw } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
 
@@ -248,9 +249,7 @@ const Orders = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
-                    {new Date(
-                      order.dateCreated || order.createdAt
-                    ).toLocaleDateString()}
+                    {formatDate(order.dateCreated || order.createdAt, settings)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
                     {formatCurrency(order.total, settings)}

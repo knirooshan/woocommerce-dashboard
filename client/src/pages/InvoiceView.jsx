@@ -16,6 +16,7 @@ import InvoicePDF from "../components/InvoicePDF";
 import DeliveryReceiptPDF from "../components/DeliveryReceiptPDF";
 import PaymentModal from "../components/PaymentModal";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import { urlToBase64 } from "../utils/imageUtils";
 
 const InvoiceView = () => {
@@ -268,13 +269,11 @@ const InvoiceView = () => {
             <h1 className="text-2xl font-bold text-slate-900 mb-2">INVOICE</h1>
             <p className="text-slate-600">#{invoice.invoiceNumber}</p>
             <p className="text-slate-600">
-              Date: {new Date(invoice.createdAt).toLocaleDateString()}
+              Date: {formatDate(invoice.createdAt, settings)}
             </p>
             <p className="text-slate-600">
               Due Date:{" "}
-              {invoice.dueDate
-                ? new Date(invoice.dueDate).toLocaleDateString()
-                : "-"}
+              {invoice.dueDate ? formatDate(invoice.dueDate, settings) : "-"}
             </p>
             <p className="text-slate-600">
               Status:{" "}
@@ -453,7 +452,7 @@ const InvoiceView = () => {
                 {invoice.payments.map((payment, index) => (
                   <tr key={index} className="border-b border-slate-100">
                     <td className="py-2 text-slate-900">
-                      {new Date(payment.date).toLocaleDateString()}
+                      {formatDate(payment.date, settings)}
                     </td>
                     <td className="py-2 text-slate-900">{payment.method}</td>
                     <td className="py-2 text-slate-900">
@@ -469,13 +468,27 @@ const InvoiceView = () => {
           </div>
         )}
 
-        {/* Notes */}
-        {(invoice.notes || invoice.deliveryNote) && (
+        {/* Notes & Terms */}
+        {(invoice.notes || invoice.terms || invoice.deliveryNote) && (
           <div className="mt-8 pt-8 border-t border-slate-200">
             {invoice.notes && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
-                <p className="text-slate-600">{invoice.notes}</p>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: invoice.notes }}
+                />
+              </div>
+            )}
+            {invoice.terms && (
+              <div className="mb-6">
+                <h3 className="text-slate-600 font-semibold mb-2">
+                  Terms & Conditions:
+                </h3>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: invoice.terms }}
+                />
               </div>
             )}
             {invoice.deliveryNote && (
@@ -483,7 +496,10 @@ const InvoiceView = () => {
                 <h3 className="text-slate-600 font-semibold mb-2">
                   Delivery Note:
                 </h3>
-                <p className="text-slate-600">{invoice.deliveryNote}</p>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: invoice.deliveryNote }}
+                />
               </div>
             )}
           </div>

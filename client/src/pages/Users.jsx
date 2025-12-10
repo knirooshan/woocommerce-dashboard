@@ -4,10 +4,12 @@ import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { Plus, Edit2, Trash2, X } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { formatDate } from "../utils/date";
 import { useNavigate } from "react-router-dom";
 
 const Users = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -200,7 +202,7 @@ const Users = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                  {new Date(u.createdAt).toLocaleDateString()}
+                  {formatDate(u.createdAt, settings)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   {u.role !== "admin" && (

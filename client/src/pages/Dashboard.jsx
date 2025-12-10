@@ -6,6 +6,7 @@ import { DollarSign, ShoppingBag, Users, Package } from "lucide-react";
 import StatsCard from "../components/StatsCard";
 import SalesChart from "../components/SalesChart";
 import { formatCurrency } from "../utils/currency";
+import { formatDate, formatTime } from "../utils/date";
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -176,10 +177,10 @@ const Dashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-slate-400 text-xs">
-                        {new Date(activity.createdAt).toLocaleDateString()}
+                        {formatDate(activity.createdAt, settings)}
                       </p>
                       <p className="text-slate-500 text-xs">
-                        {new Date(activity.createdAt).toLocaleTimeString()}
+                        {formatTime(activity.createdAt, settings)}
                       </p>
                     </div>
                   </div>

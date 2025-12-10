@@ -8,6 +8,8 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
+import { renderHtmlToPdf } from "../utils/pdfUtils";
 
 const styles = StyleSheet.create({
   page: {
@@ -231,18 +233,24 @@ const InvoicePDF = ({ invoice, settings }) => {
             >
               {settings?.storeName}
             </Text>
-            <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
-            <Text style={styles.companyInfo}>
-              {settings?.address?.city}
-              {settings?.address?.city && settings?.address?.zip && ", "}
-              {settings?.address?.zip}
-            </Text>
-            <Text style={styles.companyInfo}>
-              {settings?.contact?.phone
-                ? `Phone: ${settings.contact.phone}`
-                : ""}
-            </Text>
-            <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
+            {settings?.address?.street && (
+              <Text style={styles.companyInfo}>{settings.address.street}</Text>
+            )}
+            {(settings?.address?.city || settings?.address?.zip) && (
+              <Text style={styles.companyInfo}>
+                {settings?.address?.city}
+                {settings?.address?.city && settings?.address?.zip && ", "}
+                {settings?.address?.zip}
+              </Text>
+            )}
+            {settings?.contact?.phone && (
+              <Text style={styles.companyInfo}>
+                Phone: {settings.contact.phone}
+              </Text>
+            )}
+            {settings?.contact?.email && (
+              <Text style={styles.companyInfo}>{settings.contact.email}</Text>
+            )}
           </View>
         </View>
 
@@ -261,17 +269,24 @@ const InvoicePDF = ({ invoice, settings }) => {
                 {invoice.customer.billing.company}
               </Text>
             )}
-            <Text style={styles.text}>
-              {invoice.customer?.billing?.address_1}
-            </Text>
-            <Text style={styles.text}>
-              {invoice.customer?.billing?.city}
-              {invoice.customer?.billing?.city &&
-                invoice.customer?.billing?.postcode &&
-                ", "}
-              {invoice.customer?.billing?.postcode}
-            </Text>
-            <Text style={styles.text}>{invoice.customer?.email}</Text>
+            {invoice.customer?.billing?.address_1 && (
+              <Text style={styles.text}>
+                {invoice.customer.billing.address_1}
+              </Text>
+            )}
+            {(invoice.customer?.billing?.city ||
+              invoice.customer?.billing?.postcode) && (
+              <Text style={styles.text}>
+                {invoice.customer?.billing?.city}
+                {invoice.customer?.billing?.city &&
+                  invoice.customer?.billing?.postcode &&
+                  ", "}
+                {invoice.customer?.billing?.postcode}
+              </Text>
+            )}
+            {invoice.customer?.email && (
+              <Text style={styles.text}>{invoice.customer.email}</Text>
+            )}
           </View>
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Invoice Details</Text>
@@ -284,7 +299,7 @@ const InvoicePDF = ({ invoice, settings }) => {
             >
               <Text style={styles.text}>Date Issued:</Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {new Date(invoice.createdAt).toLocaleDateString()}
+                {formatDate(invoice.createdAt, settings)}
               </Text>
             </View>
             {invoice.dueDate && (
@@ -296,7 +311,7 @@ const InvoicePDF = ({ invoice, settings }) => {
               >
                 <Text style={styles.text}>Due Date:</Text>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>
-                  {new Date(invoice.dueDate).toLocaleDateString()}
+                  {formatDate(invoice.dueDate, settings)}
                 </Text>
               </View>
             )}
@@ -420,17 +435,23 @@ const InvoicePDF = ({ invoice, settings }) => {
           )}
         </View>
 
-        {/* Notes */}
-        {(invoice.notes || invoice.deliveryNote) && (
+        {/* Notes & Terms */}
+        {(invoice.notes || invoice.terms || invoice.deliveryNote) && (
           <View style={styles.notes}>
             {invoice.notes && (
-              <View style={{ marginBottom: invoice.deliveryNote ? 10 : 0 }}>
+              <View style={{ marginBottom: 10 }}>
                 <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
                   Notes
                 </Text>
-                <Text style={[styles.text, { fontStyle: "italic" }]}>
-                  {invoice.notes}
+                <View>{renderHtmlToPdf(invoice.notes)}</View>
+              </View>
+            )}
+            {invoice.terms && (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                  Terms & Conditions
                 </Text>
+                <View>{renderHtmlToPdf(invoice.terms)}</View>
               </View>
             )}
             {invoice.deliveryNote && (
@@ -438,9 +459,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                 <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
                   Delivery Note
                 </Text>
-                <Text style={[styles.text, { fontStyle: "italic" }]}>
-                  {invoice.deliveryNote}
-                </Text>
+                <View>{renderHtmlToPdf(invoice.deliveryNote)}</View>
               </View>
             )}
           </View>

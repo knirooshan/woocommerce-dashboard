@@ -8,6 +8,8 @@ import {
   Image,
 } from "@react-pdf/renderer";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
+import { renderHtmlToPdf } from "../utils/pdfUtils";
 
 const styles = StyleSheet.create({
   page: {
@@ -208,16 +210,24 @@ const QuotationPDF = ({ quotation, settings }) => (
           >
             {settings?.storeName}
           </Text>
-          <Text style={styles.companyInfo}>{settings?.address?.street}</Text>
-          <Text style={styles.companyInfo}>
-            {settings?.address?.city}
-            {settings?.address?.city && settings?.address?.zip && ", "}
-            {settings?.address?.zip}
-          </Text>
-          <Text style={styles.companyInfo}>
-            {settings?.contact?.phone ? `Phone: ${settings.contact.phone}` : ""}
-          </Text>
-          <Text style={styles.companyInfo}>{settings?.contact?.email}</Text>
+          {settings?.address?.street && (
+            <Text style={styles.companyInfo}>{settings.address.street}</Text>
+          )}
+          {(settings?.address?.city || settings?.address?.zip) && (
+            <Text style={styles.companyInfo}>
+              {settings?.address?.city}
+              {settings?.address?.city && settings?.address?.zip && ", "}
+              {settings?.address?.zip}
+            </Text>
+          )}
+          {settings?.contact?.phone && (
+            <Text style={styles.companyInfo}>
+              Phone: {settings.contact.phone}
+            </Text>
+          )}
+          {settings?.contact?.email && (
+            <Text style={styles.companyInfo}>{settings.contact.email}</Text>
+          )}
         </View>
       </View>
 
@@ -236,17 +246,24 @@ const QuotationPDF = ({ quotation, settings }) => (
               {quotation.customer.billing.company}
             </Text>
           )}
-          <Text style={styles.text}>
-            {quotation.customer?.billing?.address_1}
-          </Text>
-          <Text style={styles.text}>
-            {quotation.customer?.billing?.city}
-            {quotation.customer?.billing?.city &&
-              quotation.customer?.billing?.postcode &&
-              ", "}
-            {quotation.customer?.billing?.postcode}
-          </Text>
-          <Text style={styles.text}>{quotation.customer?.email}</Text>
+          {quotation.customer?.billing?.address_1 && (
+            <Text style={styles.text}>
+              {quotation.customer.billing.address_1}
+            </Text>
+          )}
+          {(quotation.customer?.billing?.city ||
+            quotation.customer?.billing?.postcode) && (
+            <Text style={styles.text}>
+              {quotation.customer?.billing?.city}
+              {quotation.customer?.billing?.city &&
+                quotation.customer?.billing?.postcode &&
+                ", "}
+              {quotation.customer?.billing?.postcode}
+            </Text>
+          )}
+          {quotation.customer?.email && (
+            <Text style={styles.text}>{quotation.customer.email}</Text>
+          )}
         </View>
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Quotation Details</Text>
@@ -259,7 +276,7 @@ const QuotationPDF = ({ quotation, settings }) => (
           >
             <Text style={styles.text}>Date Issued:</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {new Date(quotation.createdAt).toLocaleDateString()}
+              {formatDate(quotation.createdAt, settings)}
             </Text>
           </View>
           {quotation.validUntil && (
@@ -268,7 +285,7 @@ const QuotationPDF = ({ quotation, settings }) => (
             >
               <Text style={styles.text}>Valid Until:</Text>
               <Text style={[styles.text, { fontWeight: "bold" }]}>
-                {new Date(quotation.validUntil).toLocaleDateString()}
+                {formatDate(quotation.validUntil, settings)}
               </Text>
             </View>
           )}
@@ -376,17 +393,23 @@ const QuotationPDF = ({ quotation, settings }) => (
         </View>
       </View>
 
-      {/* Notes */}
-      {(quotation.notes || quotation.deliveryNote) && (
+      {/* Notes & Terms */}
+      {(quotation.notes || quotation.terms || quotation.deliveryNote) && (
         <View style={styles.notes}>
           {quotation.notes && (
-            <View style={{ marginBottom: quotation.deliveryNote ? 10 : 0 }}>
+            <View style={{ marginBottom: 10 }}>
               <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
                 Notes
               </Text>
-              <Text style={[styles.text, { fontStyle: "italic" }]}>
-                {quotation.notes}
+              <View>{renderHtmlToPdf(quotation.notes)}</View>
+            </View>
+          )}
+          {quotation.terms && (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
+                Terms & Conditions
               </Text>
+              <View>{renderHtmlToPdf(quotation.terms)}</View>
             </View>
           )}
           {quotation.deliveryNote && (
@@ -394,9 +417,7 @@ const QuotationPDF = ({ quotation, settings }) => (
               <Text style={[styles.sectionTitle, { marginBottom: 4 }]}>
                 Delivery Note
               </Text>
-              <Text style={[styles.text, { fontStyle: "italic" }]}>
-                {quotation.deliveryNote}
-              </Text>
+              <View>{renderHtmlToPdf(quotation.deliveryNote)}</View>
             </View>
           )}
         </View>

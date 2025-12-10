@@ -7,6 +7,7 @@ import { ArrowLeft, Download, Printer, FileText, Mail } from "lucide-react";
 import { useSelector } from "react-redux";
 import QuotationPDF from "../components/QuotationPDF";
 import { formatCurrency } from "../utils/currency";
+import { formatDate } from "../utils/date";
 import { urlToBase64 } from "../utils/imageUtils";
 
 const QuotationView = () => {
@@ -198,7 +199,7 @@ const QuotationView = () => {
             </h1>
             <p className="text-slate-600">#{quotation.quotationNumber}</p>
             <p className="text-slate-600">
-              Date: {new Date(quotation.createdAt).toLocaleDateString()}
+              Date: {formatDate(quotation.createdAt, settings)}
             </p>
             <p className="text-slate-600">
               Status:{" "}
@@ -341,13 +342,27 @@ const QuotationView = () => {
           </div>
         </div>
 
-        {/* Notes */}
-        {(quotation.notes || quotation.deliveryNote) && (
+        {/* Notes & Terms */}
+        {(quotation.notes || quotation.terms || quotation.deliveryNote) && (
           <div className="mt-8 pt-8 border-t border-slate-200">
             {quotation.notes && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <h3 className="text-slate-600 font-semibold mb-2">Notes:</h3>
-                <p className="text-slate-600">{quotation.notes}</p>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: quotation.notes }}
+                />
+              </div>
+            )}
+            {quotation.terms && (
+              <div className="mb-6">
+                <h3 className="text-slate-600 font-semibold mb-2">
+                  Terms & Conditions:
+                </h3>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: quotation.terms }}
+                />
               </div>
             )}
             {quotation.deliveryNote && (
@@ -355,7 +370,10 @@ const QuotationView = () => {
                 <h3 className="text-slate-600 font-semibold mb-2">
                   Delivery Note:
                 </h3>
-                <p className="text-slate-600">{quotation.deliveryNote}</p>
+                <div
+                  className="text-slate-600 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: quotation.deliveryNote }}
+                />
               </div>
             )}
           </div>
