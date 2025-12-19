@@ -66,7 +66,7 @@ const syncOrders = async (req, res) => {
       return res.status(403).json({ message: "WooCommerce sync disabled" });
     }
     // Fetch orders from WooCommerce (first 100 for now)
-    const wooOrders = await getWooOrders(1, 100);
+    const wooOrders = await getWooOrders(settings, 1, 100);
 
     const syncedOrders = [];
 

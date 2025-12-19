@@ -35,7 +35,7 @@ const syncProducts = async (req, res) => {
 
     // Loop to fetch all products from WooCommerce
     while (true) {
-      const products = await getWooProducts(page, 100);
+      const products = await getWooProducts(settings, page, 100);
       if (!products || products.length === 0) break;
       wooProducts = [...wooProducts, ...products];
       page++;
