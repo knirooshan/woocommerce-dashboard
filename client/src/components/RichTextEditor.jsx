@@ -6,19 +6,32 @@ import htmlToDraft from "html-to-draftjs";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 
 const RichTextEditor = ({ value, onChange, placeholder, className }) => {
-  const [editorState, setEditorState] = useState(EditorState.createEmpty());
+  const [editorState, setEditorState] = useState(() => {
+    if (value) {
+      const contentBlock = htmlToDraft(value);
+      if (contentBlock) {
+        const contentState = ContentState.createFromBlockArray(
+          contentBlock.contentBlocks,
+          contentBlock.entityMap
+        );
+        return EditorState.createWithContent(contentState);
+      }
+    }
+    return EditorState.createEmpty();
+  });
   const previousValueRef = useRef(value);
 
   useEffect(() => {
     // Only update if the value prop changed externally (not from user input)
     if (value !== previousValueRef.current) {
       previousValueRef.current = value;
-      
+
       if (value) {
         const contentBlock = htmlToDraft(value);
         if (contentBlock) {
           const contentState = ContentState.createFromBlockArray(
-            contentBlock.contentBlocks
+            contentBlock.contentBlocks,
+            contentBlock.entityMap
           );
           const newEditorState = EditorState.createWithContent(contentState);
           setEditorState(newEditorState);
@@ -32,7 +45,7 @@ const RichTextEditor = ({ value, onChange, placeholder, className }) => {
   const handleEditorChange = (state) => {
     setEditorState(state);
     const html = draftToHtml(convertToRaw(state.getCurrentContent()));
-    
+
     // Update the ref to prevent re-initialization loop
     previousValueRef.current = html;
     onChange(html);
