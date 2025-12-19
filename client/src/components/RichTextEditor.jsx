@@ -44,7 +44,12 @@ const RichTextEditor = ({ value, onChange, placeholder, className }) => {
 
   const handleEditorChange = (state) => {
     setEditorState(state);
-    const html = draftToHtml(convertToRaw(state.getCurrentContent()));
+    const currentContent = state.getCurrentContent();
+    let html = draftToHtml(convertToRaw(currentContent));
+
+    if (!currentContent.hasText()) {
+      html = "";
+    }
 
     // Update the ref to prevent re-initialization loop
     previousValueRef.current = html;
