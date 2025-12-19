@@ -34,6 +34,7 @@ const Settings = () => {
     tax: { rate: 0, label: "Tax" },
     dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
     terms: { invoice: "", quotation: "", deliveryReceipt: "" },
+    wooCommerce: { url: "", consumerKey: "", consumerSecret: "" },
     modules: { woocommerce: true, pos: true },
   });
 
@@ -612,6 +613,56 @@ const Settings = () => {
             </div>
           </div>
         </div>
+
+        {/* WooCommerce Settings */}
+        {formData.modules?.woocommerce && (
+          <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+            <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+              WooCommerce Configuration
+            </h2>
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Store URL
+                </label>
+                <input
+                  type="text"
+                  name="url"
+                  value={formData.wooCommerce?.url || ""}
+                  onChange={(e) => handleChange(e, "wooCommerce")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                  placeholder="https://example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Consumer Key
+                </label>
+                <input
+                  type="text"
+                  name="consumerKey"
+                  value={formData.wooCommerce?.consumerKey || ""}
+                  onChange={(e) => handleChange(e, "wooCommerce")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                  placeholder="ck_..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Consumer Secret
+                </label>
+                <input
+                  type="password"
+                  name="consumerSecret"
+                  value={formData.wooCommerce?.consumerSecret || ""}
+                  onChange={(e) => handleChange(e, "wooCommerce")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+                  placeholder="cs_..."
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end">
           <button

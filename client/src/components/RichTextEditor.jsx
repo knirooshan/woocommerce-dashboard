@@ -47,7 +47,15 @@ const RichTextEditor = ({ value, onChange, placeholder, className }) => {
     const currentContent = state.getCurrentContent();
     let html = draftToHtml(convertToRaw(currentContent));
 
-    if (!currentContent.hasText()) {
+    // Check if content is empty (no text and no entities)
+    const hasText = currentContent.hasText();
+    const hasEntities = currentContent.getBlockMap().some(
+      (block) => block.getEntityAt(0) !== null
+    );
+
+    if (!hasText && !hasEntities) {
+      html = "";
+    } else if (html && html.trim() === "<p></p>") {
       html = "";
     }
 

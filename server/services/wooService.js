@@ -1,30 +1,27 @@
 const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 
-let api;
-
-const initWooCommerce = () => {
+const initWooCommerce = (settings) => {
   if (
-    !process.env.WOO_URL ||
-    !process.env.WOO_CONSUMER_KEY ||
-    !process.env.WOO_CONSUMER_SECRET
+    !settings ||
+    !settings.wooCommerce ||
+    !settings.wooCommerce.url ||
+    !settings.wooCommerce.consumerKey ||
+    !settings.wooCommerce.consumerSecret
   ) {
-    console.warn("WooCommerce credentials missing in .env");
+    console.warn("WooCommerce credentials missing in settings");
     return null;
   }
 
-  if (!api) {
-    api = new WooCommerceRestApi({
-      url: process.env.WOO_URL,
-      consumerKey: process.env.WOO_CONSUMER_KEY,
-      consumerSecret: process.env.WOO_CONSUMER_SECRET,
-      version: "wc/v3",
-    });
-  }
-  return api;
+  return new WooCommerceRestApi({
+    url: settings.wooCommerce.url,
+    consumerKey: settings.wooCommerce.consumerKey,
+    consumerSecret: settings.wooCommerce.consumerSecret,
+    version: "wc/v3",
+  });
 };
 
-const getWooProducts = async (page = 1, perPage = 20) => {
-  const woo = initWooCommerce();
+const getWooProducts = async (settings, page = 1, perPage = 20) => {
+  const woo = initWooCommerce(settings);
   if (!woo) throw new Error("WooCommerce not configured");
 
   const response = await woo.get("products", {
@@ -34,8 +31,8 @@ const getWooProducts = async (page = 1, perPage = 20) => {
   return response.data;
 };
 
-const getWooCustomers = async (page = 1, perPage = 20) => {
-  const woo = initWooCommerce();
+const getWooCustomers = async (settings, page = 1, perPage = 20) => {
+  const woo = initWooCommerce(settings);
   if (!woo) throw new Error("WooCommerce not configured");
 
   const response = await woo.get("customers", {
@@ -45,8 +42,8 @@ const getWooCustomers = async (page = 1, perPage = 20) => {
   return response.data;
 };
 
-const getWooOrders = async (page = 1, perPage = 20) => {
-  const woo = initWooCommerce();
+const getWooOrders = async (settings, page = 1, perPage = 20) => {
+  const woo = initWooCommerce(settings);
   if (!woo) throw new Error("WooCommerce not configured");
 
   const response = await woo.get("orders", {

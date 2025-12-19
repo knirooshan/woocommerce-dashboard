@@ -142,7 +142,7 @@ const syncCustomers = async (req, res) => {
       return res.status(403).json({ message: "WooCommerce sync disabled" });
     }
 
-    const wooCustomers = await getWooCustomers(1, 100);
+    const wooCustomers = await getWooCustomers(settings, 1, 100);
 
     const syncedCustomers = [];
 

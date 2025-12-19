@@ -47,6 +47,11 @@ const settingsSchema = new mongoose.Schema(
       quotation: { type: String, default: "" },
       deliveryReceipt: { type: String, default: "" },
     },
+    wooCommerce: {
+      url: { type: String, default: "" },
+      consumerKey: { type: String, default: "" },
+      consumerSecret: { type: String, default: "" },
+    },
     // Feature module toggles
     modules: {
       woocommerce: { type: Boolean, default: true },
