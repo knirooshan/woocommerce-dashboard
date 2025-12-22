@@ -440,16 +440,13 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
             <View style={styles.tableRow} key={index}>
               <View style={styles.tableColDescription}>
                 <Text style={styles.tableCell}>{item.name}</Text>
-                {item.product?.shortDescription && (
-                  <Text
-                    style={{
-                      ...styles.tableCell,
-                      fontSize: 8,
-                      color: "#6B7280",
-                    }}
-                  >
-                    {item.product.shortDescription}
-                  </Text>
+                {(item.description || item.product?.shortDescription) && (
+                  <View style={{ marginTop: 2 }}>
+                    {renderHtmlToPdf(
+                      item.description || item.product.shortDescription,
+                      { fontSize: 8, color: "#6B7280" }
+                    )}
+                  </View>
                 )}
               </View>
               <View style={styles.colQty}>

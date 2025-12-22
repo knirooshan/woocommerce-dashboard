@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-
+import RichTextEditor from "./RichTextEditor";
 import MediaLibraryModal from "./MediaLibraryModal";
 
 const ProductForm = ({ product, onClose, onSave }) => {
@@ -220,26 +220,26 @@ const ProductForm = ({ product, onClose, onSave }) => {
             <label className="block text-sm font-medium text-slate-300 mb-1">
               Short Description
             </label>
-            <textarea
-              name="shortDescription"
+            <RichTextEditor
               value={formData.shortDescription}
-              onChange={handleChange}
-              rows="2"
-              className="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-            ></textarea>
+              onChange={(val) =>
+                setFormData({ ...formData, shortDescription: val })
+              }
+              placeholder="Brief summary of the product..."
+              className="h-24"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
               Description
             </label>
-            <textarea
-              name="description"
+            <RichTextEditor
               value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              className="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-            ></textarea>
+              onChange={(val) => setFormData({ ...formData, description: val })}
+              placeholder="Detailed product description..."
+              className="h-48"
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">

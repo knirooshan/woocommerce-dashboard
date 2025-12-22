@@ -10,6 +10,7 @@ import {
   Mail,
   DollarSign,
   XCircle,
+  Package,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import InvoicePDF from "../components/InvoicePDF";
@@ -354,20 +355,32 @@ const InvoiceView = () => {
             {invoice.items.map((item, index) => (
               <tr key={index} className="border-b border-slate-200">
                 <td className="py-3">
-                  {item.image && (
+                  {item.image ? (
                     <img
                       src={item.image}
                       alt={item.name}
                       className="w-12 h-12 object-contain"
                       onError={(e) => (e.target.style.display = "none")}
                     />
+                  ) : (
+                    <div className="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-slate-400">
+                      <Package size={24} />
+                    </div>
                   )}
                 </td>
                 <td className="py-3 text-slate-900">
-                  <div>{item.name}</div>
-                  {item.product?.shortDescription && (
-                    <div className="text-xs text-slate-500 mt-1">
-                      {item.product.shortDescription}
+                  <div className="font-medium">{item.name}</div>
+                  {(item.description || item.product?.shortDescription) && (
+                    <div
+                      className="text-xs text-slate-500 mt-1 prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: item.description || item.product.shortDescription,
+                      }}
+                    />
+                  )}
+                  {item.discount > 0 && (
+                    <div className="text-xs text-red-500 mt-1">
+                      Discount: -{formatCurrency(item.discount, settings)}
                     </div>
                   )}
                 </td>

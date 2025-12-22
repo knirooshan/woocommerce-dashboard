@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { RefreshCw, Search, Plus, Edit, Trash } from "lucide-react";
+import { RefreshCw, Search, Plus, Edit, Trash, Package } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import ProductForm from "../components/ProductForm";
@@ -187,7 +187,9 @@ const Products = () => {
                         className="h-10 w-10 rounded object-cover"
                       />
                     ) : (
-                      <div className="h-10 w-10 bg-slate-800 rounded flex items-center justify-center text-slate-500"></div>
+                      <div className="h-10 w-10 bg-slate-800 rounded flex items-center justify-center text-slate-500 border border-slate-700">
+                        <Package size={20} />
+                      </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

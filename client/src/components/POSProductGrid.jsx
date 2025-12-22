@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, Package } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -38,7 +38,7 @@ const POSProductGrid = ({ products, onAddToCart }) => {
             onClick={() => onAddToCart(product)}
             className="bg-slate-900 p-4 rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-shadow border border-slate-800 hover:border-blue-500 flex flex-col"
           >
-            <div className="bg-slate-800 rounded mb-3 flex items-center justify-center overflow-hidden">
+            <div className="bg-slate-800 rounded mb-3 flex items-center justify-center overflow-hidden aspect-square border border-slate-700">
               {product.images && product.images[0] ? (
                 <img
                   src={product.images[0]}
@@ -46,7 +46,7 @@ const POSProductGrid = ({ products, onAddToCart }) => {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="text-slate-500 text-xs">No Image</span>
+                <Package className="text-slate-600" size={48} />
               )}
             </div>
             <h3 className="text-sm font-medium text-white line-clamp-2 mb-1 flex-1">

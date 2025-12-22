@@ -38,3 +38,11 @@ select {
   background-position: right 0.75rem center;
   background-size: 12px 12px;
 }
+
+/* Hide default browser date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
