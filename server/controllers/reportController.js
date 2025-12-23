@@ -12,7 +12,12 @@ const getDashboardStats = async (req, res) => {
     const { Invoice, Expense, Payment } = getTenantModels(req.dbConnection);
     const { startDate, endDate } = req.query;
 
-    const allowedStatuses = ["paid", "partially_paid", "overdue", "written-off"];
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
 
     // Get valid invoice IDs for filtering payments
     const validInvoices = await Invoice.find({
@@ -78,7 +83,12 @@ const getSalesReport = async (req, res) => {
     const { Expense, Payment, Invoice } = getTenantModels(req.dbConnection);
     const { timeframe = "monthly", startDate, endDate } = req.query;
 
-    const allowedStatuses = ["paid", "partially_paid", "overdue", "written-off"];
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
 
     // Get valid invoice IDs for filtering payments
     const validInvoices = await Invoice.find({
@@ -219,7 +229,12 @@ const getProfitLossReport = async (req, res) => {
     const { Expense, Payment, Invoice } = getTenantModels(req.dbConnection);
     const { timeframe = "monthly", startDate, endDate } = req.query;
 
-    const allowedStatuses = ["paid", "partially_paid", "overdue", "written-off"];
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
 
     // Get valid invoice IDs for filtering payments
     const validInvoices = await Invoice.find({
