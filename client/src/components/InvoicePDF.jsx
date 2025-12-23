@@ -110,6 +110,13 @@ const styles = StyleSheet.create({
     objectFit: "contain",
     marginRight: 8,
   },
+  imagePlaceholder: {
+    width: 30,
+    height: 30,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 2,
+    marginRight: 8,
+  },
 
   tableCellHeader: {
     fontSize: 9,
@@ -340,20 +347,30 @@ const InvoicePDF = ({ invoice, settings }) => {
           {invoice.items.map((item, index) => (
             <View style={styles.tableRow} key={index}>
               <View style={styles.colImage}>
-                {item.image && (
+                {item.image ? (
                   <Image
                     style={styles.productImage}
                     src={item.image}
                     cache={false}
                   />
+                ) : (
+                  <View style={styles.imagePlaceholder} />
                 )}
               </View>
               <View style={styles.colItem}>
                 <View>
                   <Text style={styles.tableCell}>{item.name}</Text>
-                  {item.product?.shortDescription && (
-                    <Text style={styles.tableCellSub}>
-                      {item.product.shortDescription}
+                  {(item.description || item.product?.shortDescription) && (
+                    <View style={{ marginTop: 2 }}>
+                      {renderHtmlToPdf(
+                        item.description || item.product.shortDescription,
+                        styles.tableCellSub
+                      )}
+                    </View>
+                  )}
+                  {item.discount > 0 && (
+                    <Text style={[styles.tableCellSub, { color: "#EF4444" }]}>
+                      Discount: -{formatCurrency(item.discount, settings)}
                     </Text>
                   )}
                 </View>

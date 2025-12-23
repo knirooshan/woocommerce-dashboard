@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash, Save } from "lucide-react";
+import { Plus, Trash, Save, Edit2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import CustomerForm from "../components/CustomerForm";
 import DateInput from "../components/DateInput";
 import RichTextEditor from "../components/RichTextEditor";
+import ItemModal from "../components/ItemModal";
 
 const CreateQuotation = () => {
   const { user } = useSelector((state) => state.auth);
@@ -17,6 +18,8 @@ const CreateQuotation = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingItemIndex, setEditingItemIndex] = useState(null);
 
   const [formData, setFormData] = useState({
     customer: "",
@@ -37,7 +40,8 @@ const CreateQuotation = () => {
         ...prev,
         taxRate: settings.tax?.rate || 0,
         terms: prev.terms || settings.terms?.quotation || "",
-        deliveryNote: prev.deliveryNote || settings.terms?.deliveryReceipt || "",
+        deliveryNote:
+          prev.deliveryNote || settings.terms?.deliveryReceipt || "",
       }));
     }
   }, [settings]);
@@ -62,14 +66,18 @@ const CreateQuotation = () => {
     fetchData();
   }, [user.token]);
 
-  const addItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      items: [
-        ...prev.items,
-        { product: "", name: "", price: 0, quantity: 1, total: 0 },
-      ],
-    }));
+  const addItem = (item) => {
+    if (editingItemIndex !== null) {
+      const newItems = [...formData.items];
+      newItems[editingItemIndex] = item;
+      setFormData((prev) => ({ ...prev, items: newItems }));
+      setEditingItemIndex(null);
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        items: [...prev.items, item],
+      }));
+    }
   };
 
   const removeItem = (index) => {
@@ -77,21 +85,9 @@ const CreateQuotation = () => {
     setFormData((prev) => ({ ...prev, items: newItems }));
   };
 
-  const handleItemChange = (index, field, value) => {
-    const newItems = [...formData.items];
-    newItems[index][field] = value;
-
-    if (field === "product") {
-      const selectedProduct = products.find((p) => p._id === value);
-      if (selectedProduct) {
-        newItems[index].name = selectedProduct.name;
-        newItems[index].price = selectedProduct.price;
-        newItems[index].sku = selectedProduct.sku;
-      }
-    }
-
-    newItems[index].total = newItems[index].price * newItems[index].quantity;
-    setFormData((prev) => ({ ...prev, items: newItems }));
+  const editItem = (index) => {
+    setEditingItemIndex(index);
+    setShowItemModal(true);
   };
 
   const calculateTotals = () => {
@@ -215,7 +211,10 @@ const CreateQuotation = () => {
             <h2 className="text-lg font-medium text-white">Items</h2>
             <button
               type="button"
-              onClick={addItem}
+              onClick={() => {
+                setEditingItemIndex(null);
+                setShowItemModal(true);
+              }}
               className="flex items-center text-sm text-blue-400 hover:text-blue-300"
             >
               <Plus className="h-4 w-4 mr-1" /> Add Item
@@ -226,74 +225,63 @@ const CreateQuotation = () => {
             {formData.items.map((item, index) => (
               <div
                 key={index}
-                className="flex gap-4 items-end border-b border-slate-800 pb-4"
+                className="flex gap-4 items-start border-b border-slate-800 pb-4"
               >
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
-                    Product
-                  </label>
-                  <select
-                    value={item.product}
-                    onChange={(e) =>
-                      handleItemChange(index, "product", e.target.value)
-                    }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-                    required
-                  >
-                    <option value="">Select Product...</option>
-                    {products.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="text-white font-medium">{item.name}</div>
+                  {item.description && (
+                    <div
+                      className="text-slate-400 text-sm mt-1 prose prose-invert prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: item.description }}
+                    />
+                  )}
+                  <div className="text-slate-500 text-xs mt-1">
+                    {item.sku ? `SKU: ${item.sku}` : "Custom Item"}
+                  </div>
                 </div>
-                <div className="w-24">
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
-                    Price
-                  </label>
-                  <input
-                    type="number"
-                    value={item.price}
-                    onChange={(e) =>
-                      handleItemChange(
-                        index,
-                        "price",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-                  />
+                <div className="w-24 text-right">
+                  <div className="text-xs text-slate-500 mb-1">Price</div>
+                  <div className="text-white">
+                    {formatCurrency(item.price, settings)}
+                  </div>
                 </div>
-                <div className="w-20">
-                  <label className="block text-xs font-medium text-slate-400 mb-1">
-                    Qty
-                  </label>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      handleItemChange(
-                        index,
-                        "quantity",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    className="block w-full bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
-                  />
+                <div className="w-16 text-center">
+                  <div className="text-xs text-slate-500 mb-1">Qty</div>
+                  <div className="text-white">{item.quantity}</div>
                 </div>
-                <div className="w-24 text-right pb-2 font-medium text-white">
+                <div className="w-20 text-right">
+                  <div className="text-xs text-slate-500 mb-1">Discount</div>
+                  <div className="text-white">
+                    {formatCurrency(item.discount || 0, settings)}
+                  </div>
+                </div>
+                <div className="w-24 text-right font-medium text-white">
+                  <div className="text-xs text-slate-500 mb-1">Total</div>
                   {formatCurrency(item.total, settings)}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeItem(index)}
-                  className="text-red-400 hover:text-red-300 pb-2"
-                >
-                  <Trash className="h-5 w-5" />
-                </button>
+                <div className="flex gap-2 self-center">
+                  <button
+                    type="button"
+                    onClick={() => editItem(index)}
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    <Edit2 className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(index)}
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <Trash className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             ))}
+            {formData.items.length === 0 && (
+              <div className="text-center py-8 text-slate-500 border-2 border-dashed border-slate-800 rounded-lg">
+                No items added yet. Click "Add Item" to start.
+              </div>
+            )}
           </div>
 
           {/* Totals */}
@@ -411,6 +399,20 @@ const CreateQuotation = () => {
           onSave={handleSaveCustomer}
         />
       )}
+
+      <ItemModal
+        isOpen={showItemModal}
+        onClose={() => {
+          setShowItemModal(false);
+          setEditingItemIndex(null);
+        }}
+        onAdd={addItem}
+        products={products}
+        settings={settings}
+        initialItem={
+          editingItemIndex !== null ? formData.items[editingItemIndex] : null
+        }
+      />
     </div>
   );
 };
