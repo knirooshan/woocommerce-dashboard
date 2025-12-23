@@ -32,6 +32,16 @@ const auditPlugin = (schema) => {
     next();
   });
 
+  // Capture original document before update for query middleware
+  schema.pre(/findOneAnd(Update|Replace)/, async function () {
+    try {
+      const query = this.getQuery();
+      this._originalDoc = await this.model.findOne(query).lean();
+    } catch (error) {
+      console.error("Error fetching original doc in pre-update:", error);
+    }
+  });
+
   schema.post("save", async function (doc) {
     try {
       if (doc.constructor.modelName === "ActivityLog") return;
@@ -92,22 +102,57 @@ const auditPlugin = (schema) => {
       const ip = getContext("ip");
       const userAgent = getContext("userAgent");
 
-      // For query middleware, 'this' is the query, 'doc' is the result
-      // We can't easily get the diff here without pre-query fetch.
-      // We'll log the fact that an update happened.
-
       const ActivityLog = getActivityLogModel(doc);
-      if (ActivityLog) {
-        await ActivityLog.create({
-          user: user ? user._id : null,
-          action: "update",
-          collectionName: doc.constructor.modelName,
-          documentId: doc._id,
-          changes: { _note: "Update via query (diff not available)" }, // Placeholder
-          ip,
-          userAgent,
-        });
+      if (!ActivityLog) return;
+
+      let changes = { _note: "Update via query (diff not available)" };
+
+      if (this._originalDoc) {
+        // Fetch the updated document to compare
+        const updatedDoc = await this.model
+          .findById(this._originalDoc._id)
+          .lean();
+        if (updatedDoc) {
+          const diff = {};
+          const allKeys = new Set([
+            ...Object.keys(this._originalDoc),
+            ...Object.keys(updatedDoc),
+          ]);
+
+          allKeys.forEach((key) => {
+            if (
+              key.startsWith("_") ||
+              key === "updatedAt" ||
+              key === "createdAt"
+            )
+              return;
+
+            const oldVal = this._originalDoc[key];
+            const newVal = updatedDoc[key];
+
+            if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+              diff[key] = {
+                old: oldVal,
+                new: newVal,
+              };
+            }
+          });
+
+          if (Object.keys(diff).length > 0) {
+            changes = diff;
+          }
+        }
       }
+
+      await ActivityLog.create({
+        user: user ? user._id : null,
+        action: "update",
+        collectionName: doc.constructor.modelName,
+        documentId: doc._id,
+        changes,
+        ip,
+        userAgent,
+      });
     } catch (error) {
       console.error("Audit Plugin Error (query):", error);
     }
