@@ -1,4 +1,4 @@
-const ActivityLog = require("../models/ActivityLog");
+const { getTenantModels } = require("../models/tenantModels");
 
 const activityLogger = async (req, res, next) => {
   // Only log in production environment
@@ -46,8 +46,13 @@ const activityLogger = async (req, res, next) => {
       if (body.token) body.token = "***";
       if (body.confirmPassword) body.confirmPassword = "***";
 
+      // Get tenant models
+      if (!req.dbConnection) return;
+      const { ActivityLog } = getTenantModels(req.dbConnection);
+
       await ActivityLog.create({
         user: req.user ? req.user._id : null, // req.user populated by authMiddleware
+        action: "api_call",
         method: req.method,
         url: req.originalUrl,
         ip,
