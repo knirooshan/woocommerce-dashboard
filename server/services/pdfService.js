@@ -17,6 +17,52 @@ const formatCurrency = (amount, settings) => {
   }
 };
 
+// Helper to format date based on settings
+const formatDate = (date, settings) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  const format = settings?.dateTime?.dateFormat || "MM/DD/YYYY";
+  const day = d.getDate().toString().padStart(2, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const year = d.getFullYear();
+
+  switch (format) {
+    case "DD/MM/YYYY":
+      return `${day}/${month}/${year}`;
+    case "YYYY-MM-DD":
+      return `${year}-${month}-${day}`;
+    case "DD-MM-YYYY":
+      return `${day}-${month}-${year}`;
+    case "MM/DD/YYYY":
+    default:
+      return `${month}/${day}/${year}`;
+  }
+};
+
+// Helper to format time based on settings
+const formatTime = (date, settings) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  const format = settings?.dateTime?.timeFormat || "12h";
+  if (format === "24h") {
+    return d.toLocaleTimeString("en-US", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else {
+    return d.toLocaleTimeString("en-US", {
+      hour12: true,
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+};
+
 // Helper to fetch and embed logo
 const embedLogo = async (
   doc,
@@ -124,6 +170,11 @@ const generateInvoicePDF = async (invoice, settings) => {
         size: "A4",
         margin: 50,
         bufferPages: true,
+        info: {
+          Title: `Invoice #${invoice.invoiceNumber}`,
+          Author: settings?.storeName || "MerchPilot",
+          Subject: "Invoice",
+        },
       });
 
       const buffers = [];
@@ -305,12 +356,10 @@ const generateInvoicePDF = async (invoice, settings) => {
         });
       doc
         .font("Helvetica-Bold")
-        .text(
-          new Date(invoice.createdAt).toLocaleDateString(),
-          450,
-          invoiceDetailsY,
-          { width: 100, align: "right" }
-        );
+        .text(formatDate(invoice.createdAt, settings), 450, invoiceDetailsY, {
+          width: 100,
+          align: "right",
+        });
 
       if (invoice.dueDate) {
         invoiceDetailsY += 15;
@@ -320,12 +369,10 @@ const generateInvoicePDF = async (invoice, settings) => {
         });
         doc
           .font("Helvetica-Bold")
-          .text(
-            new Date(invoice.dueDate).toLocaleDateString(),
-            450,
-            invoiceDetailsY,
-            { width: 100, align: "right" }
-          );
+          .text(formatDate(invoice.dueDate, settings), 450, invoiceDetailsY, {
+            width: 100,
+            align: "right",
+          });
       }
 
       // Items Table
@@ -549,6 +596,29 @@ const generateInvoicePDF = async (invoice, settings) => {
         }
       }
 
+      // Add page numbers
+      const range = doc.bufferedPageRange();
+      for (let i = range.start; i < range.start + range.count; i++) {
+        doc.switchToPage(i);
+        const oldBottomMargin = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .fontSize(8)
+          .fillColor("#9CA3AF")
+          .text(`Page ${i + 1} of ${range.count}`, 50, doc.page.height - 30, {
+            align: "center",
+          });
+        doc
+          .fontSize(7)
+          .text(
+            "This is a computer-generated document. No signature is required.",
+            50,
+            doc.page.height - 20,
+            { align: "center" }
+          );
+        doc.page.margins.bottom = oldBottomMargin;
+      }
+
       doc.end();
     } catch (error) {
       reject(error);
@@ -564,6 +634,11 @@ const generateQuotationPDF = async (quotation, settings) => {
         size: "A4",
         margin: 50,
         bufferPages: true,
+        info: {
+          Title: `Quotation #${quotation.quotationNumber}`,
+          Author: settings?.storeName || "MerchPilot",
+          Subject: "Quotation",
+        },
       });
 
       const buffers = [];
@@ -734,7 +809,7 @@ const generateQuotationPDF = async (quotation, settings) => {
       doc
         .font("Helvetica-Bold")
         .text(
-          new Date(quotation.createdAt).toLocaleDateString(),
+          formatDate(quotation.createdAt, settings),
           450,
           quotationDetailsY,
           { width: 100, align: "right" }
@@ -749,7 +824,7 @@ const generateQuotationPDF = async (quotation, settings) => {
         doc
           .font("Helvetica-Bold")
           .text(
-            new Date(quotation.validUntil).toLocaleDateString(),
+            formatDate(quotation.validUntil, settings),
             450,
             quotationDetailsY,
             { width: 100, align: "right" }
@@ -937,6 +1012,582 @@ const generateQuotationPDF = async (quotation, settings) => {
         }
       }
 
+      // Add page numbers
+      const range = doc.bufferedPageRange();
+      for (let i = range.start; i < range.start + range.count; i++) {
+        doc.switchToPage(i);
+        const oldBottomMargin = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .fontSize(8)
+          .fillColor("#9CA3AF")
+          .text(`Page ${i + 1} of ${range.count}`, 50, doc.page.height - 30, {
+            align: "center",
+          });
+        doc
+          .fontSize(7)
+          .text(
+            "This is a computer-generated document. No signature is required.",
+            50,
+            doc.page.height - 20,
+            { align: "center" }
+          );
+        doc.page.margins.bottom = oldBottomMargin;
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const generateSalesReportPDF = (
+  reportData,
+  salesList,
+  stats,
+  settings,
+  timeframe,
+  dateRange,
+  productBreakdown = []
+) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        margin: 50,
+        size: "A4",
+        bufferPages: true,
+        info: {
+          Title: "Sales Report",
+          Author: settings?.storeName || "MerchPilot",
+          Subject: "Financial Report",
+        },
+      });
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+
+      // Header
+      if (settings?.logo) {
+        await embedLogo(doc, settings.logo, 450, 45, 100, 50);
+      }
+
+      doc
+        .fillColor("#111827")
+        .fontSize(20)
+        .font("Helvetica-Bold")
+        .text("Sales Report", 50, 50);
+
+      doc
+        .fontSize(10)
+        .font("Helvetica")
+        .fillColor("#6B7280")
+        .text(
+          `Generated on: ${formatDate(new Date(), settings)} ${formatTime(
+            new Date(),
+            settings
+          )}`,
+          50,
+          75
+        );
+
+      const reportId = `SR-${Date.now().toString().slice(-6)}`;
+      doc.text(`Report ID: ${reportId}`, 50, 90);
+
+      doc.text(
+        `Period: ${dateRange.startDate || "All Time"} to ${
+          dateRange.endDate || "Present"
+        }`,
+        50,
+        105
+      );
+      doc.text(`Timeframe: ${timeframe.toUpperCase()}`, 50, 120);
+
+      // Company Info
+      if (settings?.storeName) {
+        doc
+          .fillColor("#111827")
+          .fontSize(12)
+          .font("Helvetica-Bold")
+          .text(settings.storeName, 50, 145);
+
+        const addressParts = [
+          settings.address?.street,
+          settings.address?.city,
+          settings.address?.zip,
+          settings.address?.country,
+        ].filter(Boolean);
+
+        doc
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor("#4B5563")
+          .text(addressParts.join(", "), 50, 160)
+          .text(
+            `${settings.contact?.email || ""} ${
+              settings.contact?.phone ? "| " + settings.contact.phone : ""
+            }`,
+            50,
+            172
+          );
+
+        if (settings.website) {
+          doc.text(settings.website, 50, 184);
+        }
+      }
+
+      drawLine(doc, 205);
+
+      // Currency Statement
+      doc
+        .fillColor("#6B7280")
+        .fontSize(8)
+        .font("Helvetica-Oblique")
+        .text(
+          `All amounts are in ${settings?.currency?.code || "USD"} (${
+            settings?.currency?.symbol || "$"
+          })`,
+          50,
+          215,
+          { align: "right" }
+        );
+
+      // Summary
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Sales Summary", 50, 230);
+
+      doc.rect(50, 255, 500, 60).fill("#F9FAFB");
+      doc
+        .fillColor("#4B5563")
+        .fontSize(10)
+        .font("Helvetica")
+        .text("TOTAL SALES VOLUME", 65, 270);
+      doc
+        .fillColor("#4F46E5")
+        .fontSize(18)
+        .font("Helvetica-Bold")
+        .text(formatCurrency(stats.totalSales, settings), 65, 285);
+
+      // Detailed Table
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Sales Breakdown", 50, 340);
+
+      let y = 365;
+      doc
+        .rect(50, y, 500, 25)
+        .fill("#F3F4F6")
+        .fillColor("#4B5563")
+        .fontSize(9)
+        .font("Helvetica-Bold")
+        .text("PERIOD", 60, y + 8)
+        .text("SALES AMOUNT", 400, y + 8, { width: 140, align: "right" });
+
+      y += 25;
+
+      doc.font("Helvetica").fontSize(9);
+      reportData.forEach((item, index) => {
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
+        const bgColor = index % 2 === 0 ? "#FFFFFF" : "#F9FAFB";
+        doc.rect(50, y, 500, 20).fill(bgColor);
+        doc
+          .fillColor("#111827")
+          .text(item.name, 60, y + 6)
+          .text(formatCurrency(item.sales, settings), 400, y + 6, {
+            width: 140,
+            align: "right",
+          });
+        y += 20;
+      });
+
+      // Detailed Sales List
+      y += 30;
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+      }
+
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Detailed Sales List", 50, y);
+      y += 25;
+
+      doc
+        .rect(50, y, 500, 25)
+        .fill("#F3F4F6")
+        .fillColor("#4B5563")
+        .fontSize(9)
+        .font("Helvetica-Bold")
+        .text("DATE", 60, y + 8)
+        .text("INVOICE #", 120, y + 8)
+        .text("CUSTOMER", 200, y + 8)
+        .text("METHOD", 350, y + 8)
+        .text("AMOUNT", 450, y + 8, { width: 90, align: "right" });
+      y += 25;
+
+      doc.font("Helvetica").fontSize(8);
+      salesList.forEach((s, index) => {
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
+        doc.fillColor("#111827").text(formatDate(s.date, settings), 60, y + 6);
+        doc.text(s.invoice?.invoiceNumber || "N/A", 120, y + 6);
+        doc.text(
+          s.customer?.firstName
+            ? `${s.customer.firstName} ${s.customer.lastName || ""}`
+            : "N/A",
+          200,
+          y + 6,
+          { width: 140 }
+        );
+        doc.text(s.method || "N/A", 350, y + 6);
+        doc.text(formatCurrency(s.amount, settings), 450, y + 6, {
+          width: 90,
+          align: "right",
+        });
+        y += 15;
+      });
+
+      // Product Breakdown
+      if (productBreakdown && productBreakdown.length > 0) {
+        y += 30;
+        if (y > 700) {
+          doc.addPage();
+          y = 50;
+        }
+
+        doc
+          .fillColor("#111827")
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Product Breakdown", 50, y);
+        y += 25;
+
+        doc
+          .rect(50, y, 500, 25)
+          .fill("#F3F4F6")
+          .fillColor("#4B5563")
+          .fontSize(9)
+          .font("Helvetica-Bold")
+          .text("PRODUCT", 60, y + 8)
+          .text("SKU", 250, y + 8)
+          .text("QTY", 330, y + 8, { width: 40, align: "right" })
+          .text("AVG PRICE", 380, y + 8, { width: 70, align: "right" })
+          .text("REVENUE", 460, y + 8, { width: 80, align: "right" });
+        y += 25;
+
+        doc.font("Helvetica").fontSize(8);
+        productBreakdown.forEach((p, index) => {
+          if (y > 750) {
+            doc.addPage();
+            y = 50;
+          }
+          const bgColor = index % 2 === 0 ? "#FFFFFF" : "#F9FAFB";
+          doc.rect(50, y, 500, 20).fill(bgColor);
+          doc
+            .fillColor("#111827")
+            .text(p.name || "Unknown Product", 60, y + 6, { width: 180 })
+            .text(p.sku || "-", 250, y + 6)
+            .text(p.quantity.toString(), 330, y + 6, {
+              width: 40,
+              align: "right",
+            })
+            .text(formatCurrency(p.avgPrice, settings), 380, y + 6, {
+              width: 70,
+              align: "right",
+            })
+            .text(formatCurrency(p.revenue, settings), 460, y + 6, {
+              width: 80,
+              align: "right",
+            });
+          y += 20;
+        });
+      }
+
+      // Add page numbers
+      const range = doc.bufferedPageRange();
+      for (let i = range.start; i < range.start + range.count; i++) {
+        doc.switchToPage(i);
+        const oldBottomMargin = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .fontSize(8)
+          .fillColor("#9CA3AF")
+          .text(`Page ${i + 1} of ${range.count}`, 50, doc.page.height - 30, {
+            align: "center",
+          });
+        doc
+          .fontSize(7)
+          .text(
+            "This is a computer-generated document. No signature is required.",
+            50,
+            doc.page.height - 20,
+            { align: "center" }
+          );
+        doc.page.margins.bottom = oldBottomMargin;
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const generateProfitLossReportPDF = (
+  reportData,
+  payments,
+  expenses,
+  stats,
+  settings,
+  timeframe,
+  dateRange
+) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        margin: 50,
+        size: "A4",
+        bufferPages: true,
+        info: {
+          Title: "Profit & Loss Report",
+          Author: settings?.storeName || "MerchPilot",
+          Subject: "Financial Report",
+        },
+      });
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+
+      // Header
+      if (settings?.logo) {
+        await embedLogo(doc, settings.logo, 450, 45, 100, 50);
+      }
+
+      doc
+        .fillColor("#111827")
+        .fontSize(20)
+        .font("Helvetica-Bold")
+        .text("Profit & Loss Report", 50, 50);
+
+      doc
+        .fontSize(10)
+        .font("Helvetica")
+        .fillColor("#6B7280")
+        .text(
+          `Generated on: ${formatDate(new Date(), settings)} ${formatTime(
+            new Date(),
+            settings
+          )}`,
+          50,
+          75
+        );
+
+      const reportId = `PL-${Date.now().toString().slice(-6)}`;
+      doc.text(`Report ID: ${reportId}`, 50, 90);
+
+      doc.text(
+        `Period: ${dateRange.startDate || "All Time"} to ${
+          dateRange.endDate || "Present"
+        }`,
+        50,
+        105
+      );
+      doc.text(`Timeframe: ${timeframe.toUpperCase()}`, 50, 120);
+
+      // Company Info
+      if (settings?.storeName) {
+        doc
+          .fillColor("#111827")
+          .fontSize(12)
+          .font("Helvetica-Bold")
+          .text(settings.storeName, 50, 145);
+
+        const addressParts = [
+          settings.address?.street,
+          settings.address?.city,
+          settings.address?.zip,
+          settings.address?.country,
+        ].filter(Boolean);
+
+        doc
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor("#4B5563")
+          .text(addressParts.join(", "), 50, 160)
+          .text(
+            `${settings.contact?.email || ""} ${
+              settings.contact?.phone ? "| " + settings.contact.phone : ""
+            }`,
+            50,
+            172
+          );
+
+        if (settings.website) {
+          doc.text(settings.website, 50, 184);
+        }
+      }
+
+      drawLine(doc, 205);
+
+      // Currency Statement
+      doc
+        .fillColor("#6B7280")
+        .fontSize(8)
+        .font("Helvetica-Oblique")
+        .text(
+          `All amounts are in ${settings?.currency?.code || "USD"} (${
+            settings?.currency?.symbol || "$"
+          })`,
+          50,
+          215,
+          { align: "right" }
+        );
+
+      // Summary Cards
+      doc.rect(50, 230, 160, 60).fill("#F9FAFB");
+      doc.fillColor("#4B5563").fontSize(8).text("TOTAL SALES", 60, 245);
+      doc
+        .fillColor("#111827")
+        .fontSize(12)
+        .font("Helvetica-Bold")
+        .text(formatCurrency(stats.totalSales, settings), 60, 260);
+
+      doc.rect(220, 230, 160, 60).fill("#F9FAFB");
+      doc.fillColor("#4B5563").fontSize(8).text("TOTAL EXPENSES", 230, 245);
+      doc
+        .fillColor("#EF4444")
+        .fontSize(12)
+        .font("Helvetica-Bold")
+        .text(formatCurrency(stats.totalExpenses, settings), 230, 260);
+
+      doc.rect(390, 230, 160, 60).fill("#F9FAFB");
+      doc.fillColor("#4B5563").fontSize(8).text("NET PROFIT", 400, 245);
+      doc
+        .fillColor(stats.netProfit >= 0 ? "#10B981" : "#EF4444")
+        .fontSize(12)
+        .font("Helvetica-Bold")
+        .text(formatCurrency(stats.netProfit, settings), 400, 260);
+
+      let y = 310;
+
+      // 1. Payments List
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Payments Received", 50, y);
+      y += 25;
+      doc.rect(50, y, 500, 20).fill("#F3F4F6");
+      doc
+        .fillColor("#4B5563")
+        .fontSize(8)
+        .font("Helvetica-Bold")
+        .text("DATE", 60, y + 6)
+        .text("INVOICE #", 120, y + 6)
+        .text("CUSTOMER", 200, y + 6)
+        .text("METHOD", 350, y + 6)
+        .text("AMOUNT", 450, y + 6, { width: 90, align: "right" });
+      y += 20;
+
+      doc.font("Helvetica").fontSize(8);
+      payments.forEach((p, idx) => {
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
+        doc.fillColor("#111827").text(formatDate(p.date, settings), 60, y + 6);
+        doc.text(p.invoice?.invoiceNumber || "N/A", 120, y + 6);
+        doc.text(
+          p.customer?.firstName
+            ? `${p.customer.firstName} ${p.customer.lastName || ""}`
+            : "N/A",
+          200,
+          y + 6,
+          { width: 140 }
+        );
+        doc.text(p.method || "N/A", 350, y + 6);
+        doc.text(formatCurrency(p.amount, settings), 450, y + 6, {
+          width: 90,
+          align: "right",
+        });
+        y += 15;
+      });
+
+      y += 30;
+
+      // 2. Expenses List
+      if (y > 700) {
+        doc.addPage();
+        y = 50;
+      }
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Expenses Paid", 50, y);
+      y += 25;
+      doc.rect(50, y, 500, 20).fill("#F3F4F6");
+      doc
+        .fillColor("#4B5563")
+        .fontSize(8)
+        .font("Helvetica-Bold")
+        .text("DATE", 60, y + 6)
+        .text("CATEGORY", 150, y + 6)
+        .text("DESCRIPTION", 250, y + 6)
+        .text("AMOUNT", 450, y + 6, { width: 90, align: "right" });
+      y += 20;
+
+      doc.font("Helvetica").fontSize(8);
+      expenses.forEach((e, idx) => {
+        if (y > 750) {
+          doc.addPage();
+          y = 50;
+        }
+        doc.fillColor("#111827").text(formatDate(e.date, settings), 60, y + 6);
+        doc.text(e.category || "N/A", 150, y + 6);
+        doc.text(e.description || "N/A", 250, y + 6, { width: 190 });
+        doc.text(formatCurrency(e.amount, settings), 450, y + 6, {
+          width: 90,
+          align: "right",
+        });
+        y += 15;
+      });
+
+      // Add page numbers
+      const range = doc.bufferedPageRange();
+      for (let i = range.start; i < range.start + range.count; i++) {
+        doc.switchToPage(i);
+        const oldBottomMargin = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .fontSize(8)
+          .fillColor("#9CA3AF")
+          .text(`Page ${i + 1} of ${range.count}`, 50, doc.page.height - 30, {
+            align: "center",
+          });
+        doc
+          .fontSize(7)
+          .text(
+            "This is a computer-generated document. No signature is required.",
+            50,
+            doc.page.height - 20,
+            { align: "center" }
+          );
+        doc.page.margins.bottom = oldBottomMargin;
+      }
+
       doc.end();
     } catch (error) {
       reject(error);
@@ -947,4 +1598,6 @@ const generateQuotationPDF = async (quotation, settings) => {
 module.exports = {
   generateInvoicePDF,
   generateQuotationPDF,
+  generateSalesReportPDF,
+  generateProfitLossReportPDF,
 };
