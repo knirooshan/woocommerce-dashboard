@@ -35,6 +35,8 @@ const contextMiddleware = (req, res, next) => {
     }
     store.set("ip", ip);
     store.set("userAgent", req.headers["user-agent"]);
+    store.set("method", req.method);
+    store.set("url", req.originalUrl);
     next();
   });
 };

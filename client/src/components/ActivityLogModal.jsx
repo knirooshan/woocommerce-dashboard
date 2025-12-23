@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { X, Eye, Code } from "lucide-react";
+import { useSelector } from "react-redux";
+import { formatDate, formatTime } from "../utils/date";
 
 const ActivityLogModal = ({ isOpen, onClose, log }) => {
+  const { data: settings } = useSelector((state) => state.settings);
   const [viewMode, setViewMode] = useState("readable"); // 'readable' or 'raw'
 
   if (!isOpen || !log) return null;
@@ -124,7 +127,7 @@ const ActivityLogModal = ({ isOpen, onClose, log }) => {
       typeof val === "string" &&
       val.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
     ) {
-      return new Date(val).toLocaleString();
+      return `${formatDate(val, settings)} ${formatTime(val, settings)}`;
     }
 
     // Format numbers as currency if they look like prices (heuristic)
@@ -159,7 +162,7 @@ const ActivityLogModal = ({ isOpen, onClose, log }) => {
                   Timestamp
                 </label>
                 <div className="text-white">
-                  {new Date(log.createdAt).toLocaleString()}
+                  {formatDate(log.createdAt, settings)} {formatTime(log.createdAt, settings)}
                 </div>
               </div>
               <div>

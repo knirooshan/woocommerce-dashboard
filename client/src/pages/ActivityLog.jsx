@@ -5,9 +5,11 @@ import { useSelector } from "react-redux";
 import { ArrowLeft, RefreshCw, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import ActivityLogModal from "../components/ActivityLogModal";
+import { formatDate, formatTime } from "../utils/date";
 
 const ActivityLog = () => {
   const { user } = useSelector((state) => state.auth);
+  const { data: settings } = useSelector((state) => state.settings);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -99,7 +101,7 @@ const ActivityLog = () => {
                 logs.map((log) => (
                   <tr key={log._id} className="hover:bg-slate-800/50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                      {new Date(log.createdAt).toLocaleString()}
+                      {formatDate(log.createdAt, settings)} {formatTime(log.createdAt, settings)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                       {log.user ? log.user.name : "Guest/System"}

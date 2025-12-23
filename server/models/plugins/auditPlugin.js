@@ -49,6 +49,8 @@ const auditPlugin = (schema) => {
       const user = getContext("user");
       const ip = getContext("ip");
       const userAgent = getContext("userAgent");
+      const method = getContext("method");
+      const url = getContext("url");
 
       const action = this.$locals.wasNew ? "create" : "update";
       const changes = {};
@@ -85,6 +87,8 @@ const auditPlugin = (schema) => {
             changes,
             ip,
             userAgent,
+            method,
+            url,
           });
         }
       }
@@ -101,6 +105,8 @@ const auditPlugin = (schema) => {
       const user = getContext("user");
       const ip = getContext("ip");
       const userAgent = getContext("userAgent");
+      const method = getContext("method");
+      const url = getContext("url");
 
       const ActivityLog = getActivityLogModel(doc);
       if (!ActivityLog) return;
@@ -152,6 +158,8 @@ const auditPlugin = (schema) => {
         changes,
         ip,
         userAgent,
+        method,
+        url,
       });
     } catch (error) {
       console.error("Audit Plugin Error (query):", error);
@@ -166,6 +174,8 @@ const auditPlugin = (schema) => {
       const user = getContext("user");
       const ip = getContext("ip");
       const userAgent = getContext("userAgent");
+      const method = getContext("method");
+      const url = getContext("url");
 
       const ActivityLog = getActivityLogModel(doc);
       if (ActivityLog) {
@@ -176,6 +186,8 @@ const auditPlugin = (schema) => {
           documentId: doc._id,
           ip,
           userAgent,
+          method,
+          url,
         });
       }
     } catch (error) {
@@ -193,6 +205,8 @@ const auditPlugin = (schema) => {
         const user = getContext("user");
         const ip = getContext("ip");
         const userAgent = getContext("userAgent");
+        const method = getContext("method");
+        const url = getContext("url");
 
         const ActivityLog = getActivityLogModel(doc);
         if (ActivityLog) {
@@ -203,6 +217,8 @@ const auditPlugin = (schema) => {
             documentId: doc._id,
             ip,
             userAgent,
+            method,
+            url,
           });
         }
       } catch (error) {
