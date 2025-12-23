@@ -10,10 +10,16 @@ const storage = multer.diskStorage({
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
 
+    // Get tenant identifier (subdomain or ID)
+    const tenantId = req.tenant
+      ? req.tenant.subdomain || req.tenant._id.toString()
+      : "default";
+
     const uploadPath = path.join(
       __dirname,
       "..",
       "uploads",
+      tenantId,
       String(year),
       month
     );
@@ -48,6 +54,11 @@ exports.uploadMedia = [
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, "0");
 
+      // Get tenant identifier (subdomain or ID)
+      const tenantId = req.tenant
+        ? req.tenant.subdomain || req.tenant._id.toString()
+        : "default";
+
       // Construct URL (assuming server serves 'uploads' statically)
       // We need to know the base URL or just store relative path
       // Storing full URL as requested by user "directly use image url"
@@ -56,7 +67,7 @@ exports.uploadMedia = [
       const baseUrl = `${protocol}://${host}`;
 
       // Use /api/uploads as the path since we remapped it in index.js to support existing proxies
-      const relativePath = `/api/uploads/${year}/${month}/${req.file.filename}`;
+      const relativePath = `/api/uploads/${tenantId}/${year}/${month}/${req.file.filename}`;
       const fullUrl = `${baseUrl}${relativePath}`;
 
       const newMedia = new Media({
