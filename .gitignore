@@ -45,7 +45,6 @@ Thumbs.db
 
 # Local development
 *.local
-server/uploads/
 
 # Test coverage
 coverage/
