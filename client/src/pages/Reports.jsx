@@ -48,6 +48,59 @@ const Reports = () => {
 
   if (loading) return <div className="text-white">Loading reports...</div>;
 
+  const CustomLegend = ({ payload }) => {
+    if (!payload) return null;
+    return (
+      <div className="flex justify-center gap-6 mt-4">
+        {payload.map((entry, index) => (
+          <div key={`item-${index}`} className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-sm"
+              style={{ backgroundColor: entry.color }}
+            ></div>
+            <span className="text-slate-400 text-sm">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg shadow-xl">
+          <p className="text-slate-400 text-xs mb-2 font-medium uppercase tracking-wider">
+            {label}
+          </p>
+          <div className="space-y-1">
+            {payload.map((entry, index) => {
+              const isProfit = entry.dataKey === "profit";
+              const value = entry.value;
+              const color = isProfit
+                ? value >= 0
+                  ? "#10B981"
+                  : "#EF4444"
+                : entry.color;
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between gap-8"
+                >
+                  <span className="text-slate-400 text-sm">{entry.name}:</span>
+                  <span className="font-bold text-sm" style={{ color }}>
+                    {formatCurrency(value, settings)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">Reports</h1>
@@ -91,15 +144,8 @@ const Reports = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis dataKey="name" stroke="#94a3b8" />
                 <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #475569",
-                    borderRadius: "0.5rem",
-                    color: "#fff",
-                  }}
-                />
-                <Legend />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend content={<CustomLegend />} />
                 <Bar dataKey="sales" fill="#4F46E5" name="Sales" />
                 <Bar dataKey="expenses" fill="#EF4444" name="Expenses" />
               </BarChart>
@@ -118,16 +164,18 @@ const Reports = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis dataKey="name" stroke="#94a3b8" />
                 <YAxis stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    border: "1px solid #475569",
-                    borderRadius: "0.5rem",
-                    color: "#fff",
-                  }}
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  content={() => (
+                    <CustomLegend
+                      payload={[
+                        { value: "Profit", color: "#10B981" },
+                        { value: "Loss", color: "#EF4444" },
+                      ]}
+                    />
+                  )}
                 />
-                <Legend />
-                <Bar dataKey="profit" name="Net Profit">
+                <Bar dataKey="profit" fill="#10B981">
                   {salesData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
