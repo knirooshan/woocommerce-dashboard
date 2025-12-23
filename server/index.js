@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const { connectCentralDB } = require("./services/connectionManager");
 const tenantMiddleware = require("./middleware/tenantMiddleware");
+const activityLogger = require("./middleware/activityLogger");
 const { contextMiddleware } = require("./utils/requestContext");
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(contextMiddleware);
 app.use(tenantMiddleware);
+app.use(activityLogger);
 
 // Database Connection
 connectCentralDB();

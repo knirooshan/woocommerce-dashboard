@@ -39,6 +39,28 @@ const sendInvoiceEmail = async (req, res) => {
         : `${formattedAmount}${symbol}`;
     };
 
+    // Format date
+    const formatDate = (date) => {
+      if (!date) return "-";
+      const d = new Date(date);
+      const format = settings?.dateTime?.dateFormat || "DD/MM/YYYY";
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+
+      switch (format) {
+        case "YYYY-MM-DD":
+          return `${year}-${month}-${day}`;
+        case "DD-MM-YYYY":
+          return `${day}-${month}-${year}`;
+        case "MM/DD/YYYY":
+          return `${month}/${day}/${year}`;
+        case "DD/MM/YYYY":
+        default:
+          return `${day}/${month}/${year}`;
+      }
+    };
+
     const subject = `Invoice #${invoice.invoiceNumber} from ${
       settings?.storeName || "Store"
     }`;
@@ -62,10 +84,8 @@ const sendInvoiceEmail = async (req, res) => {
     // Plain-text details block for invoice
     const detailsText = `\n\nInvoice: ${
       invoice.invoiceNumber
-    }\nDate: ${new Date(
-      invoice.invoiceDate || invoice.createdAt
-    ).toLocaleDateString()}\nDue: ${
-      invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "-"
+    }\nDate: ${formatDate(invoice.invoiceDate || invoice.createdAt)}\nDue: ${
+      invoice.dueDate ? formatDate(invoice.dueDate) : "-"
     }\nTotal: ${formatCurrency(invoice.total)}\n`;
 
     const text = `Dear ${
@@ -124,16 +144,14 @@ const sendInvoiceEmail = async (req, res) => {
         </tr>
         <tr>
           <td style="padding:8px; border:1px solid #e6e9ee;"><strong>Date</strong></td>
-          <td style="padding:8px; border:1px solid #e6e9ee;">${new Date(
+          <td style="padding:8px; border:1px solid #e6e9ee;">${formatDate(
             invoice.invoiceDate || invoice.createdAt
-          ).toLocaleDateString()}</td>
+          )}</td>
         </tr>
         <tr>
           <td style="padding:8px; border:1px solid #e6e9ee;"><strong>Due</strong></td>
           <td style="padding:8px; border:1px solid #e6e9ee;">${
-            invoice.dueDate
-              ? new Date(invoice.dueDate).toLocaleDateString()
-              : "-"
+            invoice.dueDate ? formatDate(invoice.dueDate) : "-"
           }</td>
         </tr>
         <tr>
@@ -166,13 +184,14 @@ const sendInvoiceEmail = async (req, res) => {
       },
     ];
 
-    await addToQueue({
-      to: customerEmail,
+    await sendEmail(
+      settings.smtp,
+      customerEmail,
       subject,
       text,
       html,
-      attachments,
-    });
+      attachments
+    );
 
     res.json({ message: "Email sent successfully" });
   } catch (error) {
@@ -220,6 +239,28 @@ const sendQuotationEmail = async (req, res) => {
         : `${formattedAmount}${symbol}`;
     };
 
+    // Format date
+    const formatDate = (date) => {
+      if (!date) return "-";
+      const d = new Date(date);
+      const format = settings?.dateTime?.dateFormat || "DD/MM/YYYY";
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+
+      switch (format) {
+        case "YYYY-MM-DD":
+          return `${year}-${month}-${day}`;
+        case "DD-MM-YYYY":
+          return `${day}-${month}-${year}`;
+        case "MM/DD/YYYY":
+          return `${month}/${day}/${year}`;
+        case "DD/MM/YYYY":
+        default:
+          return `${day}/${month}/${year}`;
+      }
+    };
+
     const subject = `Quotation #${quotation.quotationNumber} from ${
       settings?.storeName || "Store"
     }`;
@@ -243,12 +284,10 @@ const sendQuotationEmail = async (req, res) => {
 
     const detailsTextQ = `\n\nQuotation: ${
       quotation.quotationNumber
-    }\nDate: ${new Date(
+    }\nDate: ${formatDate(
       quotation.quotationDate || quotation.createdAt
-    ).toLocaleDateString()}\nValid Until: ${
-      quotation.validUntil
-        ? new Date(quotation.validUntil).toLocaleDateString()
-        : "-"
+    )}\nValid Until: ${
+      quotation.validUntil ? formatDate(quotation.validUntil) : "-"
     }\nTotal: ${formatCurrency(quotation.total)}\n`;
 
     const text = `Dear ${
@@ -306,16 +345,14 @@ const sendQuotationEmail = async (req, res) => {
         </tr>
         <tr>
           <td style="padding:8px; border:1px solid #e6e9ee;"><strong>Date</strong></td>
-          <td style="padding:8px; border:1px solid #e6e9ee;">${new Date(
+          <td style="padding:8px; border:1px solid #e6e9ee;">${formatDate(
             quotation.quotationDate || quotation.createdAt
-          ).toLocaleDateString()}</td>
+          )}</td>
         </tr>
         <tr>
           <td style="padding:8px; border:1px solid #e6e9ee;"><strong>Valid Until</strong></td>
           <td style="padding:8px; border:1px solid #e6e9ee;">${
-            quotation.validUntil
-              ? new Date(quotation.validUntil).toLocaleDateString()
-              : "-"
+            quotation.validUntil ? formatDate(quotation.validUntil) : "-"
           }</td>
         </tr>
         <tr>
@@ -348,13 +385,14 @@ const sendQuotationEmail = async (req, res) => {
       },
     ];
 
-    await addToQueue({
-      to: customerEmail,
+    await sendEmail(
+      settings.smtp,
+      customerEmail,
       subject,
       text,
       html,
-      attachments,
-    });
+      attachments
+    );
 
     res.json({ message: "Email sent successfully" });
   } catch (error) {

@@ -226,7 +226,7 @@ const ProductForm = ({ product, onClose, onSave }) => {
                 setFormData({ ...formData, shortDescription: val })
               }
               placeholder="Brief summary of the product..."
-              className="h-24"
+              className="h-36"
             />
           </div>
 

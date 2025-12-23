@@ -85,6 +85,7 @@ export const ENDPOINTS = {
   REPORTS: `${API_URL}/reports`,
   REPORTS_DASHBOARD: `${API_URL}/reports/dashboard`,
   REPORTS_SALES: `${API_URL}/reports/sales`,
+  REPORTS_PROFIT_LOSS: `${API_URL}/reports/profit-loss`,
 
   // Images
   IMAGES_TO_BASE64: `${API_URL}/images/to-base64`,
@@ -96,6 +97,12 @@ export const ENDPOINTS = {
 
   // Invoice specific
   INVOICE_WRITE_OFF: (id) => `${API_URL}/invoices/${id}/write-off`,
+
+  // PDF
+  PDF_INVOICE: (id) => `${API_URL}/pdf/invoice/${id}`,
+  PDF_QUOTATION: (id) => `${API_URL}/pdf/quotation/${id}`,
+  PDF_SALES_REPORT: `${API_URL}/pdf/sales-report`,
+  PDF_PROFIT_LOSS_REPORT: `${API_URL}/pdf/profit-loss-report`,
 
   //Activity Log
   ACTIVITY_LOGS: `${API_URL}/activity-logs`,
