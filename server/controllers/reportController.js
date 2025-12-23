@@ -12,6 +12,19 @@ const getDashboardStats = async (req, res) => {
     const { Invoice, Expense, Payment } = getTenantModels(req.dbConnection);
     const { startDate, endDate } = req.query;
 
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
+
+    // Get valid invoice IDs for filtering payments
+    const validInvoices = await Invoice.find({
+      status: { $in: allowedStatuses },
+    }).select("_id");
+    const validInvoiceIds = validInvoices.map((inv) => inv._id);
+
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
@@ -19,9 +32,15 @@ const getDashboardStats = async (req, res) => {
       if (endDate) dateFilter.date.$lte = new Date(endDate);
     }
 
-    // Calculate Total Sales (sum of all non-deleted payments)
+    // Calculate Total Sales (sum of all non-deleted payments related to valid invoices)
     const salesResult = await Payment.aggregate([
-      { $match: { status: "active", ...dateFilter } },
+      {
+        $match: {
+          status: "active",
+          invoice: { $in: validInvoiceIds },
+          ...dateFilter,
+        },
+      },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
     const totalSales = salesResult.length > 0 ? salesResult[0].total : 0;
@@ -37,8 +56,10 @@ const getDashboardStats = async (req, res) => {
     // Calculate Net Profit
     const netProfit = totalSales - totalExpenses;
 
-    // Recent Invoices (non-deleted)
-    const recentInvoices = await Invoice.find({ status: { $ne: "deleted" } })
+    // Recent Invoices (filtered by allowed statuses)
+    const recentInvoices = await Invoice.find({
+      status: { $in: allowedStatuses },
+    })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("customer", "firstName lastName");
@@ -59,8 +80,21 @@ const getDashboardStats = async (req, res) => {
 // @access  Private
 const getSalesReport = async (req, res) => {
   try {
-    const { Expense, Payment } = getTenantModels(req.dbConnection);
+    const { Expense, Payment, Invoice } = getTenantModels(req.dbConnection);
     const { timeframe = "monthly", startDate, endDate } = req.query;
+
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
+
+    // Get valid invoice IDs for filtering payments
+    const validInvoices = await Invoice.find({
+      status: { $in: allowedStatuses },
+    }).select("_id");
+    const validInvoiceIds = validInvoices.map((inv) => inv._id);
 
     const dateFilter = {};
     if (startDate || endDate) {
@@ -86,9 +120,15 @@ const getSalesReport = async (req, res) => {
         break;
     }
 
-    // 1. Get Sales (from payments)
+    // 1. Get Sales (from payments related to valid invoices)
     const sales = await Payment.aggregate([
-      { $match: { status: "active", ...dateFilter } },
+      {
+        $match: {
+          status: "active",
+          invoice: { $in: validInvoiceIds },
+          ...dateFilter,
+        },
+      },
       {
         $group: {
           _id: { $dateToString: { format: dateFormat, date: "$date" } },
@@ -136,27 +176,27 @@ const getSalesReport = async (req, res) => {
         profit: item.sales - item.expenses,
       }));
 
-    // 4. Get Raw Sales List
-    const salesList = await Payment.find({ status: "active", ...dateFilter })
+    // 4. Get Raw Sales List (filtered by valid invoices)
+    const salesList = await Payment.find({
+      status: "active",
+      invoice: { $in: validInvoiceIds },
+      ...dateFilter,
+    })
       .sort({ date: -1 })
       .populate("customer", "firstName lastName")
       .populate("invoice", "invoiceNumber");
 
     // 5. Product Breakdown (from Invoices in the same period)
-    // We use the same dateFilter but on Invoice.createdAt or Invoice.date
-    // Let's check if Invoice has a 'date' field or use 'createdAt'
-    const { Invoice } = getTenantModels(req.dbConnection);
-    
-    // Adjust dateFilter for Invoice (using createdAt if date is not present)
+    // Adjust dateFilter for Invoice (using invoiceDate)
     const invoiceDateFilter = {};
     if (startDate || endDate) {
-      invoiceDateFilter.createdAt = {};
-      if (startDate) invoiceDateFilter.createdAt.$gte = new Date(startDate);
-      if (endDate) invoiceDateFilter.createdAt.$lte = new Date(endDate);
+      invoiceDateFilter.invoiceDate = {};
+      if (startDate) invoiceDateFilter.invoiceDate.$gte = new Date(startDate);
+      if (endDate) invoiceDateFilter.invoiceDate.$lte = new Date(endDate);
     }
 
     const productBreakdown = await Invoice.aggregate([
-      { $match: { status: { $ne: "deleted" }, ...invoiceDateFilter } },
+      { $match: { status: { $in: allowedStatuses }, ...invoiceDateFilter } },
       { $unwind: "$items" },
       {
         $group: {
@@ -186,8 +226,21 @@ const getSalesReport = async (req, res) => {
 // @access  Private
 const getProfitLossReport = async (req, res) => {
   try {
-    const { Expense, Payment } = getTenantModels(req.dbConnection);
+    const { Expense, Payment, Invoice } = getTenantModels(req.dbConnection);
     const { timeframe = "monthly", startDate, endDate } = req.query;
+
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
+
+    // Get valid invoice IDs for filtering payments
+    const validInvoices = await Invoice.find({
+      status: { $in: allowedStatuses },
+    }).select("_id");
+    const validInvoiceIds = validInvoices.map((inv) => inv._id);
 
     const dateFilter = {};
     if (startDate || endDate) {
@@ -215,7 +268,13 @@ const getProfitLossReport = async (req, res) => {
     }
 
     const salesAgg = await Payment.aggregate([
-      { $match: { status: "active", ...dateFilter } },
+      {
+        $match: {
+          status: "active",
+          invoice: { $in: validInvoiceIds },
+          ...dateFilter,
+        },
+      },
       {
         $group: {
           _id: { $dateToString: { format: dateFormat, date: "$date" } },
@@ -254,8 +313,12 @@ const getProfitLossReport = async (req, res) => {
         profit: item.sales - item.expenses,
       }));
 
-    // 2. Get Raw Lists
-    const payments = await Payment.find({ status: "active", ...dateFilter })
+    // 2. Get Raw Lists (filtered by valid invoices)
+    const payments = await Payment.find({
+      status: "active",
+      invoice: { $in: validInvoiceIds },
+      ...dateFilter,
+    })
       .sort({ date: -1 })
       .populate("customer", "firstName lastName")
       .populate("invoice", "invoiceNumber");
