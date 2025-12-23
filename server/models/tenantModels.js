@@ -11,6 +11,25 @@ const QuotationSchema = require("./Quotation");
 const SettingsSchema = require("./Settings");
 const UserSchema = require("./User");
 const VendorSchema = require("./Vendor");
+const auditPlugin = require("./plugins/auditPlugin");
+
+// Apply audit plugin to all schemas except ActivityLog
+[
+  CustomerSchema,
+  EmailJobSchema,
+  ExpenseSchema,
+  InvoiceSchema,
+  MediaSchema,
+  OrderSchema,
+  PaymentSchema,
+  ProductSchema,
+  QuotationSchema,
+  SettingsSchema,
+  UserSchema,
+  VendorSchema,
+].forEach((schema) => {
+  schema.plugin(auditPlugin);
+});
 
 const getTenantModels = (connection) => {
   if (!connection) return null;
