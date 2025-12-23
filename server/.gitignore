@@ -45,3 +45,6 @@ build
 # Test coverage
 coverage
 .nyc_output
+
+# local files
+uploads/
