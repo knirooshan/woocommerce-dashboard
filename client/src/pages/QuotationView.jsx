@@ -239,11 +239,12 @@ const QuotationView = () => {
                 }`.trim()
               : quotation.customer?.billing?.company || "Unnamed Customer"}
           </p>
-          {quotation.customer?.billing?.company && (
-            <p className="text-slate-600 font-medium">
-              {quotation.customer.billing.company}
-            </p>
-          )}
+          {quotation.customer?.billing?.company &&
+            (quotation.customer?.firstName || quotation.customer?.lastName) && (
+              <p className="text-slate-600 font-medium">
+                {quotation.customer.billing.company}
+              </p>
+            )}
           <p className="text-slate-600">
             {quotation.customer?.billing?.address_1}
           </p>

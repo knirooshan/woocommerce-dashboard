@@ -326,11 +326,12 @@ const InvoiceView = () => {
                 }`.trim()
               : invoice.customer?.billing?.company || "Unnamed Customer"}
           </p>
-          {invoice.customer?.billing?.company && (
-            <p className="text-slate-600 font-medium">
-              {invoice.customer.billing.company}
-            </p>
-          )}
+          {invoice.customer?.billing?.company &&
+            (invoice.customer?.firstName || invoice.customer?.lastName) && (
+              <p className="text-slate-600 font-medium">
+                {invoice.customer.billing.company}
+              </p>
+            )}
           <p className="text-slate-600">
             {invoice.customer?.billing?.address_1}
           </p>

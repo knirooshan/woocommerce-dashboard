@@ -37,7 +37,7 @@ const getQuotations = async (req, res) => {
     }
 
     const quotations = await Quotation.find(filter)
-      .populate("customer", "firstName lastName email")
+      .populate("customer", "firstName lastName email billing")
       .sort({ createdAt: -1 });
     res.json(quotations);
   } catch (error) {

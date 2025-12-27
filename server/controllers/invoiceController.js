@@ -37,7 +37,7 @@ const getInvoices = async (req, res) => {
     }
 
     const invoices = await Invoice.find(filter)
-      .populate("customer", "firstName lastName email")
+      .populate("customer", "firstName lastName email billing")
       .populate("payments")
       .sort({ createdAt: -1 });
     res.json(invoices);
@@ -124,6 +124,7 @@ const createInvoice = async (req, res) => {
         customerInfo = {
           firstName: customerDoc.firstName,
           lastName: customerDoc.lastName,
+          company: customerDoc.billing?.company,
           email: customerDoc.email,
           phone: customerDoc.billing?.phone,
           taxNumber: customerDoc.taxNumber,

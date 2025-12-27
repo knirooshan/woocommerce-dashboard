@@ -62,7 +62,7 @@ const getDashboardStats = async (req, res) => {
     })
       .sort({ createdAt: -1 })
       .limit(5)
-      .populate("customer", "firstName lastName");
+      .populate("customer", "firstName lastName billing");
 
     res.json({
       totalSales,
@@ -183,7 +183,7 @@ const getSalesReport = async (req, res) => {
       ...dateFilter,
     })
       .sort({ date: -1 })
-      .populate("customer", "firstName lastName")
+      .populate("customer", "firstName lastName billing")
       .populate("invoice", "invoiceNumber");
 
     // 5. Product Breakdown (from Invoices in the same period)
@@ -320,7 +320,7 @@ const getProfitLossReport = async (req, res) => {
       ...dateFilter,
     })
       .sort({ date: -1 })
-      .populate("customer", "firstName lastName")
+      .populate("customer", "firstName lastName billing")
       .populate("invoice", "invoiceNumber");
 
     const expenses = await Expense.find(dateFilter).sort({ date: -1 });
