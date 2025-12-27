@@ -100,8 +100,11 @@ const POS = () => {
         orderNumber: `POS-${Date.now()}`,
         customer: customerId,
         customerInfo: {
-          firstName: selectedCustomerData?.firstName || "Walk-in",
-          lastName: selectedCustomerData?.lastName || "Customer",
+          firstName: selectedCustomerData?.firstName || (isWalkIn ? "Walk-in" : ""),
+          lastName:
+            selectedCustomerData?.lastName ||
+            selectedCustomerData?.billing?.company ||
+            (isWalkIn ? "Customer" : ""),
           email: selectedCustomerData?.email || "",
           phone: selectedCustomerData?.billing?.phone || "",
           taxNumber: selectedCustomerData?.taxNumber || "",

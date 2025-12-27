@@ -190,8 +190,12 @@ const Quotations = () => {
                     {quotation.quotationNumber}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-white">
-                    {quotation.customer?.firstName}{" "}
-                    {quotation.customer?.lastName}
+                    {quotation.customer?.firstName ||
+                    quotation.customer?.lastName
+                      ? `${quotation.customer.firstName || ""} ${
+                          quotation.customer.lastName || ""
+                        }`.trim()
+                      : quotation.customer?.billing?.company || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {quotation.quotationDate

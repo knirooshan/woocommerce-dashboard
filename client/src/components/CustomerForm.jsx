@@ -16,6 +16,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
       country: "",
     },
   });
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (customer) {
@@ -52,6 +53,22 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const hasFirstName = formData.firstName?.trim();
+    const hasLastName = formData.lastName?.trim();
+    const hasCompany = formData.billing?.company?.trim();
+
+    if (!hasFirstName && !hasCompany) {
+      setError("Either First Name or Company Name is required");
+      return;
+    }
+
+    if (hasFirstName && !hasLastName) {
+      setError("Last Name is required if First Name is provided");
+      return;
+    }
+
+    setError("");
     onSave(formData);
   };
 
@@ -68,6 +85,11 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-900/20 border border-red-500 text-red-500 px-4 py-2 rounded-md text-sm">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">
               Salutation
@@ -92,12 +114,11 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
-                First Name *
+                First Name
               </label>
               <input
                 type="text"
                 name="firstName"
-                required
                 value={formData.firstName}
                 onChange={handleChange}
                 className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -105,12 +126,11 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">
-                Last Name *
+                Last Name
               </label>
               <input
                 type="text"
                 name="lastName"
-                required
                 value={formData.lastName}
                 onChange={handleChange}
                 className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"

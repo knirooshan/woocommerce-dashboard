@@ -19,6 +19,7 @@ const getCustomers = async (req, res) => {
         { lastName: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
         { "billing.phone": { $regex: search, $options: "i" } },
+        { "billing.company": { $regex: search, $options: "i" } },
       ];
     }
 
@@ -63,6 +64,20 @@ const createCustomer = async (req, res) => {
       shipping,
     } = req.body;
 
+    // Validation: Either firstName or billing.company must be present
+    if (!firstName && (!billing || !billing.company)) {
+      return res.status(400).json({
+        message: "Either First Name or Company Name is required",
+      });
+    }
+
+    // If firstName is provided, lastName should also be provided (optional, but matches frontend)
+    if (firstName && !lastName) {
+      return res.status(400).json({
+        message: "Last Name is required if First Name is provided",
+      });
+    }
+
     // Check if customer with email already exists (only if email is provided)
     if (email) {
       const customerExists = await Customer.findOne({ email });
@@ -100,6 +115,30 @@ const updateCustomer = async (req, res) => {
 
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
+    }
+
+    const { firstName, lastName, billing } = req.body;
+
+    // Validation: Either firstName or billing.company must be present
+    // We check both the update data and the existing customer data
+    const finalFirstName =
+      firstName !== undefined ? firstName : customer.firstName;
+    const finalLastName = lastName !== undefined ? lastName : customer.lastName;
+    const finalCompany =
+      billing?.company !== undefined
+        ? billing.company
+        : customer.billing?.company;
+
+    if (!finalFirstName && !finalCompany) {
+      return res.status(400).json({
+        message: "Either First Name or Company Name is required",
+      });
+    }
+
+    if (finalFirstName && !finalLastName) {
+      return res.status(400).json({
+        message: "Last Name is required if First Name is provided",
+      });
     }
 
     const updatedCustomer = await Customer.findByIdAndUpdate(

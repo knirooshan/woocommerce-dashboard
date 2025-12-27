@@ -88,9 +88,12 @@ const sendInvoiceEmail = async (req, res) => {
       invoice.dueDate ? formatDate(invoice.dueDate) : "-"
     }\nTotal: ${formatCurrency(invoice.total)}\n`;
 
-    const text = `Dear ${
-      invoice.customer.firstName
-    },\n\nPlease find attached your invoice #${
+    const customerName =
+      invoice.customer.firstName ||
+      invoice.customer.billing?.company ||
+      "Customer";
+
+    const text = `Dear ${customerName},\n\nPlease find attached your invoice #${
       invoice.invoiceNumber
     }.${detailsText}\nThank you for your business.\n\nBest regards,\n${
       settings?.storeName || "Store"
@@ -164,7 +167,7 @@ const sendInvoiceEmail = async (req, res) => {
 
     const html = `<div style="font-family: Arial, sans-serif; margin: 20px;">
       <h2 style="color: #2563EB;">Invoice #${invoice.invoiceNumber}</h2>
-      <p>Dear ${invoice.customer.firstName},</p>
+      <p>Dear ${customerName},</p>
       <p>Please find attached your invoice <strong>#${
         invoice.invoiceNumber
       }</strong>.</p>
@@ -290,9 +293,12 @@ const sendQuotationEmail = async (req, res) => {
       quotation.validUntil ? formatDate(quotation.validUntil) : "-"
     }\nTotal: ${formatCurrency(quotation.total)}\n`;
 
-    const text = `Dear ${
-      quotation.customer.firstName
-    },\n\nPlease find attached your quotation #${
+    const customerNameQ =
+      quotation.customer.firstName ||
+      quotation.customer.billing?.company ||
+      "Customer";
+
+    const text = `Dear ${customerNameQ},\n\nPlease find attached your quotation #${
       quotation.quotationNumber
     }.${detailsTextQ}\nThank you for your interest.\n\nBest regards,\n${
       settings?.storeName || "Store"
@@ -365,7 +371,7 @@ const sendQuotationEmail = async (req, res) => {
 
     const html = `<div style="font-family: Arial, sans-serif; margin: 20px;">
       <h2 style="color: #2563EB;">Quotation #${quotation.quotationNumber}</h2>
-      <p>Dear ${quotation.customer.firstName},</p>
+      <p>Dear ${customerNameQ},</p>
       <p>Please find attached your quotation <strong>#${
         quotation.quotationNumber
       }</strong>.</p>

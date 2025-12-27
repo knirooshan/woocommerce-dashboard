@@ -233,7 +233,11 @@ const QuotationView = () => {
             {quotation.customer?.salutation
               ? `${quotation.customer.salutation} `
               : ""}
-            {quotation.customer?.firstName} {quotation.customer?.lastName}
+            {quotation.customer?.firstName || quotation.customer?.lastName
+              ? `${quotation.customer.firstName || ""} ${
+                  quotation.customer.lastName || ""
+                }`.trim()
+              : quotation.customer?.billing?.company || "Unnamed Customer"}
           </p>
           {quotation.customer?.billing?.company && (
             <p className="text-slate-600 font-medium">

@@ -227,7 +227,10 @@ const CreateInvoice = () => {
                   <option value="">Select a customer...</option>
                   {customers.map((c) => (
                     <option key={c._id} value={c._id}>
-                      {c.firstName} {c.lastName} ({c.email || "-"})
+                      {c.firstName || c.lastName
+                        ? `${c.firstName || ""} ${c.lastName || ""}`.trim()
+                        : c.billing?.company || "Unnamed"}{" "}
+                      ({c.email || "-"})
                     </option>
                   ))}
                 </select>
