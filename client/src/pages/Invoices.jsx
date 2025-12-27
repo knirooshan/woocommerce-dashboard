@@ -211,7 +211,11 @@ const Invoices = () => {
                     {invoice.invoiceNumber}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-white">
-                    {invoice.customer?.firstName} {invoice.customer?.lastName}
+                    {invoice.customer?.firstName || invoice.customer?.lastName
+                      ? `${invoice.customer.firstName || ""} ${
+                          invoice.customer.lastName || ""
+                        }`.trim()
+                      : invoice.customer?.billing?.company || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {invoice.invoiceDate

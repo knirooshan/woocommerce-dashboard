@@ -320,7 +320,11 @@ const InvoiceView = () => {
             {invoice.customer?.salutation
               ? `${invoice.customer.salutation} `
               : ""}
-            {invoice.customer?.firstName} {invoice.customer?.lastName}
+            {invoice.customer?.firstName || invoice.customer?.lastName
+              ? `${invoice.customer.firstName || ""} ${
+                  invoice.customer.lastName || ""
+                }`.trim()
+              : invoice.customer?.billing?.company || "Unnamed Customer"}
           </p>
           {invoice.customer?.billing?.company && (
             <p className="text-slate-600 font-medium">

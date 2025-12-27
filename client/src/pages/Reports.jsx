@@ -385,9 +385,11 @@ const Reports = () => {
                       </td>
                       <td className="px-4 py-3 text-white">
                         {s.customer
-                          ? `${s.customer.firstName} ${
-                              s.customer.lastName || ""
-                            }`
+                          ? s.customer.firstName || s.customer.lastName
+                            ? `${s.customer.firstName || ""} ${
+                                s.customer.lastName || ""
+                              }`.trim()
+                            : s.customer.billing?.company || "N/A"
                           : "N/A"}
                       </td>
                       <td className="px-4 py-3 text-slate-400">{s.method}</td>
@@ -506,9 +508,11 @@ const Reports = () => {
                         </td>
                         <td className="px-4 py-3 text-white">
                           {p.customer
-                            ? `${p.customer.firstName} ${
-                                p.customer.lastName || ""
-                              }`
+                            ? p.customer.firstName || p.customer.lastName
+                              ? `${p.customer.firstName || ""} ${
+                                  p.customer.lastName || ""
+                                }`.trim()
+                              : p.customer.billing?.company || "N/A"
                             : "N/A"}
                         </td>
                         <td className="px-4 py-3 text-right text-green-400 font-medium">

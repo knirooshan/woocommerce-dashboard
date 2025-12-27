@@ -140,7 +140,11 @@ const Customers = () => {
               {customers.map((customer) => (
                 <tr key={customer._id} className="hover:bg-slate-800/50">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
-                    {customer.firstName} {customer.lastName}
+                    {customer.firstName || customer.lastName
+                      ? `${customer.firstName || ""} ${
+                          customer.lastName || ""
+                        }`.trim()
+                      : customer.billing?.company || "Unnamed"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-400">
                     {customer.billing?.company || "-"}
