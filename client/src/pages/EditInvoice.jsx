@@ -10,7 +10,6 @@ import CustomerForm from "../components/CustomerForm";
 import DateInput from "../components/DateInput";
 import RichTextEditor from "../components/RichTextEditor";
 import ItemModal from "../components/ItemModal";
-import { urlToBase64 } from "../utils/imageUtils";
 
 const EditInvoice = () => {
   const { user } = useSelector((state) => state.auth);
@@ -106,24 +105,7 @@ const EditInvoice = () => {
     fetchData();
   }, [user.token, id, settings]);
 
-  const addItem = async (item) => {
-    // If it's a product, try to get base64 image for PDF
-    if (item.product) {
-      const selectedProduct = products.find((p) => p._id === item.product);
-      if (selectedProduct && selectedProduct.images && selectedProduct.images.length > 0) {
-        try {
-          const base64Image = await urlToBase64(
-            selectedProduct.images[0],
-            user.token
-          );
-          item.image = base64Image;
-        } catch (error) {
-          console.error("Error converting image to base64:", error);
-          item.image = null;
-        }
-      }
-    }
-
+  const addItem = (item) => {
     if (editingItemIndex !== null) {
       const newItems = [...formData.items];
       newItems[editingItemIndex] = item;
