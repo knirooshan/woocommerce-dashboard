@@ -301,7 +301,11 @@ const Payments = () => {
                     {payment.invoice?.invoiceNumber || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-white">
-                    {payment.customer?.firstName} {payment.customer?.lastName}
+                    {payment.customer?.firstName || payment.customer?.lastName
+                      ? `${payment.customer.firstName || ""} ${
+                          payment.customer.lastName || ""
+                        }`.trim()
+                      : payment.customer?.billing?.company || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-slate-300">
                     {payment.method}

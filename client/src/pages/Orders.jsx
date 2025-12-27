@@ -241,8 +241,19 @@ const Orders = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-white">
                       {order.customerInfo?.firstName ||
-                        order.customer?.firstName}{" "}
-                      {order.customerInfo?.lastName || order.customer?.lastName}
+                      order.customerInfo?.lastName ||
+                      order.customer?.firstName ||
+                      order.customer?.lastName
+                        ? `${
+                            order.customerInfo?.firstName ||
+                            order.customer?.firstName ||
+                            ""
+                          } ${
+                            order.customerInfo?.lastName ||
+                            order.customer?.lastName ||
+                            ""
+                          }`.trim()
+                        : order.customer?.billing?.company || "N/A"}
                     </div>
                     <div className="text-sm text-slate-400">
                       {order.customerInfo?.email || order.customer?.email}

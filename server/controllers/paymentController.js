@@ -105,7 +105,7 @@ const getPayments = async (req, res) => {
 
     const count = await Payment.countDocuments(filter);
     const payments = await Payment.find(filter)
-      .populate("customer", "firstName lastName email")
+      .populate("customer", "firstName lastName email billing")
       .populate("invoice", "invoiceNumber")
       .populate("order", "orderNumber")
       .sort({ date: -1 })
