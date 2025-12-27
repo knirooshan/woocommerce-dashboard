@@ -6,6 +6,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
     salutation: "",
     firstName: "",
     lastName: "",
+    taxNumber: "",
     email: "",
     billing: {
       phone: "",
@@ -22,6 +23,7 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
         salutation: customer.salutation || "",
         firstName: customer.firstName || "",
         lastName: customer.lastName || "",
+        taxNumber: customer.taxNumber || "",
         email: customer.email || "",
         billing: {
           phone: customer.billing?.phone || "",
@@ -124,6 +126,19 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
               type="text"
               name="billing.company"
               value={formData.billing.company || ""} // Handle undefined
+              onChange={handleChange}
+              className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-1">
+              TIN / VAT Number
+            </label>
+            <input
+              type="text"
+              name="taxNumber"
+              value={formData.taxNumber}
               onChange={handleChange}
               className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />

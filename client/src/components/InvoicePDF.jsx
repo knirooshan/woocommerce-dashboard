@@ -266,10 +266,9 @@ const InvoicePDF = ({ invoice, settings }) => {
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Bill To</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {invoice.customer?.salutation
-                ? `${invoice.customer.salutation} `
-                : ""}
-              {invoice.customer?.firstName} {invoice.customer?.lastName}
+              {invoice.customer?.salutation || ""}
+              {invoice.customer?.firstName || invoice.customerInfo?.firstName}{" "}
+              {invoice.customer?.lastName || invoice.customerInfo?.lastName}
             </Text>
             {invoice.customer?.billing?.company && (
               <Text style={styles.text}>
@@ -291,8 +290,15 @@ const InvoicePDF = ({ invoice, settings }) => {
                 {invoice.customer?.billing?.postcode}
               </Text>
             )}
-            {invoice.customer?.email && (
-              <Text style={styles.text}>{invoice.customer.email}</Text>
+            {(invoice.customer?.email || invoice.customerInfo?.email) && (
+              <Text style={styles.text}>
+                {invoice.customer?.email || invoice.customerInfo?.email}
+              </Text>
+            )}
+            {(invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber) && (
+              <Text style={styles.text}>
+                {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber}
+              </Text>
             )}
           </View>
           <View style={styles.infoSection}>
@@ -319,6 +325,20 @@ const InvoicePDF = ({ invoice, settings }) => {
                 <Text style={styles.text}>Due Date:</Text>
                 <Text style={[styles.text, { fontWeight: "bold" }]}>
                   {formatDate(invoice.dueDate, settings)}
+                </Text>
+              </View>
+            )}
+            {invoice.reference && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginTop: 4,
+                }}
+              >
+                <Text style={styles.text}>Reference:</Text>
+                <Text style={[styles.text, { fontWeight: "bold" }]}>
+                  {invoice.reference}
                 </Text>
               </View>
             )}

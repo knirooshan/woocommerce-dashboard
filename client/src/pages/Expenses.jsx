@@ -103,16 +103,22 @@ const Expenses = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const submissionData = {
+      ...formData,
+      vendor: formData.vendor === "" ? null : formData.vendor,
+    };
+
     if (editingExpense) {
       // For edits, show reason modal
-      setPendingUpdate(formData);
+      setPendingUpdate(submissionData);
       setShowReasonModal(true);
     } else {
       // For new expenses, save directly
       try {
         const token = user.token;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.post(ENDPOINTS.EXPENSES, formData, config);
+        await axios.post(ENDPOINTS.EXPENSES, submissionData, config);
         setShowForm(false);
         resetForm();
         fetchExpenses();
@@ -179,7 +185,7 @@ const Expenses = () => {
       amount: expense.amount,
       category: expense.category,
       date: expense.date.split("T")[0],
-      vendor: expense.vendor?._id || "",
+      vendor: expense.vendor?._id || null,
       reference: expense.reference || "",
       notes: expense.notes || "",
     });

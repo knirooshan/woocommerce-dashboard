@@ -276,6 +276,9 @@ const InvoiceView = () => {
               Due Date:{" "}
               {invoice.dueDate ? formatDate(invoice.dueDate, settings) : "-"}
             </p>
+            {invoice.reference && (
+              <p className="text-slate-600">Reference: {invoice.reference}</p>
+            )}
             <p className="text-slate-600">
               Status:{" "}
               <span
@@ -337,6 +340,11 @@ const InvoiceView = () => {
           <p className="text-slate-600">{invoice.customer?.email}</p>
           {invoice.customer?.billing?.phone && (
             <p className="text-slate-600">{invoice.customer.billing.phone}</p>
+          )}
+          {invoice.customer?.taxNumber && (
+            <p className="text-slate-600 font-medium">
+              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer.taxNumber}
+            </p>
           )}
         </div>
 

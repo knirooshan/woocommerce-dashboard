@@ -55,7 +55,7 @@ const EditQuotation = () => {
             product:
               typeof item.product === "object"
                 ? item.product?._id
-                : item.product || "",
+                : item.product || null,
             name: item.name,
             description: item.description || "",
             sku: item.sku || "",

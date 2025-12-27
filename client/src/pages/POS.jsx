@@ -104,6 +104,7 @@ const POS = () => {
           lastName: selectedCustomerData?.lastName || "Customer",
           email: selectedCustomerData?.email || "",
           phone: selectedCustomerData?.billing?.phone || "",
+          taxNumber: selectedCustomerData?.taxNumber || "",
         },
         items: cart.map((item) => ({
           productId: item.product,

@@ -53,8 +53,15 @@ const getCustomerById = async (req, res) => {
 const createCustomer = async (req, res) => {
   try {
     const { Customer } = getTenantModels(req.dbConnection);
-    const { salutation, email, firstName, lastName, billing, shipping } =
-      req.body;
+    const {
+      salutation,
+      email,
+      firstName,
+      lastName,
+      taxNumber,
+      billing,
+      shipping,
+    } = req.body;
 
     // Check if customer with email already exists (only if email is provided)
     if (email) {
@@ -72,6 +79,7 @@ const createCustomer = async (req, res) => {
       email,
       firstName,
       lastName,
+      taxNumber,
       billing,
       shipping,
     });
