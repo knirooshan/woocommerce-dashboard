@@ -6,7 +6,7 @@ const { getTenantModels } = require("../models/tenantModels");
 const getVendors = async (req, res) => {
   try {
     const { Vendor } = getTenantModels(req.dbConnection);
-    const vendors = await Vendor.find({});
+    const vendors = await Vendor.find({}).sort({ createdAt: -1 });
     res.json(vendors);
   } catch (error) {
     res.status(500).json({ message: error.message });
