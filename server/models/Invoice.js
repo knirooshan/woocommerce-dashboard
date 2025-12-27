@@ -13,7 +13,9 @@ const invoiceSchema = new mongoose.Schema(
       lastName: String,
       email: String,
       phone: String,
+      taxNumber: String,
     },
+    reference: String,
     items: [
       {
         product: {

@@ -27,6 +27,7 @@ const EditInvoice = () => {
 
   const [formData, setFormData] = useState({
     customer: "",
+    reference: "",
     items: [],
     notes: "",
     invoiceDate: "",
@@ -60,7 +61,7 @@ const EditInvoice = () => {
             product:
               typeof item.product === "object"
                 ? item.product?._id
-                : item.product || "",
+                : item.product || null,
             name: item.name,
             description: item.description || "",
             sku: item.sku || "",
@@ -81,6 +82,7 @@ const EditInvoice = () => {
           deliveryNote: invoice.deliveryNote || "",
           terms: invoice.terms || "",
           status: invoice.status,
+          reference: invoice.reference || "",
         });
 
         // If we can't calculate tax rate easily (e.g. subtotal is 0), use settings default or 0
@@ -260,6 +262,20 @@ const EditInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Reference (PO #, etc.)
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.reference}
+                onChange={(e) =>
+                  setFormData({ ...formData, reference: e.target.value })
+                }
+                placeholder="e.g. PO-12345"
               />
             </div>
           </div>

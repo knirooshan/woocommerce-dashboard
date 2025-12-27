@@ -76,6 +76,7 @@ const createInvoice = async (req, res) => {
 
     let {
       customer,
+      customerInfo,
       items,
       subtotal,
       tax,
@@ -89,6 +90,7 @@ const createInvoice = async (req, res) => {
       dueDate,
       paymentMethod,
       status,
+      reference,
     } = req.body;
 
     // Check if this is a walk-in customer invoice
@@ -115,8 +117,23 @@ const createInvoice = async (req, res) => {
       customer = walkInCustomer._id;
     }
 
+    // If customerInfo is not provided, fetch it from the customer record
+    if (!customerInfo && customer) {
+      const customerDoc = await Customer.findById(customer);
+      if (customerDoc) {
+        customerInfo = {
+          firstName: customerDoc.firstName,
+          lastName: customerDoc.lastName,
+          email: customerDoc.email,
+          phone: customerDoc.billing?.phone,
+          taxNumber: customerDoc.taxNumber,
+        };
+      }
+    }
+
     const invoice = new Invoice({
       customer,
+      customerInfo,
       items,
       subtotal,
       tax,
@@ -130,6 +147,7 @@ const createInvoice = async (req, res) => {
       dueDate,
       paymentMethod,
       status: status || "draft",
+      reference,
     });
 
     const createdInvoice = await invoice.save();

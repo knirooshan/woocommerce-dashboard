@@ -178,6 +178,9 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
           <View>
             <Text style={styles.title}>Delivery Receipt</Text>
             <Text style={styles.subTitle}>Ref: {invoice.invoiceNumber}</Text>
+            {invoice.reference && (
+              <Text style={styles.subTitle}>PO/Ref: {invoice.reference}</Text>
+            )}
           </View>
           <View style={{ alignItems: "flex-end", maxWidth: "50%" }}>
             {settings?.logo && (
@@ -245,6 +248,11 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
             {invoice.customer?.billing?.phone && (
               <Text style={styles.billToSubText}>
                 {invoice.customer.billing.phone}
+              </Text>
+            )}
+            {invoice.customer?.taxNumber && (
+              <Text style={styles.billToSubText}>
+                {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer.taxNumber}
               </Text>
             )}
           </View>

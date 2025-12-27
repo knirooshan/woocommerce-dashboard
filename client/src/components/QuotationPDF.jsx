@@ -271,6 +271,11 @@ const QuotationPDF = ({ quotation, settings }) => (
           {quotation.customer?.email && (
             <Text style={styles.text}>{quotation.customer.email}</Text>
           )}
+          {quotation.customer?.taxNumber && (
+            <Text style={styles.text}>
+              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {quotation.customer.taxNumber}
+            </Text>
+          )}
         </View>
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Quotation Details</Text>

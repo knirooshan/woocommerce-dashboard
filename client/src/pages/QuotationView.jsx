@@ -254,6 +254,11 @@ const QuotationView = () => {
           {quotation.customer?.billing?.phone && (
             <p className="text-slate-600">{quotation.customer.billing.phone}</p>
           )}
+          {quotation.customer?.taxNumber && (
+            <p className="text-slate-600 font-medium">
+              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {quotation.customer.taxNumber}
+            </p>
+          )}
         </div>
 
         {/* Items */}

@@ -25,6 +25,7 @@ const CreateInvoice = () => {
 
   const [formData, setFormData] = useState({
     customer: "",
+    reference: "",
     items: [],
     notes: "",
     invoiceDate: new Date().toISOString().split("T")[0],
@@ -77,12 +78,12 @@ const CreateInvoice = () => {
             items: items.map((item) => {
               // Find matching product in products array
               const productId = item.product?._id || item.product;
-              const matchedProduct = prodRes.data.find(
+              const matchedProduct = productId ? prodRes.data.find(
                 (p) => p._id.toString() === productId.toString()
-              );
+              ) : null;
               
               return {
-                product: matchedProduct?._id || "",
+                product: matchedProduct?._id || null,
                 name: item.name,
                 description: item.description || "",
                 sku: item.sku || "",
@@ -259,6 +260,20 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Reference (PO #, etc.)
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.reference}
+                onChange={(e) =>
+                  setFormData({ ...formData, reference: e.target.value })
+                }
+                placeholder="e.g. PO-12345"
               />
             </div>
           </div>

@@ -287,8 +287,8 @@ const generateInvoicePDF = async (invoice, settings) => {
         .text(
           `${invoice.customer?.salutation || ""}${
             invoice.customer?.salutation ? " " : ""
-          }${invoice.customer?.firstName || ""} ${
-            invoice.customer?.lastName || ""
+          }${invoice.customer?.firstName || invoice.customerInfo?.firstName || ""} ${
+            invoice.customer?.lastName || invoice.customerInfo?.lastName || ""
           }`,
           50,
           detailsY
@@ -327,14 +327,20 @@ const generateInvoicePDF = async (invoice, settings) => {
         );
       }
 
-      if (invoice.customer?.email) {
+      if (invoice.customer?.email || invoice.customerInfo?.email) {
         detailsY += 12;
-        doc.text(invoice.customer.email, 50, detailsY);
+        doc.text(invoice.customer?.email || invoice.customerInfo?.email, 50, detailsY);
       }
 
-      if (invoice.customer?.billing?.phone) {
+      if (invoice.customer?.billing?.phone || invoice.customerInfo?.phone) {
         detailsY += 12;
-        doc.text(invoice.customer.billing.phone, 50, detailsY);
+        doc.text(invoice.customer?.billing?.phone || invoice.customerInfo?.phone, 50, detailsY);
+      }
+
+      if (invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber) {
+        const taxLabel = settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN";
+        detailsY += 12;
+        doc.text(`${taxLabel}: ${invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber}`, 50, detailsY);
       }
 
       // Invoice Details (Right)
@@ -370,6 +376,20 @@ const generateInvoicePDF = async (invoice, settings) => {
         doc
           .font("Helvetica-Bold")
           .text(formatDate(invoice.dueDate, settings), 450, invoiceDetailsY, {
+            width: 100,
+            align: "right",
+          });
+      }
+
+      if (invoice.reference) {
+        invoiceDetailsY += 15;
+        doc.font("Helvetica").text("Reference:", 350, invoiceDetailsY, {
+          width: 100,
+          align: "left",
+        });
+        doc
+          .font("Helvetica-Bold")
+          .text(invoice.reference, 450, invoiceDetailsY, {
             width: 100,
             align: "right",
           });
@@ -787,6 +807,12 @@ const generateQuotationPDF = async (quotation, settings) => {
       if (quotation.customer?.billing?.phone) {
         detailsY += 12;
         doc.text(quotation.customer.billing.phone, 50, detailsY);
+      }
+
+      if (quotation.customer?.taxNumber) {
+        const taxLabel = settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN";
+        detailsY += 12;
+        doc.text(`${taxLabel}: ${quotation.customer.taxNumber}`, 50, detailsY);
       }
 
       // Quotation Details (Right)
