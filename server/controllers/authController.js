@@ -138,10 +138,23 @@ const logoutUser = async (req, res) => {
   }
 };
 
+// @desc    Verify user token
+// @route   GET /api/auth/verify
+// @access  Private
+const verifyToken = async (req, res) => {
+  res.json({
+    _id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+    role: req.user.role,
+  });
+};
+
 module.exports = {
   loginUser,
   registerUser,
   checkFirstRun,
   setupFirstUser,
   logoutUser,
+  verifyToken,
 };

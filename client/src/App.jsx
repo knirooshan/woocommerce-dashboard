@@ -49,13 +49,23 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Response Interceptor for Setup
+    // Response Interceptor for Setup and Auth
     const responseInterceptor = axios.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response?.data?.code === "SETUP_REQUIRED") {
           setSetupRequired(true);
         }
+
+        // Handle token expiration/failure
+        if (
+          error.response?.status === 401 &&
+          (error.response?.data?.code === "INVALID_TOKEN" ||
+            error.response?.data?.code === "NO_TOKEN")
+        ) {
+          dispatch(logout());
+        }
+
         return Promise.reject(error);
       }
     );
@@ -81,6 +91,11 @@ function App() {
 
         if (data.isFirstRun) {
           dispatch(logout());
+        }
+
+        // Verify token if authenticated
+        if (isAuthenticated) {
+          await axios.get(ENDPOINTS.AUTH_VERIFY);
         }
       } catch (error) {
         // If 403, interceptor handles it. If 404/500, log it.

@@ -28,6 +28,7 @@ export const ENDPOINTS = {
   AUTH_LOGIN: `${API_URL}/auth/login`,
   AUTH_LOGOUT: `${API_URL}/auth/logout`,
   AUTH_REGISTER: `${API_URL}/auth/register`,
+  AUTH_VERIFY: `${API_URL}/auth/verify`,
 
   // First Run / Setup
   FIRST_RUN_CHECK: `${API_URL}/first-run/check`,
