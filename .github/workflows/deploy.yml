@@ -18,5 +18,30 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
           script: |
-            bash /home/deploy/deploy/deploy.sh
+            set -e
+
+            # ── Pull latest code ──────────────────────────────────────
+            git config --global --add safe.directory /var/www/merchpilot
+            cd /var/www/merchpilot
+            git fetch --all
+            git reset --hard origin/main
+
+            # ── Backend ───────────────────────────────────────────────
+            echo "Installing backend dependencies..."
+            cd /var/www/merchpilot/server
+            npm ci --omit=dev
+
+            echo "Restarting backend..."
+            pm2 restart merchpilot-api || pm2 start index.js --name merchpilot-api
+            pm2 save
+
+            # ── Frontend ──────────────────────────────────────────────
+            echo "Building frontend..."
+            cd /var/www/merchpilot/client
+            npm ci --legacy-peer-deps
+            rm -rf dist
+            npm run build
+
+            echo "Deployment complete!"
