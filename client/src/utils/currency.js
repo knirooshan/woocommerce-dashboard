@@ -10,11 +10,11 @@ export const formatCurrency = (amount, settings) => {
 
   if (!settings?.currency) {
     // Fallback to USD if no settings
-    return `$${numAmount.toFixed(2)}`;
+    return `$${addThousandSeparators(numAmount.toFixed(2))}`;
   }
 
   const { symbol, position } = settings.currency;
-  const formattedAmount = numAmount.toFixed(2);
+  const formattedAmount = addThousandSeparators(numAmount.toFixed(2));
 
   if (position === "after") {
     return `${formattedAmount}${symbol}`;
@@ -22,6 +22,16 @@ export const formatCurrency = (amount, settings) => {
 
   // Default: before
   return `${symbol}${formattedAmount}`;
+};
+
+/**
+ * Add thousand separators to a formatted number string
+ * "1234567.89" → "1,234,567.89"
+ */
+const addThousandSeparators = (numStr) => {
+  const parts = numStr.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
 };
 
 /**

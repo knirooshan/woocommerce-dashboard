@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Plus, Trash, Save, Edit2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
+import { calculateTotals as calcTotals } from "../utils/taxCalculations";
 import CustomerForm from "../components/CustomerForm";
 import DateInput from "../components/DateInput";
 import RichTextEditor from "../components/RichTextEditor";
@@ -44,7 +45,8 @@ const CreateInvoice = () => {
         ...prev,
         taxRate: settings.tax?.rate || 0,
         terms: prev.terms || settings.terms?.invoice || "",
-        deliveryNote: prev.deliveryNote || settings.terms?.deliveryReceipt || "",
+        deliveryNote:
+          prev.deliveryNote || settings.terms?.deliveryReceipt || "",
       }));
     }
   }, [settings]);
@@ -63,8 +65,16 @@ const CreateInvoice = () => {
 
         // Check for quotation data passed via navigation
         if (location.state?.quotationData) {
-          const { customer, items, tax, discount, notes, terms, deliveryNote, deliveryCharge } =
-            location.state.quotationData;
+          const {
+            customer,
+            items,
+            tax,
+            discount,
+            notes,
+            terms,
+            deliveryNote,
+            deliveryCharge,
+          } = location.state.quotationData;
 
           // Calculate tax rate from tax amount if possible, or use default
           // Since we store tax amount, we might need to infer rate or just use default
@@ -77,10 +87,12 @@ const CreateInvoice = () => {
             items: items.map((item) => {
               // Find matching product in products array
               const productId = item.product?._id || item.product;
-              const matchedProduct = productId ? prodRes.data.find(
-                (p) => p._id.toString() === productId.toString()
-              ) : null;
-              
+              const matchedProduct = productId
+                ? prodRes.data.find(
+                    (p) => p._id.toString() === productId.toString(),
+                  )
+                : null;
+
               return {
                 product: matchedProduct?._id || null,
                 name: item.name,
@@ -89,12 +101,18 @@ const CreateInvoice = () => {
                 price: item.price,
                 quantity: item.quantity,
                 discount: item.discount || 0,
+                discountType: item.discountType || "fixed",
+                isTaxable: item.isTaxable ?? false,
+                taxMethod:
+                  item.taxMethod || settings?.tax?.defaultMethod || "exclusive",
+                itemTax: item.itemTax || 0,
                 total: item.total,
               };
             }),
             notes: notes || "",
             terms: settings?.terms?.invoice || "",
-            deliveryNote: deliveryNote || settings?.terms?.deliveryReceipt || "",
+            deliveryNote:
+              deliveryNote || settings?.terms?.deliveryReceipt || "",
             taxRate: defaultTaxRate,
             discount: discount || 0,
             deliveryCharge: deliveryCharge || 0,
@@ -135,11 +153,12 @@ const CreateInvoice = () => {
   };
 
   const calculateTotals = () => {
-    const subtotal = formData.items.reduce((sum, item) => sum + item.total, 0);
-    const tax = subtotal * (formData.taxRate / 100);
-    const total =
-      subtotal + tax - formData.discount + (formData.deliveryCharge || 0);
-    return { subtotal, tax, total };
+    return calcTotals(
+      formData.items,
+      formData.taxRate,
+      formData.discount,
+      formData.deliveryCharge,
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -153,9 +172,13 @@ const CreateInvoice = () => {
         ENDPOINTS.INVOICES,
         {
           ...formData,
-          ...totals,
+          items: totals.itemsWithTax,
+          subtotal: totals.subtotal,
+          tax: totals.tax,
+          taxRate: formData.taxRate,
+          total: totals.total,
         },
-        config
+        config,
       );
       navigate(`/invoices/${data._id}`);
     } catch (error) {
@@ -170,7 +193,7 @@ const CreateInvoice = () => {
       const { data } = await axios.post(
         ENDPOINTS.CUSTOMERS,
         customerData,
-        config
+        config,
       );
       setCustomers([...customers, data]);
       setFormData({ ...formData, customer: data._id });
@@ -294,8 +317,13 @@ const CreateInvoice = () => {
                       dangerouslySetInnerHTML={{ __html: item.description }}
                     />
                   )}
-                  <div className="text-slate-500 text-xs mt-1">
-                    {item.sku ? `SKU: ${item.sku}` : "Custom Item"}
+                  <div className="text-slate-500 text-xs mt-1 flex items-center gap-2">
+                    <span>{item.sku ? `SKU: ${item.sku}` : "Custom Item"}</span>
+                    {item.isTaxable && (
+                      <span className="text-blue-400">
+                        • {settings?.tax?.label || "Tax"} ({item.taxMethod})
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="w-24 text-right">
@@ -311,7 +339,11 @@ const CreateInvoice = () => {
                 <div className="w-20 text-right">
                   <div className="text-xs text-slate-500 mb-1">Discount</div>
                   <div className="text-white">
-                    {formatCurrency(item.discount || 0, settings)}
+                    {item.discount > 0
+                      ? item.discountType === "percentage"
+                        ? `${item.discount}%`
+                        : formatCurrency(item.discount, settings)
+                      : "-"}
                   </div>
                 </div>
                 <div className="w-24 text-right font-medium text-white">
@@ -345,29 +377,23 @@ const CreateInvoice = () => {
 
           {/* Totals */}
           <div className="mt-6 border-t border-slate-800 pt-4 flex flex-col items-end space-y-2">
-            <div className="flex justify-between w-64">
+            <div className="flex justify-between w-72">
               <span className="text-slate-400">Subtotal:</span>
               <span className="font-medium text-white">
                 {formatCurrency(subtotal, settings)}
               </span>
             </div>
-            <div className="flex justify-between w-64 items-center">
-              <span className="text-slate-400">
-                {settings?.tax?.label || "Tax"} Rate (%):
-              </span>
-              <input
-                type="number"
-                value={formData.taxRate}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    taxRate: parseFloat(e.target.value),
-                  })
-                }
-                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
-              />
-            </div>
-            <div className="flex justify-between w-64 items-center">
+            {tax > 0 && (
+              <div className="flex justify-between w-72">
+                <span className="text-slate-400">
+                  {settings?.tax?.label || "Tax"} ({formData.taxRate}%):
+                </span>
+                <span className="font-medium text-white">
+                  {formatCurrency(tax, settings)}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between w-72 items-center">
               <span className="text-slate-400">Discount:</span>
               <input
                 type="number"
@@ -375,13 +401,13 @@ const CreateInvoice = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    discount: parseFloat(e.target.value),
+                    discount: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
+                className="w-24 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
-            <div className="flex justify-between w-64 items-center">
+            <div className="flex justify-between w-72 items-center">
               <span className="text-slate-400">Delivery Charge:</span>
               <input
                 type="number"
@@ -392,10 +418,10 @@ const CreateInvoice = () => {
                     deliveryCharge: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="w-20 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
+                className="w-24 bg-slate-950 border border-slate-700 text-white rounded px-2 py-1 text-right"
               />
             </div>
-            <div className="flex justify-between w-64 text-lg font-bold pt-2 border-t">
+            <div className="flex justify-between w-72 text-lg font-bold pt-2 border-t">
               <span>Total:</span>
               <span>{formatCurrency(total, settings)}</span>
             </div>

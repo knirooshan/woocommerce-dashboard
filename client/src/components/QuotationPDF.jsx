@@ -273,7 +273,10 @@ const QuotationPDF = ({ quotation, settings }) => (
           )}
           {quotation.customer?.taxNumber && (
             <Text style={styles.text}>
-              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {quotation.customer.taxNumber}
+              {settings?.tax?.label && settings.tax.label !== "Tax"
+                ? settings.tax.label
+                : "TIN"}
+              : {quotation.customer.taxNumber}
             </Text>
           )}
         </View>
@@ -344,13 +347,16 @@ const QuotationPDF = ({ quotation, settings }) => (
                     <View style={{ marginTop: 2 }}>
                       {renderHtmlToPdf(
                         item.description || item.product.shortDescription,
-                        styles.tableCellSub
+                        styles.tableCellSub,
                       )}
                     </View>
                   )}
                   {item.discount > 0 && (
                     <Text style={[styles.tableCellSub, { color: "#EF4444" }]}>
-                      Discount: -{formatCurrency(item.discount, settings)}
+                      Discount: -
+                      {item.discountType === "percentage"
+                        ? `${item.discount}%`
+                        : formatCurrency(item.discount, settings)}
                     </Text>
                   )}
                 </View>

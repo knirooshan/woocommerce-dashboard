@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
   const { data: settings, loading: settingsLoading } = useSelector(
-    (state) => state.settings
+    (state) => state.settings,
   );
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const Settings = () => {
     smtp: { host: "", port: 587, user: "", pass: "", secure: false },
     bank: { accountName: "", accountNumber: "", bankName: "", branch: "" },
     currency: { code: "USD", symbol: "$", position: "before" },
-    tax: { rate: 0, label: "Tax" },
+    tax: { rate: 0, label: "Tax", defaultMethod: "exclusive" },
     dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
     terms: { invoice: "", quotation: "", deliveryReceipt: "" },
     wooCommerce: { url: "", consumerKey: "", consumerSecret: "" },
@@ -406,6 +406,27 @@ const Settings = () => {
                 Label shown on invoices (e.g., VAT, GST, Sales Tax)
               </p>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Default Tax Method
+              </label>
+              <select
+                name="defaultMethod"
+                value={formData.tax.defaultMethod || "exclusive"}
+                onChange={(e) => handleChange(e, "tax")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              >
+                <option value="exclusive">
+                  Exclusive (tax added on top of price)
+                </option>
+                <option value="inclusive">
+                  Inclusive (tax included in price)
+                </option>
+              </select>
+              <p className="mt-1 text-xs text-slate-400">
+                Default tax method for new items on invoices and quotations
+              </p>
+            </div>
           </div>
         </div>
 
@@ -463,7 +484,7 @@ const Settings = () => {
                 onChange={(val) =>
                   handleChange(
                     { target: { name: "invoice", value: val } },
-                    "terms"
+                    "terms",
                   )
                 }
                 placeholder="Enter default terms for invoices..."
@@ -479,7 +500,7 @@ const Settings = () => {
                 onChange={(val) =>
                   handleChange(
                     { target: { name: "quotation", value: val } },
-                    "terms"
+                    "terms",
                   )
                 }
                 placeholder="Enter default terms for quotations..."
@@ -495,7 +516,7 @@ const Settings = () => {
                 onChange={(val) =>
                   handleChange(
                     { target: { name: "deliveryReceipt", value: val } },
-                    "terms"
+                    "terms",
                   )
                 }
                 placeholder="Enter default delivery notes..."
