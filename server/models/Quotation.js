@@ -20,11 +20,24 @@ const quotationSchema = new mongoose.Schema(
         price: Number,
         quantity: Number,
         discount: { type: Number, default: 0 },
+        discountType: {
+          type: String,
+          enum: ["fixed", "percentage"],
+          default: "fixed",
+        },
+        isTaxable: { type: Boolean, default: false },
+        taxMethod: {
+          type: String,
+          enum: ["inclusive", "exclusive"],
+          default: "exclusive",
+        },
+        itemTax: { type: Number, default: 0 },
         total: Number,
       },
     ],
     subtotal: { type: Number, required: true },
     tax: { type: Number, default: 0 },
+    taxRate: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     deliveryCharge: { type: Number, default: 0 },
     deliveryNote: { type: String },
@@ -41,7 +54,7 @@ const quotationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Auto-generate quotation number

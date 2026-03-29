@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, Package, PlusCircle } from "lucide-react";
 import { formatCurrency } from "../utils/currency";
+import { calculateItemTax, getDiscountAmount } from "../utils/taxCalculations";
 import RichTextEditor from "./RichTextEditor";
 
 const ItemModal = ({
@@ -14,12 +15,18 @@ const ItemModal = ({
   const [activeTab, setActiveTab] = useState("existing"); // 'existing' or 'custom'
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const taxRate = settings?.tax?.rate || 0;
+  const defaultTaxMethod = settings?.tax?.defaultMethod || "exclusive";
+
   const [customItem, setCustomItem] = useState({
     name: "",
     description: "",
     price: 0,
     quantity: 1,
     discount: 0,
+    discountType: "fixed",
+    isTaxable: false,
+    taxMethod: defaultTaxMethod,
     sku: "",
   });
 
@@ -29,7 +36,7 @@ const ItemModal = ({
         if (initialItem.product) {
           setActiveTab("existing");
           const prod = products.find(
-            (p) => p._id === (initialItem.product._id || initialItem.product)
+            (p) => p._id === (initialItem.product._id || initialItem.product),
           );
           setSelectedProduct(prod || null);
           setCustomItem({
@@ -38,6 +45,9 @@ const ItemModal = ({
             price: initialItem.price || 0,
             quantity: initialItem.quantity || 1,
             discount: initialItem.discount || 0,
+            discountType: initialItem.discountType || "fixed",
+            isTaxable: initialItem.isTaxable ?? false,
+            taxMethod: initialItem.taxMethod || defaultTaxMethod,
             sku: initialItem.sku || "",
           });
         } else {
@@ -48,6 +58,9 @@ const ItemModal = ({
             price: initialItem.price || 0,
             quantity: initialItem.quantity || 1,
             discount: initialItem.discount || 0,
+            discountType: initialItem.discountType || "fixed",
+            isTaxable: initialItem.isTaxable ?? false,
+            taxMethod: initialItem.taxMethod || defaultTaxMethod,
             sku: initialItem.sku || "",
           });
         }
@@ -65,6 +78,9 @@ const ItemModal = ({
       price: 0,
       quantity: 1,
       discount: 0,
+      discountType: "fixed",
+      isTaxable: false,
+      taxMethod: defaultTaxMethod,
       sku: "",
     });
     setSearchTerm("");
@@ -74,7 +90,7 @@ const ItemModal = ({
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+      (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   const handleSelectProduct = (product) => {
@@ -88,12 +104,16 @@ const ItemModal = ({
     });
   };
 
+  // Calculate preview total using shared utility
+  const previewCalc = calculateItemTax(customItem, taxRate);
+
   const handleSave = () => {
+    const calc = calculateItemTax(customItem, taxRate);
     const itemToAdd = {
       ...customItem,
       product: activeTab === "existing" ? selectedProduct?._id : undefined,
-      total:
-        customItem.price * customItem.quantity - (customItem.discount || 0),
+      itemTax: calc.itemTax,
+      total: calc.total,
     };
     onAdd(itemToAdd);
     onClose();
@@ -289,30 +309,92 @@ const ItemModal = ({
                   <label className="block text-sm font-medium text-slate-400 mb-1">
                     Discount
                   </label>
-                  <input
-                    type="number"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    value={customItem.discount}
-                    onChange={(e) =>
-                      setCustomItem({
-                        ...customItem,
-                        discount: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      value={customItem.discount}
+                      onChange={(e) =>
+                        setCustomItem({
+                          ...customItem,
+                          discount: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                    />
+                    <select
+                      value={customItem.discountType}
+                      onChange={(e) =>
+                        setCustomItem({
+                          ...customItem,
+                          discountType: e.target.value,
+                        })
+                      }
+                      className="bg-slate-950 border border-slate-700 rounded-md py-2 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 w-20"
+                    >
+                      <option value="fixed">
+                        {settings?.currency?.symbol || "$"}
+                      </option>
+                      <option value="percentage">%</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex flex-col justify-end">
                   <div className="text-right">
                     <div className="text-slate-400 text-xs mb-1">Total</div>
                     <div className="text-white text-xl font-bold">
-                      {formatCurrency(
-                        customItem.price * customItem.quantity -
-                          (customItem.discount || 0),
-                        settings
-                      )}
+                      {formatCurrency(previewCalc.total, settings)}
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Tax Settings */}
+              <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-700/50">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={customItem.isTaxable}
+                    onChange={(e) =>
+                      setCustomItem({
+                        ...customItem,
+                        isTaxable: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-950 text-blue-600 focus:ring-blue-600"
+                  />
+                  <span className="text-sm text-slate-300">Taxable</span>
+                </label>
+                {customItem.isTaxable && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-slate-400">
+                      Tax Method:
+                    </label>
+                    <select
+                      value={customItem.taxMethod}
+                      onChange={(e) =>
+                        setCustomItem({
+                          ...customItem,
+                          taxMethod: e.target.value,
+                        })
+                      }
+                      className="bg-slate-950 border border-slate-700 rounded-md py-1.5 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    >
+                      <option value="exclusive">
+                        Exclusive (tax added on top)
+                      </option>
+                      <option value="inclusive">
+                        Inclusive (tax in price)
+                      </option>
+                    </select>
+                  </div>
+                )}
+                {customItem.isTaxable && previewCalc.itemTax > 0 && (
+                  <div className="text-xs text-slate-400 ml-auto">
+                    {settings?.tax?.label || "Tax"}:{" "}
+                    {formatCurrency(previewCalc.itemTax, settings)}
+                    {customItem.taxMethod === "inclusive" && " (included)"}
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -1,14 +1,23 @@
 const PDFDocument = require("pdfkit");
 const axios = require("axios");
 
+// Helper to add thousand separators
+const addThousandSeparators = (numStr) => {
+  const parts = numStr.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+};
+
 // Helper to format currency
 const formatCurrency = (amount, settings) => {
   if (!settings?.currency) {
-    return `$${parseFloat(amount || 0).toFixed(2)}`;
+    return `$${addThousandSeparators(parseFloat(amount || 0).toFixed(2))}`;
   }
 
   const { symbol, position } = settings.currency;
-  const formattedAmount = parseFloat(amount || 0).toFixed(2);
+  const formattedAmount = addThousandSeparators(
+    parseFloat(amount || 0).toFixed(2),
+  );
 
   if (position === "before") {
     return `${symbol}${formattedAmount}`;
@@ -70,7 +79,7 @@ const embedLogo = async (
   x,
   y,
   maxWidth = 100,
-  maxHeight = 50
+  maxHeight = 50,
 ) => {
   try {
     if (!logoUrl) return;
@@ -245,7 +254,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           }${settings?.address?.zip || ""}`,
           350,
           companyY,
-          { width: 200, align: "right" }
+          { width: 200, align: "right" },
         );
       }
 
@@ -293,7 +302,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             invoice.customer?.lastName || invoice.customerInfo?.lastName || ""
           }`,
           50,
-          detailsY
+          detailsY,
         );
 
       if (invoice.customer?.billing?.company) {
@@ -325,7 +334,7 @@ const generateInvoicePDF = async (invoice, settings) => {
               : ""
           }${invoice.customer?.billing?.postcode || ""}`,
           50,
-          detailsY
+          detailsY,
         );
       }
 
@@ -334,7 +343,7 @@ const generateInvoicePDF = async (invoice, settings) => {
         doc.text(
           invoice.customer?.email || invoice.customerInfo?.email,
           50,
-          detailsY
+          detailsY,
         );
       }
 
@@ -343,7 +352,7 @@ const generateInvoicePDF = async (invoice, settings) => {
         doc.text(
           invoice.customer?.billing?.phone || invoice.customerInfo?.phone,
           50,
-          detailsY
+          detailsY,
         );
       }
 
@@ -358,7 +367,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber
           }`,
           50,
-          detailsY
+          detailsY,
         );
       }
 
@@ -438,7 +447,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           tableY,
           item,
           settings,
-          index === invoice.items.length - 1
+          index === invoice.items.length - 1,
         );
       });
 
@@ -498,7 +507,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             {
               width: 125,
               align: "right",
-            }
+            },
           );
       }
 
@@ -617,14 +626,14 @@ const generateInvoicePDF = async (invoice, settings) => {
             }`,
             50,
             787,
-            { width: 500, align: "center" }
+            { width: 500, align: "center" },
           );
 
         doc.text(
           `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
           50,
           797,
-          { width: 500, align: "center" }
+          { width: 500, align: "center" },
         );
 
         if (settings.bank.swiftCode) {
@@ -653,7 +662,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             "This is a computer-generated document. No signature is required.",
             50,
             doc.page.height - 20,
-            { align: "center" }
+            { align: "center" },
           );
         doc.page.margins.bottom = oldBottomMargin;
       }
@@ -736,7 +745,7 @@ const generateQuotationPDF = async (quotation, settings) => {
           }${settings?.address?.zip || ""}`,
           350,
           companyY,
-          { width: 200, align: "right" }
+          { width: 200, align: "right" },
         );
       }
 
@@ -782,7 +791,7 @@ const generateQuotationPDF = async (quotation, settings) => {
             quotation.customer?.lastName || ""
           }`,
           50,
-          detailsY
+          detailsY,
         );
 
       if (quotation.customer?.billing?.company) {
@@ -814,7 +823,7 @@ const generateQuotationPDF = async (quotation, settings) => {
               : ""
           }${quotation.customer?.billing?.postcode || ""}`,
           50,
-          detailsY
+          detailsY,
         );
       }
 
@@ -860,7 +869,7 @@ const generateQuotationPDF = async (quotation, settings) => {
           formatDate(quotation.createdAt, settings),
           450,
           quotationDetailsY,
-          { width: 100, align: "right" }
+          { width: 100, align: "right" },
         );
 
       if (quotation.validUntil) {
@@ -875,7 +884,7 @@ const generateQuotationPDF = async (quotation, settings) => {
             formatDate(quotation.validUntil, settings),
             450,
             quotationDetailsY,
-            { width: 100, align: "right" }
+            { width: 100, align: "right" },
           );
       }
 
@@ -903,7 +912,7 @@ const generateQuotationPDF = async (quotation, settings) => {
           tableY,
           item,
           settings,
-          index === quotation.items.length - 1
+          index === quotation.items.length - 1,
         );
       });
 
@@ -960,7 +969,7 @@ const generateQuotationPDF = async (quotation, settings) => {
             `-${formatCurrency(quotation.discount, settings)}`,
             totalsX,
             tableY,
-            { width: 125, align: "right" }
+            { width: 125, align: "right" },
           );
       }
 
@@ -1042,14 +1051,14 @@ const generateQuotationPDF = async (quotation, settings) => {
             }`,
             50,
             787,
-            { width: 500, align: "center" }
+            { width: 500, align: "center" },
           );
 
         doc.text(
           `Account Name: ${settings.bank.accountName} | Account No: ${settings.bank.accountNumber}`,
           50,
           797,
-          { width: 500, align: "center" }
+          { width: 500, align: "center" },
         );
 
         if (settings.bank.swiftCode) {
@@ -1078,7 +1087,7 @@ const generateQuotationPDF = async (quotation, settings) => {
             "This is a computer-generated document. No signature is required.",
             50,
             doc.page.height - 20,
-            { align: "center" }
+            { align: "center" },
           );
         doc.page.margins.bottom = oldBottomMargin;
       }
@@ -1097,7 +1106,7 @@ const generateSalesReportPDF = (
   settings,
   timeframe,
   dateRange,
-  productBreakdown = []
+  productBreakdown = [],
 ) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1133,10 +1142,10 @@ const generateSalesReportPDF = (
         .text(
           `Generated on: ${formatDate(new Date(), settings)} ${formatTime(
             new Date(),
-            settings
+            settings,
           )}`,
           50,
-          75
+          75,
         );
 
       const reportId = `SR-${Date.now().toString().slice(-6)}`;
@@ -1147,7 +1156,7 @@ const generateSalesReportPDF = (
           dateRange.endDate || "Present"
         }`,
         50,
-        105
+        105,
       );
       doc.text(`Timeframe: ${timeframe.toUpperCase()}`, 50, 120);
 
@@ -1176,7 +1185,7 @@ const generateSalesReportPDF = (
               settings.contact?.phone ? "| " + settings.contact.phone : ""
             }`,
             50,
-            172
+            172,
           );
 
         if (settings.website) {
@@ -1197,7 +1206,7 @@ const generateSalesReportPDF = (
           })`,
           50,
           215,
-          { align: "right" }
+          { align: "right" },
         );
 
       // Summary
@@ -1297,7 +1306,7 @@ const generateSalesReportPDF = (
             : "N/A",
           200,
           y + 6,
-          { width: 140 }
+          { width: 140 },
         );
         doc.text(s.method || "N/A", 350, y + 6);
         doc.text(formatCurrency(s.amount, settings), 450, y + 6, {
@@ -1381,7 +1390,7 @@ const generateSalesReportPDF = (
             "This is a computer-generated document. No signature is required.",
             50,
             doc.page.height - 20,
-            { align: "center" }
+            { align: "center" },
           );
         doc.page.margins.bottom = oldBottomMargin;
       }
@@ -1400,7 +1409,7 @@ const generateProfitLossReportPDF = (
   stats,
   settings,
   timeframe,
-  dateRange
+  dateRange,
 ) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -1436,10 +1445,10 @@ const generateProfitLossReportPDF = (
         .text(
           `Generated on: ${formatDate(new Date(), settings)} ${formatTime(
             new Date(),
-            settings
+            settings,
           )}`,
           50,
-          75
+          75,
         );
 
       const reportId = `PL-${Date.now().toString().slice(-6)}`;
@@ -1450,7 +1459,7 @@ const generateProfitLossReportPDF = (
           dateRange.endDate || "Present"
         }`,
         50,
-        105
+        105,
       );
       doc.text(`Timeframe: ${timeframe.toUpperCase()}`, 50, 120);
 
@@ -1479,7 +1488,7 @@ const generateProfitLossReportPDF = (
               settings.contact?.phone ? "| " + settings.contact.phone : ""
             }`,
             50,
-            172
+            172,
           );
 
         if (settings.website) {
@@ -1500,7 +1509,7 @@ const generateProfitLossReportPDF = (
           })`,
           50,
           215,
-          { align: "right" }
+          { align: "right" },
         );
 
       // Summary Cards
@@ -1563,7 +1572,7 @@ const generateProfitLossReportPDF = (
             : "N/A",
           200,
           y + 6,
-          { width: 140 }
+          { width: 140 },
         );
         doc.text(p.method || "N/A", 350, y + 6);
         doc.text(formatCurrency(p.amount, settings), 450, y + 6, {
@@ -1631,7 +1640,7 @@ const generateProfitLossReportPDF = (
             "This is a computer-generated document. No signature is required.",
             50,
             doc.page.height - 20,
-            { align: "center" }
+            { align: "center" },
           );
         doc.page.margins.bottom = oldBottomMargin;
       }

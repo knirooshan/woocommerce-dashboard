@@ -267,7 +267,8 @@ const InvoicePDF = ({ invoice, settings }) => {
             <Text style={styles.sectionTitle}>Bill To</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
               {invoice.customer?.salutation || ""}
-              {invoice.customer?.firstName || invoice.customerInfo?.firstName}{" "}
+              {invoice.customer?.firstName ||
+                invoice.customerInfo?.firstName}{" "}
               {invoice.customer?.lastName || invoice.customerInfo?.lastName}
             </Text>
             {invoice.customer?.billing?.company && (
@@ -295,9 +296,14 @@ const InvoicePDF = ({ invoice, settings }) => {
                 {invoice.customer?.email || invoice.customerInfo?.email}
               </Text>
             )}
-            {(invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber) && (
+            {(invoice.customer?.taxNumber ||
+              invoice.customerInfo?.taxNumber) && (
               <Text style={styles.text}>
-                {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber}
+                {settings?.tax?.label && settings.tax.label !== "Tax"
+                  ? settings.tax.label
+                  : "TIN"}
+                :{" "}
+                {invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber}
               </Text>
             )}
           </View>
@@ -384,13 +390,16 @@ const InvoicePDF = ({ invoice, settings }) => {
                     <View style={{ marginTop: 2 }}>
                       {renderHtmlToPdf(
                         item.description || item.product.shortDescription,
-                        styles.tableCellSub
+                        styles.tableCellSub,
                       )}
                     </View>
                   )}
                   {item.discount > 0 && (
                     <Text style={[styles.tableCellSub, { color: "#EF4444" }]}>
-                      Discount: -{formatCurrency(item.discount, settings)}
+                      Discount: -
+                      {item.discountType === "percentage"
+                        ? `${item.discount}%`
+                        : formatCurrency(item.discount, settings)}
                     </Text>
                   )}
                 </View>

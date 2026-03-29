@@ -37,6 +37,11 @@ const settingsSchema = new mongoose.Schema(
     tax: {
       rate: { type: Number, default: 0, min: 0, max: 100 }, // Tax rate as percentage (0-100)
       label: { type: String, default: "Tax" }, // Label for tax (e.g., "VAT", "GST", "Sales Tax")
+      defaultMethod: {
+        type: String,
+        default: "exclusive",
+        enum: ["inclusive", "exclusive"],
+      },
     },
     dateTime: {
       dateFormat: { type: String, default: "MM/DD/YYYY" }, // MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
@@ -60,7 +65,7 @@ const settingsSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Don't compile model here

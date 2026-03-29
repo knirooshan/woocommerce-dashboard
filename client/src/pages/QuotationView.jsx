@@ -3,7 +3,14 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
 import { pdf } from "@react-pdf/renderer";
-import { ArrowLeft, Download, Printer, FileText, Mail, Package } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  Printer,
+  FileText,
+  Mail,
+  Package,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import QuotationPDF from "../components/QuotationPDF";
 import { formatCurrency } from "../utils/currency";
@@ -37,19 +44,19 @@ const QuotationView = () => {
               try {
                 const base64Image = await urlToBase64(
                   item.product.images[0],
-                  token
+                  token,
                 );
                 return { ...item, image: base64Image };
               } catch (error) {
                 console.error(
                   "Error converting product image to base64:",
-                  error
+                  error,
                 );
                 return { ...item, image: null };
               }
             }
             return { ...item, image: null };
-          })
+          }),
         );
 
         quotationData.items = itemsWithImages;
@@ -80,7 +87,7 @@ const QuotationView = () => {
     // Check if customer has email
     if (!quotation.customer?.email) {
       alert(
-        "This customer does not have an email address. Please add an email to the customer profile first."
+        "This customer does not have an email address. Please add an email to the customer profile first.",
       );
       return;
     }
@@ -114,7 +121,7 @@ const QuotationView = () => {
       await axios.post(
         ENDPOINTS.EMAIL_SEND_QUOTATION(id),
         { pdfBase64 },
-        config
+        config,
       );
       alert("Email sent successfully!");
     } catch (error) {
@@ -261,7 +268,10 @@ const QuotationView = () => {
           )}
           {quotation.customer?.taxNumber && (
             <p className="text-slate-600 font-medium">
-              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {quotation.customer.taxNumber}
+              {settings?.tax?.label && settings.tax.label !== "Tax"
+                ? settings.tax.label
+                : "TIN"}
+              : {quotation.customer.taxNumber}
             </p>
           )}
         </div>
@@ -300,13 +310,22 @@ const QuotationView = () => {
                     <div
                       className="text-xs text-slate-500 mt-1 prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{
-                        __html: item.description || item.product.shortDescription,
+                        __html:
+                          item.description || item.product.shortDescription,
                       }}
                     />
                   )}
                   {item.discount > 0 && (
                     <div className="text-xs text-red-500 mt-1">
-                      Discount: -{formatCurrency(item.discount, settings)}
+                      Discount: -
+                      {item.discountType === "percentage"
+                        ? `${item.discount}%`
+                        : formatCurrency(item.discount, settings)}
+                    </div>
+                  )}
+                  {item.isTaxable && (
+                    <div className="text-xs text-blue-500 mt-1">
+                      {settings?.tax?.label || "Tax"} ({item.taxMethod})
                     </div>
                   )}
                 </td>

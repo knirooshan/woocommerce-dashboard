@@ -46,7 +46,7 @@ const InvoiceView = () => {
             try {
               const base64Image = await urlToBase64(
                 item.product.images[0],
-                token
+                token,
               );
               return { ...item, image: base64Image };
             } catch (error) {
@@ -55,7 +55,7 @@ const InvoiceView = () => {
             }
           }
           return { ...item, image: null };
-        })
+        }),
       );
 
       invoiceData.items = itemsWithImages;
@@ -111,7 +111,7 @@ const InvoiceView = () => {
       alert(
         error.response?.data?.message ||
           error.message ||
-          "Failed to send email. Please check SMTP settings."
+          "Failed to send email. Please check SMTP settings.",
       );
     } finally {
       setSendingEmail(false);
@@ -134,7 +134,7 @@ const InvoiceView = () => {
   const handleWriteOff = async () => {
     if (
       !window.confirm(
-        "Are you sure you want to write off the remaining balance? This cannot be undone."
+        "Are you sure you want to write off the remaining balance? This cannot be undone.",
       )
     )
       return;
@@ -286,9 +286,9 @@ const InvoiceView = () => {
                   invoice.status === "paid"
                     ? "text-green-600"
                     : invoice.status === "overdue" ||
-                      invoice.status === "written-off"
-                    ? "text-red-600"
-                    : "text-yellow-600"
+                        invoice.status === "written-off"
+                      ? "text-red-600"
+                      : "text-yellow-600"
                 }`}
               >
                 {invoice.status.replace("_", " ")}
@@ -348,7 +348,10 @@ const InvoiceView = () => {
           )}
           {invoice.customer?.taxNumber && (
             <p className="text-slate-600 font-medium">
-              {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer.taxNumber}
+              {settings?.tax?.label && settings.tax.label !== "Tax"
+                ? settings.tax.label
+                : "TIN"}
+              : {invoice.customer.taxNumber}
             </p>
           )}
         </div>
@@ -387,13 +390,22 @@ const InvoiceView = () => {
                     <div
                       className="text-xs text-slate-500 mt-1 prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{
-                        __html: item.description || item.product.shortDescription,
+                        __html:
+                          item.description || item.product.shortDescription,
                       }}
                     />
                   )}
                   {item.discount > 0 && (
                     <div className="text-xs text-red-500 mt-1">
-                      Discount: -{formatCurrency(item.discount, settings)}
+                      Discount: -
+                      {item.discountType === "percentage"
+                        ? `${item.discount}%`
+                        : formatCurrency(item.discount, settings)}
+                    </div>
+                  )}
+                  {item.isTaxable && (
+                    <div className="text-xs text-blue-500 mt-1">
+                      {settings?.tax?.label || "Tax"} ({item.taxMethod})
                     </div>
                   )}
                 </td>
