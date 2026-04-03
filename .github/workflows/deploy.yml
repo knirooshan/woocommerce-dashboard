@@ -2,7 +2,7 @@ name: Auto Deploy to VPS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
 
 jobs:
   deploy:
@@ -26,7 +26,7 @@ jobs:
             git config --global --add safe.directory /var/www/merchpilot
             cd /var/www/merchpilot
             git fetch --all
-            git reset --hard origin/main
+            git reset --hard origin/${{ github.ref_name }}
 
             # ── Backend ───────────────────────────────────────────────
             echo "Installing backend dependencies..."

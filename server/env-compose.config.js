@@ -13,9 +13,9 @@ const schema = {
   },
   MONGO_URI: {
     type: "string",
-    required: true,
+    required: false,
     secret: true,
-    description: "Tenant MongoDB connection string",
+    description: "Tenant MongoDB connection string (use MONGO_URI_BASE in production)",
     validate: (v) =>
       v.startsWith("mongodb://") ||
       v.startsWith("mongodb+srv://") ||
@@ -56,20 +56,20 @@ const schema = {
   },
   WOO_URL: {
     type: "url",
-    required: true,
-    description: "WooCommerce store base URL",
+    required: false,
+    description: "WooCommerce store base URL (stored per-tenant in DB for multi-tenant)",
   },
   WOO_CONSUMER_KEY: {
     type: "string",
-    required: true,
+    required: false,
     secret: true,
-    description: "WooCommerce REST API consumer key",
+    description: "WooCommerce REST API consumer key (stored per-tenant in DB)",
   },
   WOO_CONSUMER_SECRET: {
     type: "string",
-    required: true,
+    required: false,
     secret: true,
-    description: "WooCommerce REST API consumer secret",
+    description: "WooCommerce REST API consumer secret (stored per-tenant in DB)",
   },
 };
 
