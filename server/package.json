@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "env:generate": "compose-env generate --output .env.example",
+    "env:validate": "compose-env validate"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +17,7 @@
     "@woocommerce/woocommerce-rest-api": "^1.0.2",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
-    "compose-env": "^0.5.0",
+    "compose-env": "^0.5.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
