@@ -37,9 +37,9 @@ const loginUser = async (req, res) => {
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
-// @access  Public (Should be protected in production or first run only)
+// @access  Private/Admin
 const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
   try {
     const { User } = getTenantModels(req.dbConnection);
@@ -53,7 +53,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
-      role: role || "admin",
+      role: "admin",
     });
 
     if (user) {
