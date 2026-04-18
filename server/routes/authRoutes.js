@@ -6,10 +6,10 @@ const {
   logoutUser,
   verifyToken,
 } = require("../controllers/authController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, admin } = require("../middleware/authMiddleware");
 
 router.post("/login", loginUser);
-router.post("/register", registerUser);
+router.post("/register", protect, admin, registerUser);
 router.post("/logout", protect, logoutUser);
 router.get("/verify", protect, verifyToken);
 
