@@ -235,6 +235,16 @@ const QuotationPDF = ({ quotation, settings }) => (
           {settings?.contact?.email && (
             <Text style={styles.companyInfo}>{settings.contact.email}</Text>
           )}
+          {settings?.registrationNo && (
+            <Text style={styles.companyInfo}>
+              Reg No: {settings.registrationNo}
+            </Text>
+          )}
+          {settings?.taxIdNo && (
+            <Text style={styles.companyInfo}>
+              Tax ID: {settings.taxIdNo}
+            </Text>
+          )}
         </View>
       </View>
 

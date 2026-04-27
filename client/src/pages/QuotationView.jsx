@@ -230,6 +230,12 @@ const QuotationView = () => {
             <p className="text-slate-600">{settings?.address?.street}</p>
             <p className="text-slate-600">{settings?.address?.city}</p>
             <p className="text-slate-600">{settings?.contact?.email}</p>
+            {settings?.registrationNo && (
+              <p className="text-slate-600">Reg No: {settings.registrationNo}</p>
+            )}
+            {settings?.taxIdNo && (
+              <p className="text-slate-600">Tax ID: {settings.taxIdNo}</p>
+            )}
           </div>
         </div>
 

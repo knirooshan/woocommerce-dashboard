@@ -4,6 +4,8 @@ const settingsSchema = new mongoose.Schema(
   {
     storeName: { type: String, default: "My Store" },
     website: { type: String, default: "" },
+    registrationNo: { type: String, default: "" },
+    taxIdNo: { type: String, default: "" },
     address: {
       street: { type: String, default: "" },
       city: { type: String, default: "" },
