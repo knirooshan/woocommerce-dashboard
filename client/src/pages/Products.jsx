@@ -13,6 +13,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt_desc");
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -100,11 +101,29 @@ const Products = () => {
     }
   };
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products
+    .filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc":
+          return a.name.localeCompare(b.name);
+        case "name_desc":
+          return b.name.localeCompare(a.name);
+        case "price_asc":
+          return (a.price || 0) - (b.price || 0);
+        case "price_desc":
+          return (b.price || 0) - (a.price || 0);
+        case "createdAt_asc":
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        case "createdAt_desc":
+        default:
+          return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
 
   if (loading) return <div className="text-white">Loading products...</div>;
 
@@ -136,8 +155,8 @@ const Products = () => {
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-slate-900 p-4 rounded-lg shadow flex items-center border border-slate-800">
-        <Search className="text-slate-400 mr-2" />
+      <div className="bg-slate-900 p-4 rounded-lg shadow flex items-center gap-4 border border-slate-800">
+        <Search className="text-slate-400 shrink-0" />
         <input
           type="text"
           placeholder="Search products by name or SKU..."
@@ -145,6 +164,18 @@ const Products = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 outline-none bg-transparent text-white placeholder-slate-500"
         />
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="bg-slate-800 border border-slate-700 text-white text-sm rounded px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-600 shrink-0"
+        >
+          <option value="createdAt_desc">Newest First</option>
+          <option value="createdAt_asc">Oldest First</option>
+          <option value="name_asc">Name A–Z</option>
+          <option value="name_desc">Name Z–A</option>
+          <option value="price_asc">Price Low–High</option>
+          <option value="price_desc">Price High–Low</option>
+        </select>
       </div>
 
       {/* Products Table */}
