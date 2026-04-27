@@ -127,11 +127,12 @@ const urlToBase64 = async (req, res) => {
       return res.status(400).json({ message: validationError.message });
     }
 
-    // Fetch the image from the validated URL
+    // Fetch the image from the validated URL (cap at 15 MB to avoid memory issues)
     const response = await axios.get(url, {
       responseType: "arraybuffer",
-      timeout: 10000,
+      timeout: 15000,
       maxRedirects: 3,
+      maxContentLength: 15 * 1024 * 1024,
     });
 
     // Ensure the response is actually an image
@@ -144,20 +145,59 @@ const urlToBase64 = async (req, res) => {
         .json({ message: "URL does not point to a supported image" });
     }
 
-    // Convert WebP to JPEG for better PDF compatibility
+    // Convert WebP to JPEG for better PDF compatibility, and resize large
+    // images so they remain PDF-friendly (react-pdf / pdfkit handle smaller
+    // base64 payloads much more reliably).
     let imageBuffer = Buffer.from(response.data);
     let finalContentType = contentType;
 
+    const PDF_MAX_DIM = 1200; // px – enough resolution for A4 print quality
+
     if (contentType === "image/webp" || contentType.includes("webp")) {
       try {
-        imageBuffer = await sharp(imageBuffer).jpeg({ quality: 85 }).toBuffer();
+        const meta = await sharp(imageBuffer).metadata();
+        const needsResize =
+          (meta.width || 0) > PDF_MAX_DIM || (meta.height || 0) > PDF_MAX_DIM;
+        imageBuffer = await sharp(imageBuffer)
+          .resize(
+            needsResize ? PDF_MAX_DIM : undefined,
+            needsResize ? PDF_MAX_DIM : undefined,
+            {
+              fit: "inside",
+              withoutEnlargement: true,
+            },
+          )
+          .jpeg({ quality: 85 })
+          .toBuffer();
         finalContentType = "image/jpeg";
       } catch (sharpError) {
         console.log(
           "Sharp conversion failed, using original image:",
           sharpError.message,
         );
-        // If sharp fails, use original image
+      }
+    } else {
+      // For non-WebP images, still resize if they are very large
+      try {
+        const meta = await sharp(imageBuffer).metadata();
+        if (
+          (meta.width || 0) > PDF_MAX_DIM ||
+          (meta.height || 0) > PDF_MAX_DIM
+        ) {
+          imageBuffer = await sharp(imageBuffer)
+            .resize(PDF_MAX_DIM, PDF_MAX_DIM, {
+              fit: "inside",
+              withoutEnlargement: true,
+            })
+            .jpeg({ quality: 85 })
+            .toBuffer();
+          finalContentType = "image/jpeg";
+        }
+      } catch (sharpError) {
+        console.log(
+          "Sharp resize failed, using original image:",
+          sharpError.message,
+        );
       }
     }
 
