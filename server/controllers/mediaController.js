@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
       "uploads",
       tenantId,
       String(year),
-      month
+      month,
     );
 
     // Create directory if it doesn't exist
@@ -38,11 +38,57 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+]);
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+const fileFilter = (req, file, cb) => {
+  if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        "Unsupported file type. Please upload a JPEG, PNG, GIF, WebP, or SVG image.",
+      ),
+      false,
+    );
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+});
 
 // Upload Media
 exports.uploadMedia = [
-  upload.single("file"),
+  (req, res, next) => {
+    upload.single("file")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res
+            .status(400)
+            .json({
+              message: "File too large. Maximum allowed size is 10 MB.",
+            });
+        }
+        return res
+          .status(400)
+          .json({ message: `Upload error: ${err.message}` });
+      }
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      next();
+    });
+  },
   async (req, res) => {
     try {
       const { Media } = getTenantModels(req.dbConnection);
