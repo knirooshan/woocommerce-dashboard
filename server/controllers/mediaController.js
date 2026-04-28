@@ -30,11 +30,12 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    // Keep original filename but ensure uniqueness if needed, or just overwrite?
-    // User asked for WordPress style, which usually appends number if exists.
-    // For simplicity, we'll append a timestamp to avoid conflicts.
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
+    // Sanitize filename: replace spaces and unsafe URL characters with hyphens
+    const sanitized = file.originalname
+      .replace(/\s+/g, "-")
+      .replace(/[^a-zA-Z0-9.\-_]/g, "-");
+    cb(null, uniqueSuffix + "-" + sanitized);
   },
 });
 
