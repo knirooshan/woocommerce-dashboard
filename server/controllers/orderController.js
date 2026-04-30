@@ -53,7 +53,7 @@ const getOrders = async (req, res) => {
 const syncOrders = async (req, res) => {
   try {
     const { Order, Customer, Invoice, Payment, Settings } = getTenantModels(
-      req.dbConnection
+      req.dbConnection,
     );
 
     // Check feature toggle
@@ -174,7 +174,7 @@ const syncOrders = async (req, res) => {
       const savedOrder = await Order.findOneAndUpdate(
         { wooOrderId: order.id },
         orderData,
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
 
       // Create or update corresponding invoice
@@ -199,7 +199,7 @@ const syncOrders = async (req, res) => {
         status:
           order.status === "completed" || order.status === "processing"
             ? "paid"
-            : "pending",
+            : "draft",
         paymentMethod:
           order.payment_method_title || order.payment_method || "WooCommerce",
         dueDate: order.date_paid ? new Date(order.date_paid) : null,
@@ -215,7 +215,7 @@ const syncOrders = async (req, res) => {
         invoice = await Invoice.findByIdAndUpdate(
           savedOrder.invoice,
           invoiceData,
-          { new: true }
+          { new: true },
         );
       } else {
         // Create new invoice
@@ -355,7 +355,7 @@ const updateOrder = async (req, res) => {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).populate("customer");
     res.json(updatedOrder);
   } catch (error) {
@@ -382,7 +382,7 @@ const deleteOrder = async (req, res) => {
     if (order.invoice) {
       await Payment.updateMany(
         { invoice: order.invoice },
-        { status: "deleted" }
+        { status: "deleted" },
       );
       await Invoice.findByIdAndDelete(order.invoice);
     }
@@ -432,7 +432,7 @@ const refundOrder = async (req, res) => {
     if (order.invoice) {
       await Payment.updateMany(
         { invoice: order.invoice },
-        { status: "refunded" }
+        { status: "refunded" },
       );
     }
 

@@ -200,7 +200,7 @@ const getSalesReport = async (req, res) => {
       { $unwind: "$items" },
       {
         $group: {
-          _id: "$items.product",
+          _id: { $ifNull: ["$items.product", "$items.name"] },
           name: { $first: "$items.name" },
           sku: { $first: "$items.sku" },
           quantity: { $sum: "$items.quantity" },

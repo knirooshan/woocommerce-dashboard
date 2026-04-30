@@ -26,7 +26,7 @@ const getInvoicePDF = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `inline; filename="${invoice.invoiceNumber}.pdf"`
+      `inline; filename="${invoice.invoiceNumber}.pdf"`,
     );
     res.setHeader("Content-Length", pdfBuffer.length);
 
@@ -57,7 +57,7 @@ const getQuotationPDF = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `inline; filename="${quotation.quotationNumber}.pdf"`
+      `inline; filename="${quotation.quotationNumber}.pdf"`,
     );
     res.setHeader("Content-Length", pdfBuffer.length);
 
@@ -133,19 +133,25 @@ const getSalesReportPDF = async (req, res) => {
 
     // Product Breakdown
     const { Invoice } = getTenantModels(req.dbConnection);
+    const allowedStatuses = [
+      "paid",
+      "partially_paid",
+      "overdue",
+      "written-off",
+    ];
     const invoiceDateFilter = {};
     if (startDate || endDate) {
-      invoiceDateFilter.createdAt = {};
-      if (startDate) invoiceDateFilter.createdAt.$gte = new Date(startDate);
-      if (endDate) invoiceDateFilter.createdAt.$lte = new Date(endDate);
+      invoiceDateFilter.invoiceDate = {};
+      if (startDate) invoiceDateFilter.invoiceDate.$gte = new Date(startDate);
+      if (endDate) invoiceDateFilter.invoiceDate.$lte = new Date(endDate);
     }
 
     const productBreakdown = await Invoice.aggregate([
-      { $match: { status: { $ne: "deleted" }, ...invoiceDateFilter } },
+      { $match: { status: { $in: allowedStatuses }, ...invoiceDateFilter } },
       { $unwind: "$items" },
       {
         $group: {
-          _id: "$items.product",
+          _id: { $ifNull: ["$items.product", "$items.name"] },
           name: { $first: "$items.name" },
           sku: { $first: "$items.sku" },
           quantity: { $sum: "$items.quantity" },
@@ -165,13 +171,13 @@ const getSalesReportPDF = async (req, res) => {
       settings,
       timeframe,
       { startDate, endDate },
-      productBreakdown
+      productBreakdown,
     );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="Sales_Report_${timeframe}.pdf"`
+      `attachment; filename="Sales_Report_${timeframe}.pdf"`,
     );
     res.send(pdfBuffer);
   } catch (error) {
@@ -275,13 +281,13 @@ const getProfitLossReportPDF = async (req, res) => {
       stats,
       settings,
       timeframe,
-      { startDate, endDate }
+      { startDate, endDate },
     );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="Profit_Loss_Report_${timeframe}.pdf"`
+      `attachment; filename="Profit_Loss_Report_${timeframe}.pdf"`,
     );
     res.send(pdfBuffer);
   } catch (error) {
