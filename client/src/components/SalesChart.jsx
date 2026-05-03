@@ -11,12 +11,20 @@ import { formatCurrency } from "../utils/currency";
 
 const SalesChart = ({ data, settings, period }) => {
   const chartTitles = {
-    "7d": "Sales — Last 7 Days",
-    month: "Sales — This Month",
-    year: "Sales — This Year",
-    all: "Sales — All Time",
+    "7d": "Sales - Last 7 Days",
+    month: "Sales - Last 30 Days",
+    year: "Sales - Last 12 Months",
+    all: "Sales - All Time",
   };
   const title = chartTitles[period] || "Sales";
+
+  // Avoid overprinting x-axis labels for dense periods
+  const xAxisProps =
+    period === "month"
+      ? { interval: 4, angle: -35, textAnchor: "end", height: 50 }
+      : period === "7d" || period === "year"
+        ? { interval: 0, angle: -35, textAnchor: "end", height: 50 }
+        : { interval: "preserveStartEnd" };
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
@@ -40,7 +48,7 @@ const SalesChart = ({ data, settings, period }) => {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data || []}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-            <XAxis dataKey="name" stroke="#94a3b8" />
+            <XAxis dataKey="name" stroke="#94a3b8" {...xAxisProps} />
             <YAxis stroke="#94a3b8" />
             <Tooltip content={<CustomTooltip />} />
             <Line

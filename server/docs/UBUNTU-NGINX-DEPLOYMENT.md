@@ -603,6 +603,9 @@ server {
         # Rate limiting
         limit_req zone=api_limit burst=20 nodelay;
 
+        # Allow file uploads up to 15 MB (increase if needed)
+        client_max_body_size 15m;
+
         # Proxy settings
         proxy_pass https://nodejs_backend;
         proxy_http_version 1.1;

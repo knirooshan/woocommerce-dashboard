@@ -16,7 +16,7 @@ This document explains how to automatically deploy the `main` branch of this rep
 
 ---
 
-## A — Prepare the VPS (one-time)
+## A - Prepare the VPS (one-time)
 
 1. Update the system and install essentials:
 
@@ -81,7 +81,7 @@ sudo systemctl reload sshd
 
 ---
 
-## B — Create SSH deploy key (locally)
+## B - Create SSH deploy key (locally)
 
 On your development machine (PowerShell example):
 
@@ -105,7 +105,7 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 ---
 
-## C — Add private key & host data to GitHub Secrets
+## C - Add private key & host data to GitHub Secrets
 
 In your GitHub repo: `Settings → Secrets → Actions` add:
 
@@ -117,7 +117,7 @@ In your GitHub repo: `Settings → Secrets → Actions` add:
 
 ---
 
-## D — Remote `deploy.sh` (recommended to keep in repo at `server/deploy.sh`)
+## D - Remote `deploy.sh` (recommended to keep in repo at `server/deploy.sh`)
 
 Create `server/deploy.sh` (executable) with the following example. Adjust paths and service name as needed.
 
@@ -172,7 +172,7 @@ Notes:
 
 ---
 
-## E — `systemd` service example
+## E - `systemd` service example
 
 Create `/etc/systemd/system/woocommerce-dashboard.service`:
 
@@ -208,7 +208,7 @@ If you use `pm2`, use `pm2 start` and `pm2 startup` instead.
 
 ---
 
-## F — GitHub Actions workflow (example)
+## F - GitHub Actions workflow (example)
 
 Create `.github/workflows/deploy.yml` with this minimal example (modify to your needs):
 
@@ -249,7 +249,7 @@ Notes:
 
 ---
 
-## G — How to test
+## G - How to test
 
 1. Make a small harmless change and push to `main`.
 2. In GitHub repo → Actions, watch the `Deploy to VPS` run.
@@ -264,7 +264,7 @@ sudo journalctl -u woocommerce-dashboard.service -n 200 --no-pager
 
 ---
 
-## H — Rollback
+## H - Rollback
 
 Quick rollback example on the VPS:
 
@@ -279,7 +279,7 @@ Better: tag releases and deploy by tag to make rollbacks simpler.
 
 ---
 
-## I — Security & hardening checklist
+## I - Security & hardening checklist
 
 - Keep `SSH_PRIVATE_KEY` only in GitHub Secrets.
 - Set `PasswordAuthentication no` after confirming key auth.
@@ -290,7 +290,7 @@ Better: tag releases and deploy by tag to make rollbacks simpler.
 
 ---
 
-## J — Optional: Build on GitHub Actions and copy artifacts
+## J - Optional: Build on GitHub Actions and copy artifacts
 
 - Build `client` in the Actions runner and push only the `dist/` output to the VPS via `scp` or `rsync`.
 - This avoids installing the full build toolchain on the VPS.
@@ -304,7 +304,7 @@ Example steps (high level):
 
 ---
 
-## K — Troubleshooting tips
+## K - Troubleshooting tips
 
 - SSH fails from Actions: check `authorized_keys`, `KNOWN_HOSTS`, and GitHub Secret values.
 - Service fails: `sudo systemctl status woocommerce-dashboard.service` and `sudo journalctl -u woocommerce-dashboard.service -n 200`.
@@ -312,7 +312,7 @@ Example steps (high level):
 
 ---
 
-## L — Useful commands (copy/paste)
+## L - Useful commands (copy/paste)
 
 ```bash
 # On VPS: basic setup

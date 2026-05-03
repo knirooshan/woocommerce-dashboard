@@ -17,8 +17,8 @@ const PERIOD_OPTIONS = [
 
 const PERIOD_LABELS = {
   "7d": "Last 7 Days",
-  month: "This Month",
-  year: "This Year",
+  month: "Last 30 Days",
+  year: "Last 12 Months",
   all: "All Time",
 };
 
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
       const results = await Promise.all(requests);
 
-      // Normalize stats — handle both new API (periodSales) and legacy API (totalSales/monthlySales)
+      // Normalize stats - handle both new API (periodSales) and legacy API (totalSales/monthlySales)
       const raw = results[0].data;
       let normalizedStats;
       if (raw && "periodSales" in raw) {

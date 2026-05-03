@@ -1,6 +1,6 @@
 # WooCommerce Dashboard
 
-This repository contains a self-hosted WooCommerce dashboard application — a lightweight POS / invoicing / reporting system built to work with WooCommerce stores and as a standalone small business dashboard.
+This repository contains a self-hosted WooCommerce dashboard application - a lightweight POS / invoicing / reporting system built to work with WooCommerce stores and as a standalone small business dashboard.
 
 This README explains the project, architecture, installation, deployment, and a feature-by-feature overview so you (or other contributors) can quickly understand how the system works and what each part does.
 
@@ -11,22 +11,22 @@ This README explains the project, architecture, installation, deployment, and a 
 - Project: WooCommerce Dashboard
 - Stack: React (Vite) client + Node.js server (Express-like), MongoDB for storage. Hosted on an Ubuntu VPS in production.
 - Repo layout (top-level):
-  - `client/` — React + Vite front-end application.
-  - `server/` — Node server, controllers, models, routes, services, and docs.
-  - `server/docs/` — deployment and hosting documentation (including `AUTOMATED-DEPLOYMENT.md`).
+  - `client/` - React + Vite front-end application.
+  - `server/` - Node server, controllers, models, routes, services, and docs.
+  - `server/docs/` - deployment and hosting documentation (including `AUTOMATED-DEPLOYMENT.md`).
 
 See `server/docs/AUTOMATED-DEPLOYMENT.md` for recommended automated deploy setup (GitHub Actions → VPS).
 
 ---
 
-## Features — detailed
+## Features - detailed
 
 The app provides a complete small-business dashboard. Each feature below includes a short explanation of what it does and where to look in the code.
 
 - Authentication & Users
 
   - Login, logout, and user management. User model lives in `server/models/User.js` and routes/controllers in `server/controllers` and `server/routes/userRoutes.js`.
-  - Roles: at least `admin` and regular users — admin-only pages (Users, Settings) appear for admin users.
+  - Roles: at least `admin` and regular users - admin-only pages (Users, Settings) appear for admin users.
 
 - Dashboard / Stats
 
@@ -95,18 +95,18 @@ The app provides a complete small-business dashboard. Each feature below include
 
 ## Architecture & where code lives
 
-- Client (SPA): `client/` — React with Vite. Main entry in `client/src/main.jsx` and routes/pages in `client/src/pages/`.
-- Server: `server/` — Node application with controllers, models, routes and services. Typical files:
-  - `server/index.js` — app entry.
-  - `server/routes/` — express-style route files.
-  - `server/controllers/` — request handlers for resources.
-  - `server/models/` — Mongoose models.
-  - `server/services/` — helper services (email, PDF, WooCommerce integration).
-  - `server/middleware/` — authentication and logging middleware.
+- Client (SPA): `client/` - React with Vite. Main entry in `client/src/main.jsx` and routes/pages in `client/src/pages/`.
+- Server: `server/` - Node application with controllers, models, routes and services. Typical files:
+  - `server/index.js` - app entry.
+  - `server/routes/` - express-style route files.
+  - `server/controllers/` - request handlers for resources.
+  - `server/models/` - Mongoose models.
+  - `server/services/` - helper services (email, PDF, WooCommerce integration).
+  - `server/middleware/` - authentication and logging middleware.
 
 ---
 
-## Installation — local development
+## Installation - local development
 
 Prerequisites:
 
@@ -188,19 +188,19 @@ sudo systemctl restart woocommerce-dashboard.service
 
 ## Environment variables (common)
 
-Use the example above; these are common keys — check `server` code and `server/.env.example` (if present) for exact names.
+Use the example above; these are common keys - check `server` code and `server/.env.example` (if present) for exact names.
 
-- `MONGODB_URI` — MongoDB connection string
-- `JWT_SECRET` — JWT signing secret for authentication
-- `PORT` — server port
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — email sending credentials
+- `MONGODB_URI` - MongoDB connection string
+- `JWT_SECRET` - JWT signing secret for authentication
+- `PORT` - server port
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` - email sending credentials
 - Any other app-specific keys should be in `server/.env` and not committed to Git.
 
 ---
 
 ## Backups, rollback & monitoring
 
-- Backup your MongoDB regularly — use `mongodump` or managed snapshots in Atlas.
+- Backup your MongoDB regularly - use `mongodump` or managed snapshots in Atlas.
 - The deploy script in `server/docs/AUTOMATED-DEPLOYMENT.md` writes a log. Keep logs in a persistent location if needed.
 - Rollback: on the VPS `git reset --hard <previous-commit>` and restart service. Use tags/releases for safer rollbacks.
 - Add a simple health-check endpoint (e.g. `/health`) to allow uptime checks.
