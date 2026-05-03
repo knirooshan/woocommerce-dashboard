@@ -32,9 +32,17 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState("month");
   const initialized = useRef(false);
+  // Holds the AbortController for the current in-flight request so stale
+  // responses (e.g. from React StrictMode double-invocation) never overwrite
+  // data for a newer period.
+  const abortRef = useRef(null);
 
   useEffect(() => {
     fetchDashboardData("month", true);
+    return () => {
+      // Cancel on unmount / StrictMode cleanup
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -44,9 +52,17 @@ const Dashboard = () => {
   }, [period]);
 
   const fetchDashboardData = async (activePeriod, isInitial) => {
+    // Abort any previous in-flight request before starting a new one
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const token = user.token;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      };
 
       if (isInitial) setLoading(true);
       else setRefreshing(true);
@@ -67,7 +83,9 @@ const Dashboard = () => {
 
       const results = await Promise.all(requests);
 
-      // Normalize stats - handle both new API (periodSales) and legacy API (totalSales/monthlySales)
+      // If this request was superseded, discard the response
+      if (controller.signal.aborted) return;
+
       const raw = results[0].data;
       let normalizedStats;
       if (raw && "periodSales" in raw) {
@@ -78,9 +96,7 @@ const Dashboard = () => {
           periodSales: isMonth
             ? (raw.monthlySales ?? 0)
             : (raw.totalSales ?? 0),
-          periodOrders: isMonth
-            ? (raw.totalOrders ?? 0)
-            : (raw.totalOrders ?? 0),
+          periodOrders: raw.totalOrders ?? 0,
           periodExpenses: isMonth
             ? (raw.monthlyExpenses ?? 0)
             : (raw.totalExpenses ?? 0),
@@ -96,11 +112,15 @@ const Dashboard = () => {
       setChartData(results[1].data);
       if (isInitial) setActivities(results[2].data);
     } catch (error) {
+      // Ignore intentional cancellations; log real errors
+      if (axios.isCancel(error) || error.name === "CanceledError") return;
       console.error("Error fetching dashboard data:", error);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
-      initialized.current = true;
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        setRefreshing(false);
+        initialized.current = true;
+      }
     }
   };
 
