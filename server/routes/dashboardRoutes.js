@@ -45,34 +45,36 @@ router.get("/stats", protect, async (req, res) => {
     const { period = "month" } = req.query;
     const { start, end } = getPeriodRange(period);
 
-    const dateFilter = start ? { $gte: start, $lte: end } : undefined;
-
-    const paymentMatch = { status: "active" };
-    if (dateFilter) paymentMatch.date = dateFilter;
+    // Build match filters
+    const paymentMatch = { status: { $ne: "deleted" } };
+    if (start) paymentMatch.date = { $gte: start, $lte: end };
 
     const expenseMatch = {};
-    if (dateFilter) expenseMatch.date = dateFilter;
+    if (start) expenseMatch.date = { $gte: start, $lte: end };
 
     const invoiceMatch = { status: { $ne: "deleted" } };
-    if (dateFilter) invoiceMatch.createdAt = dateFilter;
+    if (start) invoiceMatch.createdAt = { $gte: start, $lte: end };
 
-    // Period sales
-    const salesResult = await Payment.aggregate([
-      { $match: paymentMatch },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const periodSales = salesResult.length > 0 ? salesResult[0].total : 0;
+    // Period sales — use find() + reduce for reliability
+    const periodPayments = await Payment.find(paymentMatch)
+      .select("amount")
+      .lean();
+    const periodSales = periodPayments.reduce(
+      (sum, p) => sum + (p.amount || 0),
+      0,
+    );
 
-    // Period orders (invoices created in period)
+    // Period orders
     const periodOrders = await Invoice.countDocuments(invoiceMatch);
 
-    // Period expenses
-    const expensesResult = await Expense.aggregate([
-      { $match: expenseMatch },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]);
-    const periodExpenses =
-      expensesResult.length > 0 ? expensesResult[0].total : 0;
+    // Period expenses — use find() + reduce for reliability
+    const periodExpensesDocs = await Expense.find(expenseMatch)
+      .select("amount")
+      .lean();
+    const periodExpenses = periodExpensesDocs.reduce(
+      (sum, e) => sum + (e.amount || 0),
+      0,
+    );
 
     const periodNetProfit = periodSales - periodExpenses;
 
