@@ -1,4 +1,5 @@
 const { getTenantModels } = require("../models/tenantModels");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Create a new payment
 // @route   POST /api/payments
@@ -98,9 +99,10 @@ const getPayments = async (req, res) => {
 
     // Filter by date range
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate);
-      if (endDate) filter.date.$lte = new Date(endDate);
+      if (startDate) filter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const count = await Payment.countDocuments(filter);

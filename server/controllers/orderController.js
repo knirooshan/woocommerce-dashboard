@@ -1,5 +1,6 @@
 const { getTenantModels } = require("../models/tenantModels");
 const { getWooOrders } = require("../services/wooService");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Get all orders
 // @route   GET /api/orders
@@ -32,9 +33,10 @@ const getOrders = async (req, res) => {
 
     // Filter by date range
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       filter.dateCreated = {};
-      if (startDate) filter.dateCreated.$gte = new Date(startDate);
-      if (endDate) filter.dateCreated.$lte = new Date(endDate);
+      if (startDate) filter.dateCreated.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.dateCreated.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const orders = await Order.find(filter)

@@ -1,4 +1,5 @@
 const { getTenantModels } = require("../models/tenantModels");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Get all invoices
 // @route   GET /api/invoices
@@ -31,9 +32,10 @@ const getInvoices = async (req, res) => {
 
     // Filter by date range
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       filter.invoiceDate = {};
-      if (startDate) filter.invoiceDate.$gte = new Date(startDate);
-      if (endDate) filter.invoiceDate.$lte = new Date(endDate);
+      if (startDate) filter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const invoices = await Invoice.find(filter)

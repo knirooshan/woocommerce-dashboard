@@ -48,6 +48,7 @@ const settingsSchema = new mongoose.Schema(
     dateTime: {
       dateFormat: { type: String, default: "MM/DD/YYYY" }, // MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
       timeFormat: { type: String, default: "12h" }, // 12h, 24h
+      timezone: { type: String, default: "UTC" }, // IANA timezone, e.g. "UTC", "America/New_York"
     },
     terms: {
       invoice: { type: String, default: "" },

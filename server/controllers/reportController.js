@@ -1,4 +1,5 @@
 const { getTenantModels } = require("../models/tenantModels");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Get Dashboard Stats
 // @route   GET /api/reports/dashboard
@@ -27,9 +28,10 @@ const getDashboardStats = async (req, res) => {
 
     const dateFilter = {};
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       dateFilter.date = {};
-      if (startDate) dateFilter.date.$gte = new Date(startDate);
-      if (endDate) dateFilter.date.$lte = new Date(endDate);
+      if (startDate) dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) dateFilter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
     // Calculate Total Sales (sum of all non-deleted payments related to valid invoices)
@@ -96,11 +98,12 @@ const getSalesReport = async (req, res) => {
     }).select("_id");
     const validInvoiceIds = validInvoices.map((inv) => inv._id);
 
+    const timezone = startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
-      if (startDate) dateFilter.date.$gte = new Date(startDate);
-      if (endDate) dateFilter.date.$lte = new Date(endDate);
+      if (startDate) dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) dateFilter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
     let dateFormat;
@@ -191,8 +194,8 @@ const getSalesReport = async (req, res) => {
     const invoiceDateFilter = {};
     if (startDate || endDate) {
       invoiceDateFilter.invoiceDate = {};
-      if (startDate) invoiceDateFilter.invoiceDate.$gte = new Date(startDate);
-      if (endDate) invoiceDateFilter.invoiceDate.$lte = new Date(endDate);
+      if (startDate) invoiceDateFilter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) invoiceDateFilter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const productBreakdown = await Invoice.aggregate([
@@ -242,11 +245,12 @@ const getProfitLossReport = async (req, res) => {
     }).select("_id");
     const validInvoiceIds = validInvoices.map((inv) => inv._id);
 
+    const timezone = startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
-      if (startDate) dateFilter.date.$gte = new Date(startDate);
-      if (endDate) dateFilter.date.$lte = new Date(endDate);
+      if (startDate) dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) dateFilter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
     // 1. Get Aggregated Data (for chart)

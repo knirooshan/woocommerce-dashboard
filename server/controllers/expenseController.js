@@ -1,4 +1,5 @@
 const { getTenantModels } = require("../models/tenantModels");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Get all expenses
 // @route   GET /api/expenses
@@ -30,16 +31,17 @@ const getExpenses = async (req, res) => {
       filter.vendor = vendor;
     }
 
-    // Filter by date range
+    // Filter by date range using the configured timezone
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       filter.date = {};
-      if (startDate) filter.date.$gte = new Date(startDate);
-      if (endDate) filter.date.$lte = new Date(endDate);
+      if (startDate) filter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const expenses = await Expense.find(filter)
       .populate("vendor", "name")
-      .sort({ date: -1 });
+      .sort({ date: -1, createdAt: -1 });
     res.json(expenses);
   } catch (error) {
     res.status(500).json({ message: error.message });

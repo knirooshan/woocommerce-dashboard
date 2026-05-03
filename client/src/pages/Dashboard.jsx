@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
@@ -8,6 +8,20 @@ import SalesChart from "../components/SalesChart";
 import { formatCurrency } from "../utils/currency";
 import { formatDate, formatTime } from "../utils/date";
 
+const PERIOD_OPTIONS = [
+  { label: "7 Days", value: "7d" },
+  { label: "Month", value: "month" },
+  { label: "Year", value: "year" },
+  { label: "All Time", value: "all" },
+];
+
+const PERIOD_LABELS = {
+  "7d": "Last 7 Days",
+  month: "This Month",
+  year: "This Year",
+  all: "All Time",
+};
+
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const { data: settings } = useSelector((state) => state.settings);
@@ -15,30 +29,46 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [period, setPeriod] = useState("month");
+  const initialized = useRef(false);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(true);
   }, []);
 
-  const fetchDashboardData = async () => {
+  useEffect(() => {
+    if (initialized.current) {
+      fetchDashboardData(false);
+    }
+  }, [period]);
+
+  const fetchDashboardData = async (isInitial) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      // Fetch stats, chart data, and activities in parallel
-      const [statsRes, chartRes, activitiesRes] = await Promise.all([
-        axios.get(ENDPOINTS.DASHBOARD_STATS, config),
-        axios.get(ENDPOINTS.DASHBOARD_CHART, config),
-        axios.get(ENDPOINTS.DASHBOARD_ACTIVITIES, config),
-      ]);
+      if (isInitial) setLoading(true);
+      else setRefreshing(true);
 
-      setStats(statsRes.data);
-      setChartData(chartRes.data);
-      setActivities(activitiesRes.data);
-      setLoading(false);
+      const requests = [
+        axios.get(`${ENDPOINTS.DASHBOARD_STATS}?period=${period}`, config),
+        axios.get(`${ENDPOINTS.DASHBOARD_CHART}?period=${period}`, config),
+      ];
+      if (isInitial) {
+        requests.push(axios.get(ENDPOINTS.DASHBOARD_ACTIVITIES, config));
+      }
+
+      const results = await Promise.all(requests);
+      setStats(results[0].data);
+      setChartData(results[1].data);
+      if (isInitial) setActivities(results[2].data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
       setLoading(false);
+      setRefreshing(false);
+      initialized.current = true;
     }
   };
 
@@ -53,23 +83,47 @@ const Dashboard = () => {
     );
   }
 
+  const periodLabel = PERIOD_LABELS[period];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-white">Dashboard Overview</h1>
+        <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                period === opt.value
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {refreshing && (
+        <div className="flex items-center gap-2 text-slate-400 text-sm">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+          Updating...
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Sales"
-          value={formatCurrency(stats?.totalSales || 0, settings)}
+          title={`Sales (${periodLabel})`}
+          value={formatCurrency(stats?.periodSales || 0, settings)}
           icon={DollarSign}
           color="text-green-500 bg-green-500"
         />
         <StatsCard
-          title="Total Orders"
-          value={stats?.totalOrders || 0}
+          title={`Orders (${periodLabel})`}
+          value={stats?.periodOrders || 0}
           icon={ShoppingBag}
           color="text-blue-500 bg-blue-500"
         />
@@ -89,36 +143,36 @@ const Dashboard = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SalesChart data={chartData} settings={settings} />
+        <SalesChart data={chartData} settings={settings} period={period} />
         <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <h3 className="text-lg font-bold text-white mb-4">
             Financial Summary
           </h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-              <span className="text-slate-400">Monthly Sales</span>
+              <span className="text-slate-400">{periodLabel} Sales</span>
               <span className="font-semibold text-green-500">
-                {formatCurrency(stats?.monthlySales || 0, settings)}
+                {formatCurrency(stats?.periodSales || 0, settings)}
               </span>
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-              <span className="text-slate-400">Monthly Expenses</span>
+              <span className="text-slate-400">{periodLabel} Expenses</span>
               <span className="font-semibold text-red-500">
-                {formatCurrency(stats?.monthlyExpenses || 0, settings)}
+                {formatCurrency(stats?.periodExpenses || 0, settings)}
               </span>
             </div>
             <div className="flex justify-between items-center pt-2">
               <span className="text-white font-medium">
-                Net Profit (Monthly)
+                Net Profit ({periodLabel})
               </span>
               <span
                 className={`font-bold text-lg ${
-                  (stats?.monthlyNetProfit || 0) >= 0
+                  (stats?.periodNetProfit || 0) >= 0
                     ? "text-green-500"
                     : "text-red-500"
                 }`}
               >
-                {formatCurrency(stats?.monthlyNetProfit || 0, settings)}
+                {formatCurrency(stats?.periodNetProfit || 0, settings)}
               </span>
             </div>
           </div>

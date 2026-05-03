@@ -34,7 +34,7 @@ const Settings = () => {
     bank: { accountName: "", accountNumber: "", bankName: "", branch: "" },
     currency: { code: "USD", symbol: "$", position: "before" },
     tax: { rate: 0, label: "Tax", defaultMethod: "exclusive" },
-    dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h" },
+    dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h", timezone: "UTC" },
     terms: { invoice: "", quotation: "", deliveryReceipt: "" },
     wooCommerce: { url: "", consumerKey: "", consumerSecret: "" },
     modules: { woocommerce: true, pos: true },
@@ -493,6 +493,50 @@ const Settings = () => {
                 <option value="12h">12-hour (e.g. 01:30 PM)</option>
                 <option value="24h">24-hour (e.g. 13:30)</option>
               </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Timezone
+              </label>
+              <select
+                name="timezone"
+                value={formData.dateTime?.timezone || "UTC"}
+                onChange={(e) => handleChange(e, "dateTime")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
+              >
+                <option value="UTC">UTC+0 — UTC (Coordinated Universal Time)</option>
+                <option value="Europe/London">UTC+0/+1 — London</option>
+                <option value="Europe/Paris">UTC+1/+2 — Paris, Berlin, Rome, Madrid</option>
+                <option value="Europe/Helsinki">UTC+2/+3 — Helsinki, Athens, Cairo</option>
+                <option value="Europe/Moscow">UTC+3 — Moscow, Nairobi</option>
+                <option value="Asia/Dubai">UTC+4 — Dubai, Abu Dhabi</option>
+                <option value="Asia/Karachi">UTC+5 — Karachi, Tashkent</option>
+                <option value="Asia/Kolkata">UTC+5:30 — India (IST)</option>
+                <option value="Asia/Kathmandu">UTC+5:45 — Kathmandu (Nepal)</option>
+                <option value="Asia/Dhaka">UTC+6 — Dhaka, Almaty</option>
+                <option value="Asia/Rangoon">UTC+6:30 — Yangon (Myanmar)</option>
+                <option value="Asia/Bangkok">UTC+7 — Bangkok, Jakarta, Hanoi</option>
+                <option value="Asia/Singapore">UTC+8 — Singapore, Kuala Lumpur, Beijing</option>
+                <option value="Asia/Tokyo">UTC+9 — Tokyo, Seoul</option>
+                <option value="Australia/Darwin">UTC+9:30 — Darwin (ACST)</option>
+                <option value="Australia/Sydney">UTC+10/+11 — Sydney, Melbourne (AEST)</option>
+                <option value="Pacific/Auckland">UTC+12/+13 — Auckland (NZST)</option>
+                <option value="Pacific/Midway">UTC-11 — Midway Island, Samoa</option>
+                <option value="Pacific/Honolulu">UTC-10 — Hawaii (HST)</option>
+                <option value="America/Anchorage">UTC-9/-8 — Anchorage (AKST)</option>
+                <option value="America/Los_Angeles">UTC-8/-7 — Los Angeles, Seattle (PST)</option>
+                <option value="America/Denver">UTC-7/-6 — Denver, Phoenix (MST)</option>
+                <option value="America/Chicago">UTC-6/-5 — Chicago, Mexico City (CST)</option>
+                <option value="America/New_York">UTC-5/-4 — New York, Toronto (EST)</option>
+                <option value="America/Caracas">UTC-4 — Caracas, La Paz</option>
+                <option value="America/St_Johns">UTC-3:30/-2:30 — St. John&apos;s (NST)</option>
+                <option value="America/Sao_Paulo">UTC-3/-2 — São Paulo, Buenos Aires</option>
+                <option value="Atlantic/South_Georgia">UTC-2 — South Georgia</option>
+                <option value="Atlantic/Azores">UTC-1/0 — Azores</option>
+              </select>
+              <p className="mt-1 text-xs text-slate-400">
+                Used by the server for date range filtering. Defaults to UTC if not set.
+              </p>
             </div>
           </div>
         </div>
