@@ -31,31 +31,22 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState("month");
-  const initialized = useRef(false);
+  // Track whether the initial activities fetch has completed.
+  // This ref persists across re-renders without causing extra renders.
+  const activitiesFetchedRef = useRef(false);
   // Holds the AbortController for the current in-flight request so stale
   // responses (e.g. from React StrictMode double-invocation) never overwrite
   // data for a newer period.
   const abortRef = useRef(null);
 
-  useEffect(() => {
-    fetchDashboardData("month", true);
-    return () => {
-      // Cancel on unmount / StrictMode cleanup
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (initialized.current) {
-      fetchDashboardData(period, false);
-    }
-  }, [period]);
-
-  const fetchDashboardData = async (activePeriod, isInitial) => {
+  const fetchDashboardData = async (activePeriod) => {
     // Abort any previous in-flight request before starting a new one
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+
+    // First-ever fetch: show the full-page loader and load activity logs too
+    const isInitial = !activitiesFetchedRef.current;
 
     try {
       const token = user.token;
@@ -110,7 +101,10 @@ const Dashboard = () => {
 
       setStats(normalizedStats);
       setChartData(results[1].data);
-      if (isInitial) setActivities(results[2].data);
+      if (isInitial) {
+        setActivities(results[2].data);
+        activitiesFetchedRef.current = true;
+      }
     } catch (error) {
       // Ignore intentional cancellations; log real errors
       if (axios.isCancel(error) || error.name === "CanceledError") return;
@@ -119,10 +113,19 @@ const Dashboard = () => {
       if (!controller.signal.aborted) {
         setLoading(false);
         setRefreshing(false);
-        initialized.current = true;
       }
     }
   };
+
+  // Re-fetch whenever the period changes; also handles the initial mount load.
+  // activitiesFetchedRef ensures activity logs are only fetched once.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    fetchDashboardData(period);
+    return () => {
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, [period]);
 
   if (loading) {
     return (

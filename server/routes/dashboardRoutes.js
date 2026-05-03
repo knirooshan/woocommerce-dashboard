@@ -50,14 +50,16 @@ router.get("/stats", protect, async (req, res) => {
     const { start, end } = getPeriodRange(period);
 
     // Build match filters
-    const paymentMatch = { status: { $ne: "deleted" } };
+    // Only count active (non-refunded, non-deleted) payments as revenue
+    const paymentMatch = { status: "active" };
     if (start) paymentMatch.date = { $gte: start, $lte: end };
 
     const expenseMatch = {};
     if (start) expenseMatch.date = { $gte: start, $lte: end };
 
-    const invoiceMatch = { status: { $ne: "deleted" } };
-    if (start) invoiceMatch.createdAt = { $gte: start, $lte: end };
+    // Exclude deleted and cancelled invoices; use invoiceDate for period filtering
+    const invoiceMatch = { status: { $nin: ["deleted", "cancelled"] } };
+    if (start) invoiceMatch.invoiceDate = { $gte: start, $lte: end };
 
     // Period sales - use find() + reduce for reliability
     const periodPayments = await Payment.find(paymentMatch)
