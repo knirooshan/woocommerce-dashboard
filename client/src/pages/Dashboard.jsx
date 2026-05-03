@@ -67,7 +67,7 @@ const Dashboard = () => {
 
       const results = await Promise.all(requests);
 
-      // Normalize stats — handle both new API (periodSales) and legacy API (totalSales/monthlySales)
+      // Normalize stats - handle both new API (periodSales) and legacy API (totalSales/monthlySales)
       const raw = results[0].data;
       let normalizedStats;
       if (raw && "periodSales" in raw) {

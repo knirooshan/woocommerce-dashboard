@@ -11,10 +11,10 @@ import { formatCurrency } from "../utils/currency";
 
 const SalesChart = ({ data, settings, period }) => {
   const chartTitles = {
-    "7d": "Sales — Last 7 Days",
-    month: "Sales — Last 30 Days",
-    year: "Sales — Last 12 Months",
-    all: "Sales — All Time",
+    "7d": "Sales - Last 7 Days",
+    month: "Sales - Last 30 Days",
+    year: "Sales - Last 12 Months",
+    all: "Sales - All Time",
   };
   const title = chartTitles[period] || "Sales";
 

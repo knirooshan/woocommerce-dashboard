@@ -353,6 +353,9 @@ server {
 
     # API Proxy
     location /api {
+        # Allow file uploads up to 15 MB (increase if needed)
+        client_max_body_size 15m;
+
         proxy_pass https://127.0.0.1:5000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;

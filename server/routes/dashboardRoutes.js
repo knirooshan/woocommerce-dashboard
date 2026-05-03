@@ -33,7 +33,7 @@ function getPeriodRange(period) {
     start.setHours(0, 0, 0, 0);
     return { start, end: endOfToday };
   }
-  // "all" — no range
+  // "all" - no range
   return {};
 }
 
@@ -59,7 +59,7 @@ router.get("/stats", protect, async (req, res) => {
     const invoiceMatch = { status: { $ne: "deleted" } };
     if (start) invoiceMatch.createdAt = { $gte: start, $lte: end };
 
-    // Period sales — use find() + reduce for reliability
+    // Period sales - use find() + reduce for reliability
     const periodPayments = await Payment.find(paymentMatch)
       .select("amount")
       .lean();
@@ -71,7 +71,7 @@ router.get("/stats", protect, async (req, res) => {
     // Period orders
     const periodOrders = await Invoice.countDocuments(invoiceMatch);
 
-    // Period expenses — use find() + reduce for reliability
+    // Period expenses - use find() + reduce for reliability
     const periodExpensesDocs = await Expense.find(expenseMatch)
       .select("amount")
       .lean();
@@ -186,7 +186,7 @@ router.get("/chart", protect, async (req, res) => {
         chartData.push({ name: label, date: key, sales: salesMap[key] || 0 });
       }
     } else {
-      // all — group by year
+      // all - group by year
       sales.forEach((s) => {
         chartData.push({ name: s._id, date: s._id, sales: s.sales });
       });

@@ -50,7 +50,7 @@ const schema = {
     type: "string",
     required: true,
     secret: true,
-    description: "JWT signing secret — must be at least 16 characters",
+    description: "JWT signing secret - must be at least 16 characters",
     validate: (v) =>
       v.length >= 16 || "JWT_SECRET must be at least 16 characters",
   },

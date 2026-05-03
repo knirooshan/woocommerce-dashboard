@@ -42,7 +42,7 @@ ufw enable
 ufw status verbose
 ```
 
-Explanation: `deploy` is the user GitHub Actions will SSH into. The sudoers entry is optional — it limits passwordless sudo to common deploy commands.
+Explanation: `deploy` is the user GitHub Actions will SSH into. The sudoers entry is optional - it limits passwordless sudo to common deploy commands.
 
 2. Install runtime and system services
 
@@ -143,7 +143,7 @@ Explanation: This script pulls the latest code, installs deps, builds the client
 
 5. Create a CI SSH keypair (on your local machine or WSL) and add the public key to the VPS
 
-Commands (Windows PowerShell or WSL — pick one):
+Commands (Windows PowerShell or WSL - pick one):
 
 PowerShell (example):
 
