@@ -34,16 +34,16 @@ const Dashboard = () => {
   const initialized = useRef(false);
 
   useEffect(() => {
-    fetchDashboardData(true);
+    fetchDashboardData("month", true);
   }, []);
 
   useEffect(() => {
     if (initialized.current) {
-      fetchDashboardData(false);
+      fetchDashboardData(period, false);
     }
   }, [period]);
 
-  const fetchDashboardData = async (isInitial) => {
+  const fetchDashboardData = async (activePeriod, isInitial) => {
     try {
       const token = user.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -52,8 +52,14 @@ const Dashboard = () => {
       else setRefreshing(true);
 
       const requests = [
-        axios.get(`${ENDPOINTS.DASHBOARD_STATS}?period=${period}`, config),
-        axios.get(`${ENDPOINTS.DASHBOARD_CHART}?period=${period}`, config),
+        axios.get(
+          `${ENDPOINTS.DASHBOARD_STATS}?period=${activePeriod}`,
+          config,
+        ),
+        axios.get(
+          `${ENDPOINTS.DASHBOARD_CHART}?period=${activePeriod}`,
+          config,
+        ),
       ];
       if (isInitial) {
         requests.push(axios.get(ENDPOINTS.DASHBOARD_ACTIVITIES, config));
