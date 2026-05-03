@@ -66,7 +66,33 @@ const Dashboard = () => {
       }
 
       const results = await Promise.all(requests);
-      setStats(results[0].data);
+
+      // Normalize stats — handle both new API (periodSales) and legacy API (totalSales/monthlySales)
+      const raw = results[0].data;
+      let normalizedStats;
+      if (raw && "periodSales" in raw) {
+        normalizedStats = raw;
+      } else if (raw) {
+        const isMonth = activePeriod === "month";
+        normalizedStats = {
+          periodSales: isMonth
+            ? (raw.monthlySales ?? 0)
+            : (raw.totalSales ?? 0),
+          periodOrders: isMonth
+            ? (raw.totalOrders ?? 0)
+            : (raw.totalOrders ?? 0),
+          periodExpenses: isMonth
+            ? (raw.monthlyExpenses ?? 0)
+            : (raw.totalExpenses ?? 0),
+          periodNetProfit: isMonth
+            ? (raw.monthlyNetProfit ?? 0)
+            : (raw.netProfit ?? 0),
+          totalCustomers: raw.totalCustomers ?? 0,
+          totalProducts: raw.totalProducts ?? 0,
+        };
+      }
+
+      setStats(normalizedStats);
       setChartData(results[1].data);
       if (isInitial) setActivities(results[2].data);
     } catch (error) {
