@@ -9,7 +9,14 @@ import {
 } from "recharts";
 import { formatCurrency } from "../utils/currency";
 
-const SalesChart = ({ data, settings }) => {
+const SalesChart = ({ data, settings, period }) => {
+  const chartTitles = {
+    "7d": "Sales — Last 7 Days",
+    month: "Sales — This Month",
+    year: "Sales — This Year",
+    all: "Sales — All Time",
+  };
+  const title = chartTitles[period] || "Sales";
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
@@ -28,7 +35,7 @@ const SalesChart = ({ data, settings }) => {
 
   return (
     <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
-      <h3 className="text-lg font-bold text-white mb-4">Monthly Sales</h3>
+      <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data || []}>
