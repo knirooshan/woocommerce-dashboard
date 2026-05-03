@@ -9,25 +9,29 @@ const { getTenantModels } = require("../models/tenantModels");
  */
 function getPeriodRange(period) {
   const now = new Date();
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+
   if (period === "7d") {
     const start = new Date(now);
     start.setDate(now.getDate() - 6);
     start.setHours(0, 0, 0, 0);
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    return { start, end };
+    return { start, end: endOfToday };
   }
   if (period === "month") {
-    return {
-      start: new Date(now.getFullYear(), now.getMonth(), 1),
-      end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
-    };
+    // Last 30 days (rolling)
+    const start = new Date(now);
+    start.setDate(now.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: endOfToday };
   }
   if (period === "year") {
-    return {
-      start: new Date(now.getFullYear(), 0, 1),
-      end: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999),
-    };
+    // Last 12 months (rolling)
+    const start = new Date(now);
+    start.setMonth(now.getMonth() - 11);
+    start.setDate(1);
+    start.setHours(0, 0, 0, 0);
+    return { start, end: endOfToday };
   }
   // "all" — no range
   return {};
@@ -112,7 +116,7 @@ router.get("/chart", protect, async (req, res) => {
 
     // Choose mongo date format
     const groupFormat =
-      period === "year" || period === "all" ? "%Y-%m" : "%Y-%m-%d";
+      period === "all" ? "%Y" : period === "year" ? "%Y-%m" : "%Y-%m-%d";
 
     const sales = await Payment.aggregate([
       { $match: matchStage },
@@ -132,16 +136,28 @@ router.get("/chart", protect, async (req, res) => {
 
     const chartData = [];
 
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
     if (period === "7d") {
+      // Last 7 days: one point per day
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(now.getDate() - i);
         const dateStr = d.toISOString().split("T")[0];
-        const label = d.toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        });
+        const label = `${monthNames[d.getMonth()]} ${d.getDate()}`;
         chartData.push({
           name: label,
           date: dateStr,
@@ -149,39 +165,28 @@ router.get("/chart", protect, async (req, res) => {
         });
       }
     } else if (period === "month") {
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      // Last 30 days: one point per day
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
         const dateStr = d.toISOString().split("T")[0];
+        const label = `${monthNames[d.getMonth()]} ${d.getDate()}`;
         chartData.push({
-          name: d.getDate().toString(),
+          name: label,
           date: dateStr,
           sales: salesMap[dateStr] || 0,
         });
       }
     } else if (period === "year") {
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      for (let m = 0; m < 12; m++) {
-        const key = `${now.getFullYear()}-${String(m + 1).padStart(2, "0")}`;
-        chartData.push({
-          name: monthNames[m],
-          date: key,
-          sales: salesMap[key] || 0,
-        });
+      // Last 12 months: one point per month (rolling)
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+        chartData.push({ name: label, date: key, sales: salesMap[key] || 0 });
       }
     } else {
-      // all — use aggregated results as-is
+      // all — group by year
       sales.forEach((s) => {
         chartData.push({ name: s._id, date: s._id, sales: s.sales });
       });
