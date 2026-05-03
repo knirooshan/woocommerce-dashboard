@@ -1,4 +1,5 @@
 const { getTenantModels } = require("../models/tenantModels");
+const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
 
 // @desc    Get all quotations
 // @route   GET /api/quotations
@@ -31,9 +32,10 @@ const getQuotations = async (req, res) => {
 
     // Filter by date range
     if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
       filter.quotationDate = {};
-      if (startDate) filter.quotationDate.$gte = new Date(startDate);
-      if (endDate) filter.quotationDate.$lte = new Date(endDate);
+      if (startDate) filter.quotationDate.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.quotationDate.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const quotations = await Quotation.find(filter)
