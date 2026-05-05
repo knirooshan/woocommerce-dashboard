@@ -53,6 +53,7 @@ export const ENDPOINTS = {
   // Customers
   CUSTOMERS: `${API_URL}/customers`,
   CUSTOMER_BY_ID: (id) => `${API_URL}/customers/${id}`,
+  CUSTOMER_SUMMARY: (id) => `${API_URL}/customers/${id}/summary`,
 
   // Invoices
   INVOICES: `${API_URL}/invoices`,
@@ -77,6 +78,7 @@ export const ENDPOINTS = {
   // Vendors
   VENDORS: `${API_URL}/vendors`,
   VENDOR_BY_ID: (id) => `${API_URL}/vendors/${id}`,
+  VENDOR_SUMMARY: (id) => `${API_URL}/vendors/${id}/summary`,
 
   // Settings
   SETTINGS: `${API_URL}/settings`,

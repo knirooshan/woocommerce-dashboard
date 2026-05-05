@@ -144,7 +144,7 @@ const updateCustomer = async (req, res) => {
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     res.json(updatedCustomer);
@@ -209,7 +209,7 @@ const syncCustomers = async (req, res) => {
       const customer = await Customer.findOneAndUpdate(
         { wooId: c.id },
         customerData,
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
       syncedCustomers.push(customer);
     }
@@ -224,6 +224,107 @@ const syncCustomers = async (req, res) => {
   }
 };
 
+// @desc    Get full customer summary (orders, invoices, payments, products)
+// @route   GET /api/customers/:id/summary
+// @access  Private
+const getCustomerSummary = async (req, res) => {
+  try {
+    const { Customer, Order, Invoice, Payment, Quotation } = getTenantModels(
+      req.dbConnection,
+    );
+
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    const [orders, invoices, payments, quotations] = await Promise.all([
+      Order.find({ customer: req.params.id }).sort({ dateCreated: -1 }),
+      Invoice.find({ customer: req.params.id, status: { $ne: "deleted" } })
+        .populate("payments")
+        .sort({ createdAt: -1 }),
+      Payment.find({
+        customer: req.params.id,
+        status: { $ne: "deleted" },
+      }).sort({ date: -1 }),
+      Quotation.find({ customer: req.params.id }).sort({ createdAt: -1 }),
+    ]);
+
+    // Aggregate products bought from orders + invoices
+    const productMap = {};
+    orders.forEach((order) => {
+      (order.items || []).forEach((item) => {
+        const key = item.name || item.sku || "Unknown";
+        if (!productMap[key]) {
+          productMap[key] = {
+            name: key,
+            sku: item.sku || "",
+            quantity: 0,
+            total: 0,
+          };
+        }
+        productMap[key].quantity += item.quantity || 0;
+        productMap[key].total += item.total || 0;
+      });
+    });
+    invoices.forEach((invoice) => {
+      (invoice.items || []).forEach((item) => {
+        const key = item.name || "Unknown";
+        if (!productMap[key]) {
+          productMap[key] = {
+            name: key,
+            sku: item.sku || "",
+            quantity: 0,
+            total: 0,
+          };
+        }
+        productMap[key].quantity += item.quantity || 0;
+        productMap[key].total += item.total || 0;
+      });
+    });
+    const productsBought = Object.values(productMap).sort(
+      (a, b) => b.total - a.total,
+    );
+
+    // Payment channel breakdown
+    const paymentChannels = {};
+    payments.forEach((p) => {
+      if (!paymentChannels[p.method]) paymentChannels[p.method] = 0;
+      paymentChannels[p.method] += p.amount || 0;
+    });
+
+    const totalOrderValue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const totalInvoiceValue = invoices.reduce((s, i) => s + (i.total || 0), 0);
+    const totalPaid = payments.reduce((s, p) => s + (p.amount || 0), 0);
+    const totalBalanceDue = invoices.reduce(
+      (s, i) => s + (i.balanceDue || 0),
+      0,
+    );
+
+    res.json({
+      customer,
+      orders,
+      invoices,
+      payments,
+      quotations,
+      productsBought,
+      paymentChannels,
+      stats: {
+        totalOrders: orders.length,
+        totalOrderValue,
+        totalInvoices: invoices.length,
+        totalInvoiceValue,
+        totalQuotations: quotations.length,
+        totalPayments: payments.length,
+        totalPaid,
+        totalBalanceDue,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCustomers,
   getCustomerById,
@@ -231,4 +332,5 @@ module.exports = {
   updateCustomer,
   deleteCustomer,
   syncCustomers,
+  getCustomerSummary,
 };

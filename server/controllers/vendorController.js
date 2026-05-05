@@ -82,9 +82,48 @@ const deleteVendor = async (req, res) => {
   }
 };
 
+// @desc    Get full vendor summary (expenses, stats, category breakdown)
+// @route   GET /api/vendors/:id/summary
+// @access  Private
+const getVendorSummary = async (req, res) => {
+  try {
+    const { Vendor, Expense } = getTenantModels(req.dbConnection);
+
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    const expenses = await Expense.find({ vendor: req.params.id }).sort({
+      date: -1,
+    });
+
+    const totalAmount = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+
+    const categoryBreakdown = {};
+    expenses.forEach((e) => {
+      if (!categoryBreakdown[e.category]) categoryBreakdown[e.category] = 0;
+      categoryBreakdown[e.category] += e.amount || 0;
+    });
+
+    res.json({
+      vendor,
+      expenses,
+      stats: {
+        totalExpenses: expenses.length,
+        totalAmount,
+        categoryBreakdown,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getVendors,
   createVendor,
   updateVendor,
   deleteVendor,
+  getVendorSummary,
 };

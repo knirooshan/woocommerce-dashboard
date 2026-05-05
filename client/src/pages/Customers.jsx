@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import CustomerForm from "../components/CustomerForm";
+import CustomerDetailModal from "../components/CustomerDetailModal";
 import SearchBar from "../components/SearchBar";
 
 const Customers = () => {
@@ -12,6 +13,7 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [viewingCustomerId, setViewingCustomerId] = useState(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -28,7 +30,7 @@ const Customers = () => {
 
       const { data } = await axios.get(
         `${ENDPOINTS.CUSTOMERS}?${params.toString()}`,
-        config
+        config,
       );
       setCustomers(data);
       setLoading(false);
@@ -58,7 +60,7 @@ const Customers = () => {
         await axios.put(
           ENDPOINTS.CUSTOMER_BY_ID(editingCustomer._id),
           formData,
-          config
+          config,
         );
       } else {
         // Create
@@ -166,6 +168,13 @@ const Customers = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => setViewingCustomerId(customer._id)}
+                      className="text-green-400 hover:text-green-300 mr-3"
+                      title="View details"
+                    >
+                      <Eye className="h-5 w-5" />
+                    </button>
+                    <button
                       onClick={() => openModal(customer)}
                       className="text-blue-400 hover:text-blue-300 mr-3"
                     >
@@ -198,6 +207,14 @@ const Customers = () => {
           customer={editingCustomer}
           onClose={closeModal}
           onSave={handleSaveCustomer}
+        />
+      )}
+
+      {/* Customer Detail Modal */}
+      {viewingCustomerId && (
+        <CustomerDetailModal
+          customerId={viewingCustomerId}
+          onClose={() => setViewingCustomerId(null)}
         />
       )}
     </div>
