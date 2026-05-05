@@ -23,13 +23,12 @@ jobs:
             set -e
 
             # ── Pull latest code ──────────────────────────────────────
+            # All files under /var/www/merchpilot are owned by the deploy
+            # user. CI/CD SSHes in as that same deploy user, so no sudo needed.
             git config --global --add safe.directory /var/www/merchpilot
             cd /var/www/merchpilot
             git fetch --all
             git reset --hard origin/main
-
-            # ── Fix ownership (guard against manual root SSH touching files) ──
-            sudo chown -R $(whoami):$(whoami) /var/www/merchpilot
 
             # ── Backend ───────────────────────────────────────────────
             echo "Installing backend dependencies..."
@@ -37,8 +36,11 @@ jobs:
             npm ci --omit=dev
 
             echo "Restarting backend..."
-            sudo pm2 restart merchpilot-api || sudo pm2 start index.js --name merchpilot-api
-            sudo pm2 save
+            # Use deploy user's own PM2 daemon (managed by pm2-deploy.service).
+            # Never use "sudo pm2" — that targets root's daemon which does NOT
+            # own port 5000 and will silently do nothing useful.
+            pm2 restart merchpilot-api
+            pm2 save
 
             # ── Frontend ──────────────────────────────────────────────
             echo "Building frontend..."
