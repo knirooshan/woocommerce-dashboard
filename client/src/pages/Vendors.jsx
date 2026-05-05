@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { Plus, Edit, Trash, Search } from "lucide-react";
+import { Plus, Edit, Trash, Search, Eye } from "lucide-react";
 import { useSelector } from "react-redux";
 import VendorForm from "../components/VendorForm";
+import VendorDetailModal from "../components/VendorDetailModal";
 
 const Vendors = () => {
   const { user } = useSelector((state) => state.auth);
@@ -12,6 +13,7 @@ const Vendors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
+  const [viewingVendorId, setViewingVendorId] = useState(null);
 
   useEffect(() => {
     fetchVendors();
@@ -63,16 +65,16 @@ const Vendors = () => {
         const { data } = await axios.put(
           ENDPOINTS.VENDOR_BY_ID(editingVendor._id),
           vendorData,
-          config
+          config,
         );
         setVendors(
-          vendors.map((v) => (v._id === editingVendor._id ? data : v))
+          vendors.map((v) => (v._id === editingVendor._id ? data : v)),
         );
       } else {
         const { data } = await axios.post(
           ENDPOINTS.VENDORS,
           vendorData,
-          config
+          config,
         );
         setVendors([...vendors, data]);
       }
@@ -86,7 +88,7 @@ const Vendors = () => {
   const filteredVendors = vendors.filter(
     (vendor) =>
       vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      vendor.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) return <div className="text-white">Loading vendors...</div>;
@@ -164,6 +166,13 @@ const Vendors = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
+                      onClick={() => setViewingVendorId(vendor._id)}
+                      className="text-green-400 hover:text-green-300 mr-4"
+                      title="View details"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
                       onClick={() => handleEdit(vendor)}
                       className="text-blue-400 hover:text-blue-300 mr-4"
                     >
@@ -193,6 +202,13 @@ const Vendors = () => {
           vendor={editingVendor}
           onClose={() => setShowForm(false)}
           onSave={handleSave}
+        />
+      )}
+
+      {viewingVendorId && (
+        <VendorDetailModal
+          vendorId={viewingVendorId}
+          onClose={() => setViewingVendorId(null)}
         />
       )}
     </div>
