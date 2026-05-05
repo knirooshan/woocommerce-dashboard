@@ -30,19 +30,19 @@ import {
   LineChart,
   Line,
 } from "recharts";
+import { formatCurrency } from "../utils/currency";
 
 /* ─── helpers ─────────────────────────────────────────────────── */
-const fmt = (n) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(n || 0);
-
-const fmtFull = (n) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n || 0,
-  );
+// fmt / fmtFull are created inside the component via useCurrencyFmt().
+const useCurrencyFmt = () => {
+  const { data: settings } = useSelector((state) => state.settings);
+  const fmt = (n) => {
+    const s = formatCurrency(n || 0, settings);
+    return s.replace(/\.00$/, "").replace(/(\.[0-9])0$/, "$1");
+  };
+  const fmtFull = (n) => formatCurrency(n || 0, settings);
+  return { fmt, fmtFull };
+};
 
 const fmtDate = (d) =>
   d
@@ -122,7 +122,7 @@ const StatCard = ({ label, value, sub, color = "green" }) => {
   );
 };
 
-const ChartTooltip = ({ active, payload, label }) => {
+const ChartTooltip = ({ active, payload, label, fmtFn }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 shadow-xl text-xs">
@@ -134,8 +134,8 @@ const ChartTooltip = ({ active, payload, label }) => {
           className="font-semibold"
         >
           {p.name}:{" "}
-          {typeof p.value === "number" && p.value > 100
-            ? fmt(p.value)
+          {typeof p.value === "number" && p.value > 100 && fmtFn
+            ? fmtFn(p.value)
             : p.value}
         </p>
       ))}
@@ -147,7 +147,7 @@ const HorizontalBar = ({
   items,
   valueKey = "amount",
   labelKey = "name",
-  formatVal = fmtFull,
+  formatVal,
 }) => {
   const max = Math.max(...items.map((i) => i[valueKey] || 0), 1);
   return (
@@ -182,6 +182,7 @@ const HorizontalBar = ({
 ══════════════════════════════════════════════════════════════════ */
 const VendorDetailModal = ({ vendorId, onClose }) => {
   const { user } = useSelector((state) => state.auth);
+  const { fmt, fmtFull } = useCurrencyFmt();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -368,10 +369,10 @@ const VendorDetailModal = ({ vendorId, onClose }) => {
                           <YAxis
                             stroke="#64748b"
                             tick={{ fontSize: 10 }}
-                            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                            tickFormatter={(v) => fmt(v)}
                             width={45}
                           />
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip fmtFn={fmt} />} />
                           <Bar
                             dataKey="amount"
                             name="Expenses"
@@ -411,7 +412,7 @@ const VendorDetailModal = ({ vendorId, onClose }) => {
                               />
                             ))}
                           </Pie>
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip fmtFn={fmt} />} />
                           <Legend
                             iconType="circle"
                             iconSize={7}
@@ -489,6 +490,7 @@ const VendorDetailModal = ({ vendorId, onClose }) => {
                         items={topExpenses}
                         valueKey="amount"
                         labelKey="name"
+                        formatVal={fmtFull}
                       />
                     </div>
                   )}
