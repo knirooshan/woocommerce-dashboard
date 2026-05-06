@@ -16,6 +16,8 @@ const POSCart = ({
   discount,
   setDiscount,
   settings,
+  paymentMethod,
+  onPaymentMethodChange,
 }) => {
   return (
     <div className="flex flex-col h-full bg-slate-900 shadow-lg rounded-lg overflow-hidden border border-slate-800">
@@ -127,6 +129,20 @@ const POSCart = ({
           <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-slate-800">
             <span>Total</span>
             <span>{formatCurrency(total, settings)}</span>
+          </div>
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-slate-400 mb-1">Payment Method</label>
+            <select
+              value={paymentMethod}
+              onChange={(e) => onPaymentMethodChange(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-600"
+            >
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
         </div>
         <button

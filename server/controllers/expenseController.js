@@ -54,7 +54,7 @@ const getExpenses = async (req, res) => {
 const createExpense = async (req, res) => {
   try {
     const { Expense } = getTenantModels(req.dbConnection);
-    const { description, amount, category, date, vendor, reference, notes } =
+    const { description, amount, category, date, vendor, paymentMethod, reference, notes } =
       req.body;
 
     const expense = new Expense({
@@ -63,6 +63,7 @@ const createExpense = async (req, res) => {
       category,
       date,
       vendor,
+      paymentMethod: paymentMethod || "Cash",
       reference,
       notes,
     });

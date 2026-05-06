@@ -444,6 +444,7 @@ const CreateInvoice = () => {
               >
                 <option value="Bank Transfer">Bank Transfer</option>
                 <option value="Cash">Cash</option>
+                <option value="Cheque">Cheque</option>
                 <option value="Check">Check</option>
                 <option value="Credit Card">Credit Card</option>
               </select>
