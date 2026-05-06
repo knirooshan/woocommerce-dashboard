@@ -7,6 +7,11 @@ const expenseSchema = new mongoose.Schema(
     category: { type: String, required: true },
     date: { type: Date, default: Date.now },
     vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+    paymentMethod: {
+      type: String,
+      enum: ["Cash", "Card", "Bank Transfer", "Cheque", "Other"],
+      default: "Cash",
+    },
     reference: { type: String },
     notes: { type: String },
     editHistory: [

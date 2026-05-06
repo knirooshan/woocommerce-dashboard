@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Trash, DollarSign, Edit } from "lucide-react";
+import { Plus, Trash, DollarSign, Edit, X } from "lucide-react";
 import ReasonModal from "../components/ReasonModal";
 import VendorForm from "../components/VendorForm";
 import SearchBar from "../components/SearchBar";
@@ -34,6 +34,7 @@ const Expenses = () => {
     category: "General",
     date: new Date().toISOString().split("T")[0],
     vendor: "",
+    paymentMethod: "Cash",
     reference: "",
     notes: "",
   });
@@ -173,6 +174,7 @@ const Expenses = () => {
       category: "General",
       date: new Date().toISOString().split("T")[0],
       vendor: "",
+      paymentMethod: "Cash",
       reference: "",
       notes: "",
     });
@@ -186,6 +188,7 @@ const Expenses = () => {
       category: expense.category,
       date: expense.date.split("T")[0],
       vendor: expense.vendor?._id || null,
+      paymentMethod: expense.paymentMethod || "Cash",
       reference: expense.reference || "",
       notes: expense.notes || "",
     });
@@ -218,11 +221,11 @@ const Expenses = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">Expenses</h1>
         <button
-          onClick={() => (showForm ? handleCancelEdit() : setShowForm(true))}
+          onClick={() => setShowForm(true)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           <Plus className="mr-2 h-5 w-5" />
-          {showForm ? "Cancel" : "Add Expense"}
+          {"Add Expense"}
         </button>
       </div>
 
@@ -299,122 +302,171 @@ const Expenses = () => {
       </div>
 
       {showForm && (
-        <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800 mb-6">
-          <h2 className="text-lg font-medium text-white mb-4">
-            {editingExpense ? "Edit Expense" : "New Expense"}
-          </h2>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Description
-              </label>
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Amount
-              </label>
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Category
-              </label>
-              <select
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-              >
-                <option value="General">General</option>
-                <option value="Rent">Rent</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Supplies">Supplies</option>
-                <option value="Salary">Salary</option>
-                <option value="Marketing">Marketing</option>
-              </select>
-            </div>
-            <div>
-              <DateInput
-                label="Date"
-                name="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Vendor
-              </label>
-              <div className="flex gap-2">
-                <select
-                  value={formData.vendor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, vendor: e.target.value })
-                  }
-                  className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-                >
-                  <option value="">Select Vendor</option>
-                  {vendors.map((vendor) => (
-                    <option key={vendor._id} value={vendor._id}>
-                      {vendor.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => setShowVendorModal(true)}
-                  className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
-                  title="Add New Vendor"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
-                Reference
-              </label>
-              <input
-                type="text"
-                value={formData.reference}
-                onChange={(e) =>
-                  setFormData({ ...formData, reference: e.target.value })
-                }
-                className="w-full bg-slate-950 border border-slate-700 text-white rounded px-3 py-2"
-              />
-            </div>
-            <div className="md:col-span-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-slate-900 rounded-lg shadow-xl w-full max-w-lg border border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-5 border-b border-slate-700">
+              <h2 className="text-xl font-semibold text-white">
+                {editingExpense ? "Edit Expense" : "New Expense"}
+              </h2>
               <button
-                type="submit"
-                className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+                type="button"
+                onClick={handleCancelEdit}
+                className="text-slate-400 hover:text-white transition-colors"
               >
-                Save Expense
+                <X className="h-6 w-6" />
               </button>
             </div>
-          </form>
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Amount
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.amount}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amount: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="General">General</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Marketing">Marketing</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Payment Method
+                  </label>
+                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) =>
+                      setFormData({ ...formData, paymentMethod: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <DateInput
+                    label="Date"
+                    name="date"
+                    value={formData.date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, date: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Vendor
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.vendor}
+                      onChange={(e) =>
+                        setFormData({ ...formData, vendor: e.target.value })
+                      }
+                      className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">Select Vendor</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor._id} value={vendor._id}>
+                          {vendor.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setShowVendorModal(true)}
+                      className="bg-slate-800 hover:bg-slate-700 text-white rounded px-3 border border-slate-700"
+                      title="Add New Vendor"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Reference
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.reference}
+                    onChange={(e) =>
+                      setFormData({ ...formData, reference: e.target.value })
+                    }
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    value={formData.notes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, notes: e.target.value })
+                    }
+                    rows="2"
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 text-slate-300 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                >
+                  {editingExpense ? "Update Expense" : "Save Expense"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -433,6 +485,9 @@ const Expenses = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Vendor
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Payment
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                 Amount
@@ -458,6 +513,9 @@ const Expenses = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                   {expense.vendor?.name || "-"}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                  {expense.paymentMethod || "Cash"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-red-600">
                   -{formatCurrency(expense.amount, settings)}

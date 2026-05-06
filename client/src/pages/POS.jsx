@@ -16,6 +16,7 @@ const POS = () => {
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,8 +122,8 @@ const POS = () => {
         discount,
         total,
         status: "completed",
-        paymentMethod: "Cash",
-        paymentMethodTitle: "Cash Payment",
+        paymentMethod: paymentMethod,
+        paymentMethodTitle: `${paymentMethod} Payment`,
         dateCreated: new Date(),
         datePaid: new Date(),
         dateCompleted: new Date(),
@@ -146,7 +147,7 @@ const POS = () => {
         discount,
         total,
         status: "paid",
-        paymentMethod: "Cash",
+        paymentMethod: paymentMethod,
         dueDate: new Date(),
       };
 
@@ -216,6 +217,8 @@ const POS = () => {
           tax={tax}
           discount={discount}
           setDiscount={setDiscount}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
           settings={settings}
         />
       </div>

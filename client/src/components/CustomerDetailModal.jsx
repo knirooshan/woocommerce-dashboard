@@ -32,19 +32,21 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import { formatCurrency } from "../utils/currency";
 
 /* ─── helpers ─────────────────────────────────────────────────── */
-const fmt = (n) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(n || 0);
-
-const fmtFull = (n) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
-    n || 0,
-  );
+// fmt / fmtFull are created inside the component via useCurrencyFmt().
+// The hook reads state.settings so amounts use the store's configured symbol.
+const useCurrencyFmt = () => {
+  const { data: settings } = useSelector((state) => state.settings);
+  const fmt = (n) => {
+    const s = formatCurrency(n || 0, settings);
+    // strip decimals for compact display
+    return s.replace(/\.00$/, "").replace(/(\.[0-9])0$/, "$1");
+  };
+  const fmtFull = (n) => formatCurrency(n || 0, settings);
+  return { fmt, fmtFull };
+};
 
 const fmtDate = (d) =>
   d
@@ -160,7 +162,7 @@ const StatCard = ({ label, value, sub, color = "blue" }) => {
   );
 };
 
-const ChartTooltip = ({ active, payload, label }) => {
+const ChartTooltip = ({ active, payload, label, fmtFn }) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 shadow-xl text-xs">
@@ -172,8 +174,8 @@ const ChartTooltip = ({ active, payload, label }) => {
           className="font-semibold"
         >
           {p.name}:{" "}
-          {typeof p.value === "number" && p.value > 100
-            ? fmt(p.value)
+          {typeof p.value === "number" && p.value > 100 && fmtFn
+            ? fmtFn(p.value)
             : p.value}
         </p>
       ))}
@@ -185,7 +187,7 @@ const HorizontalBar = ({
   items,
   valueKey = "total",
   labelKey = "name",
-  formatVal = fmt,
+  formatVal,
 }) => {
   const max = Math.max(...items.map((i) => i[valueKey] || 0), 1);
   return (
@@ -251,6 +253,7 @@ const PaidVsBalance = ({ paid, balance }) => {
 ══════════════════════════════════════════════════════════════════ */
 const CustomerDetailModal = ({ customerId, onClose }) => {
   const { user } = useSelector((state) => state.auth);
+  const { fmt, fmtFull } = useCurrencyFmt();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -554,10 +557,10 @@ const CustomerDetailModal = ({ customerId, onClose }) => {
                           <YAxis
                             stroke="#64748b"
                             tick={{ fontSize: 10 }}
-                            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                            tickFormatter={(v) => fmt(v)}
                             width={45}
                           />
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip fmtFn={fmt} />} />
                           <Legend
                             iconSize={8}
                             wrapperStyle={{ fontSize: "11px" }}
@@ -608,7 +611,7 @@ const CustomerDetailModal = ({ customerId, onClose }) => {
                               />
                             ))}
                           </Pie>
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip fmtFn={fmt} />} />
                           <Legend
                             iconType="circle"
                             iconSize={7}
@@ -654,7 +657,7 @@ const CustomerDetailModal = ({ customerId, onClose }) => {
                               />
                             ))}
                           </Pie>
-                          <Tooltip content={<ChartTooltip />} />
+                          <Tooltip content={<ChartTooltip fmtFn={fmt} />} />
                           <Legend
                             iconType="circle"
                             iconSize={8}
@@ -680,6 +683,7 @@ const CustomerDetailModal = ({ customerId, onClose }) => {
                         items={topProducts}
                         valueKey="total"
                         labelKey="name"
+                        formatVal={fmt}
                       />
                     </div>
                   )}
