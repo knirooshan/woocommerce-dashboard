@@ -217,7 +217,7 @@ const HorizontalBar = ({
   );
 };
 
-const PaidVsBalance = ({ paid, balance }) => {
+const PaidVsBalance = ({ paid, balance, fmtFull }) => {
   const total = paid + balance;
   const paidPct = total ? (paid / total) * 100 : 100;
   return (
@@ -421,6 +421,7 @@ const CustomerDetailModal = ({ customerId, onClose }) => {
                   <PaidVsBalance
                     paid={data.stats.totalPaid}
                     balance={data.stats.totalBalanceDue}
+                    fmtFull={fmtFull}
                   />
                 </div>
               )}
