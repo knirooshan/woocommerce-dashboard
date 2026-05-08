@@ -49,7 +49,7 @@ const Reports = () => {
         if (activeTab === "sales") {
           const [salesRes, statsRes] = await Promise.all([
             axios.get(ENDPOINTS.REPORTS_SALES, config),
-            axios.get(ENDPOINTS.DASHBOARD_STATS, config),
+            axios.get(ENDPOINTS.REPORTS_DASHBOARD, config),
           ]);
           setSalesData(salesRes.data);
           setStats(statsRes.data);
@@ -84,7 +84,7 @@ const Reports = () => {
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",
-        }
+        },
       );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -94,7 +94,7 @@ const Reports = () => {
         "download",
         `${
           activeTab === "sales" ? "Sales" : "Profit_Loss"
-        }_Report_${timeframe}.pdf`
+        }_Report_${timeframe}.pdf`,
       );
       document.body.appendChild(link);
       link.click();
@@ -272,7 +272,7 @@ const Reports = () => {
               <p className="text-3xl font-bold text-blue-400">
                 {formatCurrency(
                   stats.totalSales / (salesData?.salesList?.length || 1),
-                  settings
+                  settings,
                 )}
               </p>
             </div>
