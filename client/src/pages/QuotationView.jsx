@@ -206,7 +206,11 @@ const QuotationView = () => {
             </h1>
             <p className="text-slate-600">#{quotation.quotationNumber}</p>
             <p className="text-slate-600">
-              Date: {formatDate(quotation.createdAt, settings)}
+              Date:{" "}
+              {formatDate(
+                quotation.quotationDate || quotation.createdAt,
+                settings,
+              )}
             </p>
             <p className="text-slate-600">
               Status:{" "}
@@ -231,7 +235,9 @@ const QuotationView = () => {
             <p className="text-slate-600">{settings?.address?.city}</p>
             <p className="text-slate-600">{settings?.contact?.email}</p>
             {settings?.registrationNo && (
-              <p className="text-slate-600">Reg No: {settings.registrationNo}</p>
+              <p className="text-slate-600">
+                Reg No: {settings.registrationNo}
+              </p>
             )}
             {settings?.taxIdNo && (
               <p className="text-slate-600">Tax ID: {settings.taxIdNo}</p>

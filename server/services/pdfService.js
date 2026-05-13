@@ -866,7 +866,7 @@ const generateQuotationPDF = async (quotation, settings) => {
       doc
         .font("Helvetica-Bold")
         .text(
-          formatDate(quotation.createdAt, settings),
+          formatDate(quotation.quotationDate || quotation.createdAt, settings),
           450,
           quotationDetailsY,
           { width: 100, align: "right" },
