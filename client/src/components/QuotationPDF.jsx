@@ -241,9 +241,7 @@ const QuotationPDF = ({ quotation, settings }) => (
             </Text>
           )}
           {settings?.taxIdNo && (
-            <Text style={styles.companyInfo}>
-              Tax ID: {settings.taxIdNo}
-            </Text>
+            <Text style={styles.companyInfo}>Tax ID: {settings.taxIdNo}</Text>
           )}
         </View>
       </View>
@@ -301,7 +299,10 @@ const QuotationPDF = ({ quotation, settings }) => (
           >
             <Text style={styles.text}>Date Issued:</Text>
             <Text style={[styles.text, { fontWeight: "bold" }]}>
-              {formatDate(quotation.createdAt, settings)}
+              {formatDate(
+                quotation.quotationDate || quotation.createdAt,
+                settings,
+              )}
             </Text>
           </View>
           {quotation.validUntil && (
