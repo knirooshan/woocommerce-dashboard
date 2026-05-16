@@ -8,6 +8,7 @@ const {
   deleteProduct,
   pushToMedusa,
   pushAllToMedusa,
+  toggleMedusaSync,
 } = require("../controllers/productController");
 const { protect, admin } = require("../middleware/authMiddleware");
 
@@ -19,5 +20,6 @@ router
   .put(protect, admin, updateProduct)
   .delete(protect, admin, deleteProduct);
 router.route("/:id/push-medusa").post(protect, admin, pushToMedusa);
+router.route("/:id/toggle-medusa-sync").patch(protect, admin, toggleMedusaSync);
 
 module.exports = router;

@@ -91,7 +91,7 @@ const Products = () => {
   const handlePushAllToMedusa = async () => {
     if (
       !window.confirm(
-        "Push ALL products to Medusa? This will create/update them in your storefront.",
+        "Push all Medusa-enabled products to your storefront? Only products with the Medusa sync toggle ON will be pushed.",
       )
     )
       return;
@@ -113,6 +113,26 @@ const Products = () => {
       );
     } finally {
       setPushingMedusa(false);
+    }
+  };
+
+  const handleToggleMedusaSync = async (id) => {
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.patch(
+        ENDPOINTS.PRODUCT_TOGGLE_MEDUSA_SYNC(id),
+        {},
+        config,
+      );
+      setProducts((prev) =>
+        prev.map((p) =>
+          p._id === id ? { ...p, syncToMedusa: data.syncToMedusa } : p,
+        ),
+      );
+    } catch (error) {
+      console.error("Toggle error:", error);
+      alert(error.response?.data?.message || "Failed to update sync flag");
     }
   };
 
@@ -218,7 +238,9 @@ const Products = () => {
               <Upload
                 className={`mr-2 h-5 w-5 ${pushingMedusa ? "animate-pulse" : ""}`}
               />
-              {pushingMedusa ? "Pushing..." : "Push All to Medusa"}
+              {pushingMedusa
+                ? "Pushing..."
+                : `Push Enabled to Medusa (${products.filter((p) => p.syncToMedusa).length})`}
             </button>
           )}
         </div>
@@ -272,6 +294,11 @@ const Products = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Status
                 </th>
+                {settings?.modules?.medusaSync && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    Medusa
+                  </th>
+                )}
                 <th className="px-6 py-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
@@ -316,7 +343,8 @@ const Products = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        product.status === "publish"
+                        product.status === "publish" ||
+                        product.status === "published"
                           ? "bg-green-900/50 text-green-400 border border-green-800"
                           : "bg-slate-800 text-slate-400 border border-slate-700"
                       }`}
@@ -325,6 +353,29 @@ const Products = () => {
                         product.status.slice(1)}
                     </span>
                   </td>
+                  {settings?.modules?.medusaSync && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-1">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={product.syncToMedusa || false}
+                            onChange={() => handleToggleMedusaSync(product._id)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                        {product.medusaId && (
+                          <span
+                            className="text-xs text-purple-400"
+                            title={`Medusa ID: ${product.medusaId}`}
+                          >
+                            Synced ✓
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleEdit(product)}

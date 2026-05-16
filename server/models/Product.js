@@ -146,6 +146,10 @@ const productSchema = new mongoose.Schema(
 
     // ── External ID for 3rd-party integrations ────────────────────────────
     externalId: { type: String },
+
+    // ── Medusa sync opt-in flag ───────────────────────────────────────────
+    // When true this product will be included in "Push All to Medusa" runs.
+    syncToMedusa: { type: Boolean, default: false },
   },
   {
     timestamps: true,

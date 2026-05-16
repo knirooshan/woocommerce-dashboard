@@ -158,17 +158,36 @@ const buildVariants = (p) => {
 const pushProduct = async (product, medusaConfig) => {
   const client = buildClient(medusaConfig);
   const body = toMedusaProduct(product);
+  const externalId = body.external_id; // always String(product._id)
 
   let medusaProduct;
 
   if (product.medusaId) {
-    // ── Update existing ──────────────────────────────────────────────────
+    // ── Known Medusa ID: update in place ─────────────────────────────────
     const { data } = await client.post(`/products/${product.medusaId}`, body);
     medusaProduct = data.product;
   } else {
-    // ── Create new ───────────────────────────────────────────────────────
-    const { data } = await client.post("/products", body);
-    medusaProduct = data.product;
+    // ── No stored ID: check if Medusa already has this product by external_id
+    // This prevents duplicates when medusaId was lost (e.g. after a DB restore).
+    let existingId = null;
+    try {
+      const { data } = await client.get("/products", {
+        params: { external_id: externalId, limit: 1 },
+      });
+      existingId = data.products?.[0]?.id || null;
+    } catch {
+      // If the query fails (older Medusa version, network blip) fall through to create
+    }
+
+    if (existingId) {
+      // Re-link and update
+      const { data } = await client.post(`/products/${existingId}`, body);
+      medusaProduct = data.product;
+    } else {
+      // Truly new — create
+      const { data } = await client.post("/products", body);
+      medusaProduct = data.product;
+    }
   }
 
   // Build a variantTitle → medusaVariantId map for local storage
