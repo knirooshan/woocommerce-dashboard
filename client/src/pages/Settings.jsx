@@ -37,7 +37,8 @@ const Settings = () => {
     dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h", timezone: "UTC" },
     terms: { invoice: "", quotation: "", deliveryReceipt: "" },
     wooCommerce: { url: "", consumerKey: "", consumerSecret: "" },
-    modules: { woocommerce: true, pos: true },
+    medusa: { url: "", apiKey: "", publishableKey: "" },
+    modules: { woocommerce: true, pos: true, medusaSync: false },
   });
 
   useEffect(() => {
@@ -504,38 +505,77 @@ const Settings = () => {
                 onChange={(e) => handleChange(e, "dateTime")}
                 className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
               >
-                <option value="UTC">UTC+0 - UTC (Coordinated Universal Time)</option>
+                <option value="UTC">
+                  UTC+0 - UTC (Coordinated Universal Time)
+                </option>
                 <option value="Europe/London">UTC+0/+1 - London</option>
-                <option value="Europe/Paris">UTC+1/+2 - Paris, Berlin, Rome, Madrid</option>
-                <option value="Europe/Helsinki">UTC+2/+3 - Helsinki, Athens, Cairo</option>
+                <option value="Europe/Paris">
+                  UTC+1/+2 - Paris, Berlin, Rome, Madrid
+                </option>
+                <option value="Europe/Helsinki">
+                  UTC+2/+3 - Helsinki, Athens, Cairo
+                </option>
                 <option value="Europe/Moscow">UTC+3 - Moscow, Nairobi</option>
                 <option value="Asia/Dubai">UTC+4 - Dubai, Abu Dhabi</option>
                 <option value="Asia/Karachi">UTC+5 - Karachi, Tashkent</option>
                 <option value="Asia/Kolkata">UTC+5:30 - India (IST)</option>
-                <option value="Asia/Kathmandu">UTC+5:45 - Kathmandu (Nepal)</option>
+                <option value="Asia/Kathmandu">
+                  UTC+5:45 - Kathmandu (Nepal)
+                </option>
                 <option value="Asia/Dhaka">UTC+6 - Dhaka, Almaty</option>
-                <option value="Asia/Rangoon">UTC+6:30 - Yangon (Myanmar)</option>
-                <option value="Asia/Bangkok">UTC+7 - Bangkok, Jakarta, Hanoi</option>
-                <option value="Asia/Singapore">UTC+8 - Singapore, Kuala Lumpur, Beijing</option>
+                <option value="Asia/Rangoon">
+                  UTC+6:30 - Yangon (Myanmar)
+                </option>
+                <option value="Asia/Bangkok">
+                  UTC+7 - Bangkok, Jakarta, Hanoi
+                </option>
+                <option value="Asia/Singapore">
+                  UTC+8 - Singapore, Kuala Lumpur, Beijing
+                </option>
                 <option value="Asia/Tokyo">UTC+9 - Tokyo, Seoul</option>
-                <option value="Australia/Darwin">UTC+9:30 - Darwin (ACST)</option>
-                <option value="Australia/Sydney">UTC+10/+11 - Sydney, Melbourne (AEST)</option>
-                <option value="Pacific/Auckland">UTC+12/+13 - Auckland (NZST)</option>
-                <option value="Pacific/Midway">UTC-11 - Midway Island, Samoa</option>
+                <option value="Australia/Darwin">
+                  UTC+9:30 - Darwin (ACST)
+                </option>
+                <option value="Australia/Sydney">
+                  UTC+10/+11 - Sydney, Melbourne (AEST)
+                </option>
+                <option value="Pacific/Auckland">
+                  UTC+12/+13 - Auckland (NZST)
+                </option>
+                <option value="Pacific/Midway">
+                  UTC-11 - Midway Island, Samoa
+                </option>
                 <option value="Pacific/Honolulu">UTC-10 - Hawaii (HST)</option>
-                <option value="America/Anchorage">UTC-9/-8 - Anchorage (AKST)</option>
-                <option value="America/Los_Angeles">UTC-8/-7 - Los Angeles, Seattle (PST)</option>
-                <option value="America/Denver">UTC-7/-6 - Denver, Phoenix (MST)</option>
-                <option value="America/Chicago">UTC-6/-5 - Chicago, Mexico City (CST)</option>
-                <option value="America/New_York">UTC-5/-4 - New York, Toronto (EST)</option>
+                <option value="America/Anchorage">
+                  UTC-9/-8 - Anchorage (AKST)
+                </option>
+                <option value="America/Los_Angeles">
+                  UTC-8/-7 - Los Angeles, Seattle (PST)
+                </option>
+                <option value="America/Denver">
+                  UTC-7/-6 - Denver, Phoenix (MST)
+                </option>
+                <option value="America/Chicago">
+                  UTC-6/-5 - Chicago, Mexico City (CST)
+                </option>
+                <option value="America/New_York">
+                  UTC-5/-4 - New York, Toronto (EST)
+                </option>
                 <option value="America/Caracas">UTC-4 - Caracas, La Paz</option>
-                <option value="America/St_Johns">UTC-3:30/-2:30 - St. John&apos;s (NST)</option>
-                <option value="America/Sao_Paulo">UTC-3/-2 - São Paulo, Buenos Aires</option>
-                <option value="Atlantic/South_Georgia">UTC-2 - South Georgia</option>
+                <option value="America/St_Johns">
+                  UTC-3:30/-2:30 - St. John&apos;s (NST)
+                </option>
+                <option value="America/Sao_Paulo">
+                  UTC-3/-2 - São Paulo, Buenos Aires
+                </option>
+                <option value="Atlantic/South_Georgia">
+                  UTC-2 - South Georgia
+                </option>
                 <option value="Atlantic/Azores">UTC-1/0 - Azores</option>
               </select>
               <p className="mt-1 text-xs text-slate-400">
-                Used by the server for date range filtering. Defaults to UTC if not set.
+                Used by the server for date range filtering. Defaults to UTC if
+                not set.
               </p>
             </div>
           </div>
@@ -704,6 +744,28 @@ const Settings = () => {
                 <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Medusa Sync
+                </label>
+                <p className="text-xs text-slate-400 mt-1">
+                  Enable pushing products to your Medusa storefront backend.
+                  Configure credentials in the Medusa Configuration section
+                  below.
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="medusaSync"
+                  checked={formData.modules?.medusaSync ?? false}
+                  onChange={(e) => handleChange(e, "modules")}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -751,6 +813,60 @@ const Settings = () => {
                   onChange={(e) => handleChange(e, "wooCommerce")}
                   className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-blue-600 focus:border-blue-600 sm:text-sm"
                   placeholder="cs_..."
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Medusa Configuration */}
+        {formData.modules?.medusaSync && (
+          <div className="bg-slate-900 shadow rounded-lg p-6 border border-slate-800">
+            <h2 className="text-lg font-medium text-white mb-4 border-b border-slate-800 pb-2">
+              Medusa Configuration
+            </h2>
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Medusa Backend URL
+                </label>
+                <input
+                  type="text"
+                  name="url"
+                  value={formData.medusa?.url || ""}
+                  onChange={(e) => handleChange(e, "medusa")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-600 focus:border-purple-600 sm:text-sm"
+                  placeholder="https://your-medusa-backend.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Admin API Key
+                </label>
+                <input
+                  type="password"
+                  name="apiKey"
+                  value={formData.medusa?.apiKey || ""}
+                  onChange={(e) => handleChange(e, "medusa")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-600 focus:border-purple-600 sm:text-sm"
+                  placeholder="sk_..."
+                />
+                <p className="mt-1 text-xs text-slate-500">
+                  Found in your Medusa admin: Settings → API Keys → Create API
+                  Key (secret key).
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300">
+                  Publishable Key (optional)
+                </label>
+                <input
+                  type="text"
+                  name="publishableKey"
+                  value={formData.medusa?.publishableKey || ""}
+                  onChange={(e) => handleChange(e, "medusa")}
+                  className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-purple-600 focus:border-purple-600 sm:text-sm"
+                  placeholder="pk_..."
                 />
               </div>
             </div>

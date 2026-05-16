@@ -6,14 +6,18 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  pushToMedusa,
+  pushAllToMedusa,
 } = require("../controllers/productController");
 const { protect, admin } = require("../middleware/authMiddleware");
 
 router.route("/").get(protect, getProducts).post(protect, admin, createProduct);
 router.route("/sync").post(protect, admin, syncProducts);
+router.route("/push-medusa-all").post(protect, admin, pushAllToMedusa);
 router
   .route("/:id")
   .put(protect, admin, updateProduct)
   .delete(protect, admin, deleteProduct);
+router.route("/:id/push-medusa").post(protect, admin, pushToMedusa);
 
 module.exports = router;

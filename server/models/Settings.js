@@ -60,10 +60,16 @@ const settingsSchema = new mongoose.Schema(
       consumerKey: { type: String, default: "" },
       consumerSecret: { type: String, default: "" },
     },
+    medusa: {
+      url: { type: String, default: "" }, // e.g. https://your-medusa-backend.com
+      apiKey: { type: String, default: "" }, // Medusa Admin API secret key
+      publishableKey: { type: String, default: "" }, // Publishable key (optional)
+    },
     // Feature module toggles
     modules: {
       woocommerce: { type: Boolean, default: true },
       pos: { type: Boolean, default: true },
+      medusaSync: { type: Boolean, default: false },
     },
   },
   {
