@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { RefreshCw, Search, Plus, Edit, Trash, Package } from "lucide-react";
+import {
+  RefreshCw,
+  Search,
+  Plus,
+  Edit,
+  Trash,
+  Package,
+  Upload,
+} from "lucide-react";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
 import ProductForm from "../components/ProductForm";
@@ -12,6 +20,8 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [pushingMedusa, setPushingMedusa] = useState(false);
+  const [pushingProductId, setPushingProductId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("createdAt_desc");
   const [showForm, setShowForm] = useState(false);
@@ -58,6 +68,54 @@ const Products = () => {
     setShowForm(true);
   };
 
+  const handlePushToMedusa = async (id) => {
+    setPushingProductId(id);
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.PRODUCT_PUSH_MEDUSA(id),
+        {},
+        config,
+      );
+      alert(`Pushed to Medusa! ID: ${data.medusaId}`);
+      await fetchProducts();
+    } catch (error) {
+      console.error("Medusa push error:", error);
+      alert(error.response?.data?.message || "Error pushing to Medusa");
+    } finally {
+      setPushingProductId(null);
+    }
+  };
+
+  const handlePushAllToMedusa = async () => {
+    if (
+      !window.confirm(
+        "Push ALL products to Medusa? This will create/update them in your storefront.",
+      )
+    )
+      return;
+    setPushingMedusa(true);
+    try {
+      const token = user.token;
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(
+        ENDPOINTS.PRODUCTS_PUSH_MEDUSA_ALL,
+        {},
+        config,
+      );
+      alert(data.message);
+      await fetchProducts();
+    } catch (error) {
+      console.error("Medusa bulk push error:", error);
+      alert(
+        error.response?.data?.message || "Error pushing products to Medusa",
+      );
+    } finally {
+      setPushingMedusa(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
@@ -81,16 +139,16 @@ const Products = () => {
         const { data } = await axios.put(
           ENDPOINTS.PRODUCT_BY_ID(editingProduct._id),
           productData,
-          config
+          config,
         );
         setProducts(
-          products.map((p) => (p._id === editingProduct._id ? data : p))
+          products.map((p) => (p._id === editingProduct._id ? data : p)),
         );
       } else {
         const { data } = await axios.post(
           ENDPOINTS.PRODUCTS,
           productData,
-          config
+          config,
         );
         setProducts([...products, data]);
       }
@@ -105,7 +163,7 @@ const Products = () => {
     .filter(
       (product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .sort((a, b) => {
       switch (sortBy) {
@@ -149,6 +207,18 @@ const Products = () => {
                 className={`mr-2 h-5 w-5 ${syncing ? "animate-spin" : ""}`}
               />
               {syncing ? "Syncing..." : "Sync from WooCommerce"}
+            </button>
+          )}
+          {settings?.modules?.medusaSync && (
+            <button
+              onClick={handlePushAllToMedusa}
+              disabled={pushingMedusa}
+              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            >
+              <Upload
+                className={`mr-2 h-5 w-5 ${pushingMedusa ? "animate-pulse" : ""}`}
+              />
+              {pushingMedusa ? "Pushing..." : "Push All to Medusa"}
             </button>
           )}
         </div>
@@ -262,6 +332,27 @@ const Products = () => {
                     >
                       <Edit size={18} />
                     </button>
+                    {settings?.modules?.medusaSync && (
+                      <button
+                        onClick={() => handlePushToMedusa(product._id)}
+                        disabled={pushingProductId === product._id}
+                        title={
+                          product.medusaId
+                            ? `Medusa ID: ${product.medusaId}`
+                            : "Push to Medusa"
+                        }
+                        className="text-purple-400 hover:text-purple-300 mr-4 disabled:opacity-50"
+                      >
+                        <Upload
+                          size={18}
+                          className={
+                            pushingProductId === product._id
+                              ? "animate-pulse"
+                              : ""
+                          }
+                        />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(product._id)}
                       className="text-red-400 hover:text-red-300"
