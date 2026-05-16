@@ -51,6 +51,8 @@ export const ENDPOINTS = {
   PRODUCTS_SYNC: `${API_URL}/products/sync`,
   PRODUCT_PUSH_MEDUSA: (id) => `${API_URL}/products/${id}/push-medusa`,
   PRODUCTS_PUSH_MEDUSA_ALL: `${API_URL}/products/push-medusa-all`,
+  PRODUCT_TOGGLE_MEDUSA_SYNC: (id) =>
+    `${API_URL}/products/${id}/toggle-medusa-sync`,
 
   // Customers
   CUSTOMERS: `${API_URL}/customers`,

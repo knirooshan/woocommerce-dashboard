@@ -38,6 +38,7 @@ const extractProductFields = (body) => {
     metadata,
     externalId,
     medusaId,
+    syncToMedusa,
   } = body;
 
   return {
@@ -74,6 +75,7 @@ const extractProductFields = (body) => {
     metadata,
     externalId,
     medusaId,
+    syncToMedusa,
   };
 };
 
@@ -283,7 +285,27 @@ module.exports = {
   deleteProduct,
   pushToMedusa,
   pushAllToMedusa,
+  toggleMedusaSync,
 };
+
+// ─── Toggle syncToMedusa flag ──────────────────────────────────────────────
+// @desc    Toggle whether a product is included in Medusa bulk-push
+// @route   PATCH /api/products/:id/toggle-medusa-sync
+// @access  Private/Admin
+async function toggleMedusaSync(req, res) {
+  try {
+    const { Product } = getTenantModels(req.dbConnection);
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    product.syncToMedusa = !product.syncToMedusa;
+    await product.save();
+
+    res.json({ syncToMedusa: product.syncToMedusa });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 
 // ─── Medusa push: single product ──────────────────────────────────────────
 // @desc    Push a single product to Medusa (create or update)
@@ -354,7 +376,16 @@ async function pushAllToMedusa(req, res) {
       return res.status(403).json({ message: "Medusa sync is disabled" });
     }
 
-    const products = await Product.find({});
+    const products = await Product.find({ syncToMedusa: true });
+    if (products.length === 0) {
+      return res.json({
+        message:
+          "No products are marked for Medusa sync. Enable sync on individual products first.",
+        pushed: 0,
+        failed: 0,
+        errors: [],
+      });
+    }
     const results = { pushed: 0, failed: 0, errors: [] };
 
     for (const product of products) {
