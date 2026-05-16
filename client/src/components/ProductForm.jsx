@@ -26,6 +26,15 @@ const emptyVariant = () => ({
 
 const emptyOption = () => ({ title: "", values: "" }); // values as comma-separated string in UI
 
+const slugify = (str) =>
+  str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const ProductForm = ({ product, onClose, onSave }) => {
   const [showMediaLibrary, setShowMediaLibrary] = useState(false);
   const [activeImageTarget, setActiveImageTarget] = useState("main"); // "main" | variantIndex
@@ -33,6 +42,9 @@ const ProductForm = ({ product, onClose, onSave }) => {
   const [showCustoms, setShowCustoms] = useState(false);
   const [showVariants, setShowVariants] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
+  // Track whether the user has manually typed in the handle field.
+  // While false, handle stays in sync with the name automatically.
+  const [handleEdited, setHandleEdited] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -74,6 +86,8 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   useEffect(() => {
     if (product) {
+      // Existing product: treat the stored handle as manually set so we don't overwrite it
+      setHandleEdited(true);
       setFormData({
         name: product.name || "",
         handle: product.handle || "",
@@ -134,10 +148,27 @@ const ProductForm = ({ product, onClose, onSave }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+      // Auto-sync handle from name while the user hasn't manually edited it
+      if (name === "name" && !handleEdited) {
+        updated.handle = slugify(value);
+      }
+      return updated;
+    });
+  };
+
+  const handleHandleChange = (e) => {
+    setHandleEdited(true);
+    setFormData((prev) => ({ ...prev, handle: e.target.value }));
+  };
+
+  const handleHandleClear = () => {
+    setHandleEdited(false);
+    setFormData((prev) => ({ ...prev, handle: slugify(prev.name) }));
   };
 
   // ── Images ────────────────────────────────────────────────────────────────
@@ -327,14 +358,31 @@ const ProductForm = ({ product, onClose, onSave }) => {
               </div>
               <div>
                 <label className={labelClass}>Handle (URL slug)</label>
-                <input
-                  type="text"
-                  name="handle"
-                  value={formData.handle}
-                  onChange={handleChange}
-                  placeholder="my-product-handle"
-                  className={inputClass}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="handle"
+                    value={formData.handle}
+                    onChange={handleHandleChange}
+                    placeholder="auto-generated-from-title"
+                    className={inputClass}
+                  />
+                  {!handleEdited && formData.handle && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">
+                      auto
+                    </span>
+                  )}
+                  {handleEdited && (
+                    <button
+                      type="button"
+                      onClick={handleHandleClear}
+                      title="Reset to auto-generated"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
+                    >
+                      reset
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 

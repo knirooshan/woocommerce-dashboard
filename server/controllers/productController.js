@@ -2,6 +2,16 @@ const { getTenantModels } = require("../models/tenantModels");
 const { getWooProducts } = require("../services/wooService");
 const { pushProduct } = require("../services/medusaService");
 
+// Helper: generate a URL-safe slug from a string (WordPress-style)
+const slugify = (str) =>
+  str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 // Helper: extract all Medusa-compatible fields from a request body
 const extractProductFields = (body) => {
   const {
@@ -220,6 +230,11 @@ const createProduct = async (req, res) => {
     );
 
     const productData = { wooId, ...extractProductFields(req.body) };
+
+    // Auto-generate handle from name if not provided
+    if (!productData.handle && productData.name) {
+      productData.handle = slugify(productData.name);
+    }
 
     const product = new Product(productData);
     const createdProduct = await product.save();
