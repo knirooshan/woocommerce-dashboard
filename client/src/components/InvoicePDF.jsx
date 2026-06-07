@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   sectionLabel: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: "bold",
     color: "#6B7280",
     textTransform: "uppercase",
@@ -181,22 +181,22 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   infoText: {
-    fontSize: 8,
+    fontSize: 9,
     color: "#1F2937",
-    marginBottom: 3,
+    marginBottom: 0,
     lineHeight: 1.4,
   },
   infoTextBold: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#111827",
-    marginBottom: 3,
+    marginBottom: 0,
   },
   tinText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: "bold",
     color: "#1F2937",
-    marginBottom: 3,
+    marginBottom: 0,
   },
   // ── Details bar (invoice date, due date, etc.) ───────────
   detailsBar: {
@@ -390,6 +390,16 @@ const styles = StyleSheet.create({
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
+const hasContent = (html) => {
+  if (!html) return false;
+  return (
+    html
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim() !== ""
+  );
+};
+
 const InvoicePDF = ({ invoice, settings }) => {
   const amountPaid = invoice.amountPaid || 0;
   const balanceDue =
@@ -498,15 +508,9 @@ const InvoicePDF = ({ invoice, settings }) => {
             {purchaserTIN ? (
               <Text style={styles.tinText}>TIN: {purchaserTIN}</Text>
             ) : null}
-            {customerAddress
-              ? customerAddress.split("\n").map((line, i) =>
-                  line ? (
-                    <Text key={i} style={styles.infoText}>
-                      {line}
-                    </Text>
-                  ) : null,
-                )
-              : null}
+            {customerAddress ? (
+              <Text style={styles.infoText}>{customerAddress}</Text>
+            ) : null}
             {(invoice.customer?.billing?.phone ||
               invoice.customerInfo?.phone) && (
               <Text style={styles.infoText}>
@@ -742,24 +746,41 @@ const InvoicePDF = ({ invoice, settings }) => {
         )}
 
         {/* ── Notes & Terms ── */}
-        {(invoice.notes || invoice.terms || invoice.deliveryNote) && (
+        {(hasContent(invoice.notes) ||
+          hasContent(invoice.terms) ||
+          hasContent(invoice.deliveryNote)) && (
           <View style={styles.notes}>
-            {invoice.notes && (
+            {hasContent(invoice.notes) && (
               <View style={{ marginBottom: 6 }}>
                 <Text style={styles.noteTitle}>Notes</Text>
-                <View>{renderHtmlToPdf(invoice.notes)}</View>
+                <View>
+                  {renderHtmlToPdf(invoice.notes, {
+                    fontSize: 8,
+                    color: "#1F2937",
+                  })}
+                </View>
               </View>
             )}
-            {invoice.terms && (
+            {hasContent(invoice.terms) && (
               <View style={{ marginBottom: 6 }}>
                 <Text style={styles.noteTitle}>Terms & Conditions</Text>
-                <View>{renderHtmlToPdf(invoice.terms)}</View>
+                <View>
+                  {renderHtmlToPdf(invoice.terms, {
+                    fontSize: 8,
+                    color: "#1F2937",
+                  })}
+                </View>
               </View>
             )}
-            {invoice.deliveryNote && (
+            {hasContent(invoice.deliveryNote) && (
               <View>
                 <Text style={styles.noteTitle}>Delivery Note</Text>
-                <View>{renderHtmlToPdf(invoice.deliveryNote)}</View>
+                <View>
+                  {renderHtmlToPdf(invoice.deliveryNote, {
+                    fontSize: 8,
+                    color: "#1F2937",
+                  })}
+                </View>
               </View>
             )}
           </View>
