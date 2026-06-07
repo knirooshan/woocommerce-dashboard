@@ -330,77 +330,59 @@ const generateInvoicePDF = async (invoice, settings) => {
       }
 
       // ── SUPPLIER & PURCHASER ─────────────────────────────────────────────
-      let boxTopY = 110;
-      let supplierY = boxTopY + 10;
-      let purchaserY = boxTopY + 10;
+      let boxTopY = 120; // Increased spacing below header
+      let supplierY = boxTopY + 15; // Increased padding inside box
+      let purchaserY = boxTopY + 15;
       const colMid = LEFT + PAGE_WIDTH / 2;
+      const padding = 15;
+      const lineGap = 4;
 
       // Supplier (left column)
       doc
         .fillColor("#6B7280")
         .fontSize(8)
         .font("Helvetica-Bold")
-        .text("SUPPLIER", LEFT + 10, supplierY);
-      supplierY += 14;
+        .text("SUPPLIER", LEFT + padding, supplierY);
+      supplierY = doc.y + lineGap + 2;
 
-      doc
-        .fillColor("#111827")
-        .fontSize(9)
-        .font("Helvetica-Bold")
-        .text(settings?.storeName || "", LEFT + 10, supplierY, {
-          width: PAGE_WIDTH / 2 - 20,
-        });
-      supplierY += 14;
-
-      if (settings?.taxIdNo) {
+      if (settings?.storeName) {
         doc
-          .fillColor("#1F2937")
+          .fillColor("#111827")
           .fontSize(9)
           .font("Helvetica-Bold")
-          .text(`TIN: ${settings.taxIdNo}`, LEFT + 10, supplierY);
-        supplierY += 14;
-      }
-      if (settings?.registrationNo) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .font("Helvetica")
-          .text(`Reg: ${settings.registrationNo}`, LEFT + 10, supplierY);
-        supplierY += 14;
-      }
-      if (settings?.address?.street) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .font("Helvetica")
-          .text(settings.address.street, LEFT + 10, supplierY, {
-            width: PAGE_WIDTH / 2 - 20,
+          .text(settings.storeName, LEFT + padding, supplierY, {
+            width: PAGE_WIDTH / 2 - padding * 2,
           });
-        supplierY += 14;
+        supplierY = doc.y + 2;
       }
-      if (settings?.address?.city || settings?.address?.zip) {
-        const cityZip = [settings.address.city, settings.address.zip]
-          .filter(Boolean)
-          .join(", ");
+
+      const supplierDetails = [];
+      if (settings?.taxIdNo) supplierDetails.push(`TIN: ${settings.taxIdNo}`);
+      if (settings?.registrationNo)
+        supplierDetails.push(`Reg: ${settings.registrationNo}`);
+      if (settings?.address?.street)
+        supplierDetails.push(settings.address.street);
+      const supplierCityZip = [settings?.address?.city, settings?.address?.zip]
+        .filter(Boolean)
+        .join(", ");
+      if (supplierCityZip) supplierDetails.push(supplierCityZip);
+      if (settings?.contact?.phone)
+        supplierDetails.push(`Tel: ${settings.contact.phone}`);
+      if (settings?.contact?.email)
+        supplierDetails.push(settings.contact.email);
+
+      if (supplierDetails.length > 0) {
         doc
           .fillColor("#1F2937")
           .fontSize(9)
-          .text(cityZip, LEFT + 10, supplierY);
-        supplierY += 14;
-      }
-      if (settings?.contact?.phone) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .text(`Tel: ${settings.contact.phone}`, LEFT + 10, supplierY);
-        supplierY += 14;
-      }
-      if (settings?.contact?.email) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .text(settings.contact.email, LEFT + 10, supplierY);
-        supplierY += 14;
+          .font("Helvetica")
+          .text(supplierDetails.join("\n"), LEFT + padding, supplierY, {
+            width: PAGE_WIDTH / 2 - padding * 2,
+            lineGap: 3,
+          });
+        supplierY = doc.y + lineGap;
+      } else {
+        supplierY += lineGap;
       }
 
       // Purchaser (right column)
@@ -408,8 +390,8 @@ const generateInvoicePDF = async (invoice, settings) => {
         .fillColor("#6B7280")
         .fontSize(8)
         .font("Helvetica-Bold")
-        .text("PURCHASER", colMid + 10, purchaserY);
-      purchaserY += 14;
+        .text("PURCHASER", colMid + padding, purchaserY);
+      purchaserY = doc.y + lineGap + 2;
 
       const custName = [
         invoice.customer?.salutation || "",
@@ -419,89 +401,62 @@ const generateInvoicePDF = async (invoice, settings) => {
         .filter(Boolean)
         .join(" ");
 
-      doc
-        .fillColor("#111827")
-        .fontSize(9)
-        .font("Helvetica-Bold")
-        .text(custName, colMid + 10, purchaserY, {
-          width: PAGE_WIDTH / 2 - 20,
-        });
-      purchaserY += 14;
-
-      const purchaserTIN =
-        invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber;
-      if (purchaserTIN) {
+      if (custName) {
         doc
-          .fillColor("#1F2937")
+          .fillColor("#111827")
           .fontSize(9)
           .font("Helvetica-Bold")
-          .text(`TIN: ${purchaserTIN}`, colMid + 10, purchaserY);
-        purchaserY += 14;
-      }
-      if (invoice.customer?.billing?.company || invoice.customerInfo?.company) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .font("Helvetica")
-          .text(
-            invoice.customer?.billing?.company || invoice.customerInfo.company,
-            colMid + 10,
-            purchaserY,
-            { width: PAGE_WIDTH / 2 - 20 },
-          );
-        purchaserY += 14;
-      }
-      if (invoice.customer?.billing?.address_1) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .font("Helvetica")
-          .text(invoice.customer.billing.address_1, colMid + 10, purchaserY, {
-            width: PAGE_WIDTH / 2 - 20,
+          .text(custName, colMid + padding, purchaserY, {
+            width: PAGE_WIDTH / 2 - padding * 2,
           });
-        purchaserY += 14;
+        purchaserY = doc.y + 2;
       }
-      if (
-        invoice.customer?.billing?.city ||
-        invoice.customer?.billing?.postcode
-      ) {
-        const cityPost = [
-          invoice.customer.billing.city,
-          invoice.customer.billing.postcode,
-        ]
-          .filter(Boolean)
-          .join(", ");
+
+      const purchaserDetails = [];
+      const purchaserTIN =
+        invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber;
+      if (purchaserTIN) purchaserDetails.push(`TIN: ${purchaserTIN}`);
+
+      const company =
+        invoice.customer?.billing?.company || invoice.customerInfo?.company;
+      if (company) purchaserDetails.push(company);
+
+      const address1 = invoice.customer?.billing?.address_1;
+      if (address1) purchaserDetails.push(address1);
+
+      const purchaserCityPost = [
+        invoice.customer?.billing?.city,
+        invoice.customer?.billing?.postcode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      if (purchaserCityPost) purchaserDetails.push(purchaserCityPost);
+
+      const purchaserPhone =
+        invoice.customer?.billing?.phone || invoice.customerInfo?.phone;
+      if (purchaserPhone) purchaserDetails.push(`Tel: ${purchaserPhone}`);
+
+      const purchaserEmail =
+        invoice.customer?.email || invoice.customerInfo?.email;
+      if (purchaserEmail) purchaserDetails.push(purchaserEmail);
+
+      if (purchaserDetails.length > 0) {
         doc
           .fillColor("#1F2937")
           .fontSize(9)
-          .text(cityPost, colMid + 10, purchaserY);
-        purchaserY += 14;
-      }
-      if (invoice.customer?.billing?.phone || invoice.customerInfo?.phone) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .text(
-            `Tel: ${invoice.customer?.billing?.phone || invoice.customerInfo?.phone}`,
-            colMid + 10,
-            purchaserY,
-          );
-        purchaserY += 14;
-      }
-      if (invoice.customer?.email || invoice.customerInfo?.email) {
-        doc
-          .fillColor("#1F2937")
-          .fontSize(9)
-          .text(
-            invoice.customer?.email || invoice.customerInfo?.email,
-            colMid + 10,
-            purchaserY,
-          );
-        purchaserY += 14;
+          .font("Helvetica")
+          .text(purchaserDetails.join("\n"), colMid + padding, purchaserY, {
+            width: PAGE_WIDTH / 2 - padding * 2,
+            lineGap: 3,
+          });
+        purchaserY = doc.y + lineGap;
+      } else {
+        purchaserY += lineGap;
       }
 
       // Draw table borders for supplier/purchaser
-      const boxHeight = Math.max(supplierY, purchaserY) - boxTopY + 10;
+      const boxHeight =
+        Math.max(supplierY, purchaserY) - boxTopY + 15 - lineGap;
       doc
         .rect(LEFT, boxTopY, PAGE_WIDTH, boxHeight)
         .lineWidth(0.5)
@@ -515,7 +470,7 @@ const generateInvoicePDF = async (invoice, settings) => {
         .stroke();
 
       // ── DETAILS BAR ──────────────────────────────────────────────────────
-      let detailsBarY = boxTopY + boxHeight + 16;
+      let detailsBarY = boxTopY + boxHeight + 24;
 
       doc.rect(LEFT, detailsBarY, PAGE_WIDTH, 2).fill("#E5E7EB");
       detailsBarY += 6;
@@ -558,7 +513,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           .text(detail.value, cx, detailsBarY + 10, { width: cellWidth - 5 });
       });
 
-      let tableY = detailsBarY + 28;
+      let tableY = detailsBarY + 36;
       doc.rect(LEFT, tableY - 4, PAGE_WIDTH, 1).fill("#E5E7EB");
       tableY += 4;
 
@@ -587,9 +542,9 @@ const generateInvoicePDF = async (invoice, settings) => {
       });
 
       // ── TOTALS ───────────────────────────────────────────────────────────
-      tableY += 12;
+      tableY += 24;
       drawLine(doc, tableY, "#E5E7EB", 1);
-      tableY += 8;
+      tableY += 16;
 
       const totalsLeft = RIGHT_EDGE - 220;
 
@@ -613,7 +568,7 @@ const generateInvoicePDF = async (invoice, settings) => {
             width: 110,
             align: "right",
           });
-        tableY += 16;
+        tableY = doc.y + 6;
       };
 
       drawTotalRow(
@@ -644,7 +599,7 @@ const generateInvoicePDF = async (invoice, settings) => {
       }
 
       // Grand Total bar
-      tableY += 4;
+      tableY += 8;
       doc.rect(totalsLeft, tableY, 220, 22).fill("#1E3A8A");
       doc
         .fillColor("#FFFFFF")
@@ -663,7 +618,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           tableY + 5,
           { width: 110, align: "right" },
         );
-      tableY += 28;
+      tableY += 36;
 
       // Amount Paid & Balance Due
       const amountPaid = invoice.amountPaid || 0;
@@ -678,7 +633,7 @@ const generateInvoicePDF = async (invoice, settings) => {
       }
 
       // ── TOTAL IN WORDS ────────────────────────────────────────────────────
-      tableY += 6;
+      tableY += 16;
       doc.rect(LEFT, tableY, PAGE_WIDTH, 20).fill("#EFF6FF");
       doc
         .fillColor("#6B7280")
@@ -696,6 +651,7 @@ const generateInvoicePDF = async (invoice, settings) => {
 
       // ── MODE OF PAYMENT ───────────────────────────────────────────────────
       if (invoice.paymentMethod) {
+        tableY += 12; // Add some space before mode of payment
         doc
           .fillColor("#6B7280")
           .fontSize(9)
@@ -706,7 +662,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           .fontSize(9)
           .font("Helvetica")
           .text(invoice.paymentMethod, LEFT + 110, tableY);
-        tableY += 18;
+        tableY = doc.y + 12;
       }
 
       // ── NOTES & TERMS ────────────────────────────────────────────────────────────
@@ -727,7 +683,7 @@ const generateInvoicePDF = async (invoice, settings) => {
       ].filter((s) => hasContent(s.content));
 
       if (sections.length > 0) {
-        tableY += 8;
+        tableY += 16;
 
         sections.forEach((section) => {
           if (tableY > 700) {
@@ -752,7 +708,7 @@ const generateInvoicePDF = async (invoice, settings) => {
               align: "left",
             });
 
-          tableY = doc.y + 10;
+          tableY = doc.y + 16;
         });
       }
 
