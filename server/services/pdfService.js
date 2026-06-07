@@ -295,22 +295,22 @@ const generateInvoicePDF = async (invoice, settings) => {
       // TAX INVOICE title (left)
       doc
         .fillColor("#1E3A8A")
-        .fontSize(24)
+        .fontSize(18)
         .font("Helvetica-Bold")
-        .text("TAX INVOICE", LEFT, 36);
+        .text("TAX INVOICE", LEFT, 36, { characterSpacing: 2 });
 
       // Tax Invoice Number below title
       const taxInvNo = invoice.taxInvoiceNumber || invoice.invoiceNumber;
       doc
         .fillColor("#6B7280")
-        .fontSize(8)
+        .fontSize(9)
         .font("Helvetica")
-        .text("Tax Invoice No.", LEFT, 65);
+        .text("Tax Invoice No.", LEFT, 60);
       doc
         .fillColor("#1E3A8A")
         .fontSize(11)
         .font("Helvetica-Bold")
-        .text(taxInvNo, LEFT, 75);
+        .text(taxInvNo, LEFT, 71);
 
       if (
         invoice.invoiceNumber &&
@@ -319,41 +319,41 @@ const generateInvoicePDF = async (invoice, settings) => {
       ) {
         doc
           .fillColor("#9CA3AF")
-          .fontSize(8)
+          .fontSize(9)
           .font("Helvetica")
-          .text(`Ref: ${invoice.invoiceNumber}`, LEFT, 88);
+          .text(`Ref: ${invoice.invoiceNumber}`, LEFT, 86);
       }
 
       // Logo (top right)
       if (settings?.logo) {
-        await embedLogo(doc, settings.logo, 450, 36, 105, 50);
+        await embedLogo(doc, settings.logo, 450, 40, 105, 50);
       }
 
       // Status badge
       const statusText = invoice.status.replace("_", " ").toUpperCase();
       doc
-        .roundedRect(LEFT, 98, 70, 14, 6)
+        .roundedRect(LEFT, 102, 70, 16, 8)
         .fill("#EFF6FF")
-        .fillColor("#1E3A8A")
-        .fontSize(7)
+        .fillColor("#2563EB")
+        .fontSize(8)
         .font("Helvetica-Bold")
-        .text(statusText, LEFT, 102, { width: 70, align: "center" });
+        .text(statusText, LEFT, 107, { width: 70, align: "center" });
 
       // Blue divider
-      drawLine(doc, 120, "#1E3A8A", 2);
+      drawLine(doc, 134, "#1E3A8A", 2);
 
       // ── SUPPLIER & PURCHASER ─────────────────────────────────────────────
       const colMid = LEFT + PAGE_WIDTH / 2 + 5;
-      let supplierY = 130;
-      let purchaserY = 130;
+      let supplierY = 150;
+      let purchaserY = 150;
 
       // Supplier (left column)
       doc
         .fillColor("#9CA3AF")
-        .fontSize(7)
+        .fontSize(8)
         .font("Helvetica-Bold")
         .text("SUPPLIER", LEFT, supplierY);
-      supplierY += 12;
+      supplierY += 16;
 
       doc
         .fillColor("#111827")
@@ -362,63 +362,63 @@ const generateInvoicePDF = async (invoice, settings) => {
         .text(settings?.storeName || "", LEFT, supplierY, {
           width: PAGE_WIDTH / 2 - 10,
         });
-      supplierY += 14;
+      supplierY += 16;
 
       if (settings?.taxIdNo) {
         doc
           .fillColor("#1E3A8A")
-          .fontSize(9)
+          .fontSize(10)
           .font("Helvetica-Bold")
           .text(`TIN: ${settings.taxIdNo}`, LEFT, supplierY);
-        supplierY += 12;
+        supplierY += 14;
       }
       if (settings?.registrationNo) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .font("Helvetica")
           .text(`Reg: ${settings.registrationNo}`, LEFT, supplierY);
-        supplierY += 11;
+        supplierY += 14;
       }
       if (settings?.address?.street) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .font("Helvetica")
           .text(settings.address.street, LEFT, supplierY, {
             width: PAGE_WIDTH / 2 - 10,
           });
-        supplierY += 11;
+        supplierY += 14;
       }
       if (settings?.address?.city || settings?.address?.zip) {
         const cityZip = [settings.address.city, settings.address.zip]
           .filter(Boolean)
           .join(", ");
-        doc.fillColor("#4B5563").fontSize(8).text(cityZip, LEFT, supplierY);
-        supplierY += 11;
+        doc.fillColor("#4B5563").fontSize(10).text(cityZip, LEFT, supplierY);
+        supplierY += 14;
       }
       if (settings?.contact?.phone) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .text(`Tel: ${settings.contact.phone}`, LEFT, supplierY);
-        supplierY += 11;
+        supplierY += 14;
       }
       if (settings?.contact?.email) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .text(settings.contact.email, LEFT, supplierY);
-        supplierY += 11;
+        supplierY += 14;
       }
 
       // Purchaser (right column)
       doc
         .fillColor("#9CA3AF")
-        .fontSize(7)
+        .fontSize(8)
         .font("Helvetica-Bold")
         .text("PURCHASER", colMid, purchaserY);
-      purchaserY += 12;
+      purchaserY += 16;
 
       const custName = [
         invoice.customer?.salutation || "",
@@ -433,22 +433,22 @@ const generateInvoicePDF = async (invoice, settings) => {
         .fontSize(10)
         .font("Helvetica-Bold")
         .text(custName, colMid, purchaserY, { width: PAGE_WIDTH / 2 - 10 });
-      purchaserY += 14;
+      purchaserY += 16;
 
       const purchaserTIN =
         invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber;
       if (purchaserTIN) {
         doc
           .fillColor("#1E3A8A")
-          .fontSize(9)
+          .fontSize(10)
           .font("Helvetica-Bold")
           .text(`TIN: ${purchaserTIN}`, colMid, purchaserY);
-        purchaserY += 12;
+        purchaserY += 14;
       }
       if (invoice.customer?.billing?.company || invoice.customerInfo?.company) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .font("Helvetica")
           .text(
             invoice.customer?.billing?.company || invoice.customerInfo.company,
@@ -456,17 +456,17 @@ const generateInvoicePDF = async (invoice, settings) => {
             purchaserY,
             { width: PAGE_WIDTH / 2 - 10 },
           );
-        purchaserY += 11;
+        purchaserY += 14;
       }
       if (invoice.customer?.billing?.address_1) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .font("Helvetica")
           .text(invoice.customer.billing.address_1, colMid, purchaserY, {
             width: PAGE_WIDTH / 2 - 10,
           });
-        purchaserY += 11;
+        purchaserY += 14;
       }
       if (
         invoice.customer?.billing?.city ||
@@ -478,30 +478,33 @@ const generateInvoicePDF = async (invoice, settings) => {
         ]
           .filter(Boolean)
           .join(", ");
-        doc.fillColor("#4B5563").fontSize(8).text(cityPost, colMid, purchaserY);
-        purchaserY += 11;
+        doc
+          .fillColor("#4B5563")
+          .fontSize(10)
+          .text(cityPost, colMid, purchaserY);
+        purchaserY += 14;
       }
       if (invoice.customer?.billing?.phone || invoice.customerInfo?.phone) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .text(
             `Tel: ${invoice.customer?.billing?.phone || invoice.customerInfo?.phone}`,
             colMid,
             purchaserY,
           );
-        purchaserY += 11;
+        purchaserY += 14;
       }
       if (invoice.customer?.email || invoice.customerInfo?.email) {
         doc
           .fillColor("#4B5563")
-          .fontSize(8)
+          .fontSize(10)
           .text(
             invoice.customer?.email || invoice.customerInfo?.email,
             colMid,
             purchaserY,
           );
-        purchaserY += 11;
+        purchaserY += 14;
       }
 
       // ── DETAILS BAR ──────────────────────────────────────────────────────
