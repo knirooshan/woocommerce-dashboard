@@ -37,6 +37,7 @@ const CreateInvoice = () => {
     deliveryNote: "",
     terms: "",
     status: "draft",
+    placeOfSupply: "",
   });
 
   useEffect(() => {
@@ -47,6 +48,11 @@ const CreateInvoice = () => {
         terms: prev.terms || settings.terms?.invoice || "",
         deliveryNote:
           prev.deliveryNote || settings.terms?.deliveryReceipt || "",
+        placeOfSupply:
+          prev.placeOfSupply ||
+          settings.ird?.placeOfSupply ||
+          settings.address?.city ||
+          "",
       }));
     }
   }, [settings]);
@@ -282,6 +288,20 @@ const CreateInvoice = () => {
                   setFormData({ ...formData, reference: e.target.value })
                 }
                 placeholder="e.g. PO-12345"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Place of Supply
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.placeOfSupply}
+                onChange={(e) =>
+                  setFormData({ ...formData, placeOfSupply: e.target.value })
+                }
+                placeholder="e.g. Colombo"
               />
             </div>
           </div>

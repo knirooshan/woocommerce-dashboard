@@ -39,6 +39,7 @@ const EditInvoice = () => {
     deliveryNote: "",
     terms: "",
     status: "draft",
+    placeOfSupply: "",
   });
 
   useEffect(() => {
@@ -88,6 +89,11 @@ const EditInvoice = () => {
           terms: invoice.terms || "",
           status: invoice.status,
           reference: invoice.reference || "",
+          placeOfSupply:
+            invoice.placeOfSupply ||
+            settings?.ird?.placeOfSupply ||
+            settings?.address?.city ||
+            "",
         });
 
         setLoading(false);
@@ -260,6 +266,20 @@ const EditInvoice = () => {
                   setFormData({ ...formData, reference: e.target.value })
                 }
                 placeholder="e.g. PO-12345"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Place of Supply
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-950 border border-slate-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.placeOfSupply}
+                onChange={(e) =>
+                  setFormData({ ...formData, placeOfSupply: e.target.value })
+                }
+                placeholder="e.g. Colombo"
               />
             </div>
           </div>

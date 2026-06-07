@@ -65,6 +65,11 @@ const settingsSchema = new mongoose.Schema(
       apiKey: { type: String, default: "" }, // Medusa Admin API secret key
       publishableKey: { type: String, default: "" }, // Publishable key (optional)
     },
+    // IRD Sri Lanka Gazette 2481/22 compliance settings
+    ird: {
+      departmentCode: { type: String, default: "BR01" }, // Used in Tax Invoice Number: YYMMM_DEPT_SERIAL
+      placeOfSupply: { type: String, default: "" }, // Default place of supply on invoices
+    },
     // Feature module toggles
     modules: {
       woocommerce: { type: Boolean, default: true },

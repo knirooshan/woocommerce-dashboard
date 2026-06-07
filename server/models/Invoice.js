@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const invoiceSchema = new mongoose.Schema(
   {
     invoiceNumber: { type: String, unique: true },
+    taxInvoiceNumber: { type: String, default: "" }, // IRD Gazette 2481/22 format: YYMMM_DEPT_SERIAL
+    placeOfSupply: { type: String, default: "" }, // Required by IRD Gazette 2481/22
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",

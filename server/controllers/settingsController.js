@@ -45,6 +45,7 @@ const updateSettings = async (req, res) => {
       settings.dateTime = req.body.dateTime || settings.dateTime;
       settings.terms = req.body.terms || settings.terms;
       settings.wooCommerce = req.body.wooCommerce || settings.wooCommerce;
+      settings.ird = req.body.ird || settings.ird;
       // support updating modules toggles
       if (req.body.modules) {
         settings.modules = {
