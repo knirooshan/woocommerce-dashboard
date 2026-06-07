@@ -87,6 +87,7 @@ const invoiceSchema = new mongoose.Schema(
     ],
     invoiceDate: { type: Date, default: Date.now },
     dueDate: Date,
+    deliveryDate: Date,
     notes: String,
     terms: String,
     woocommerceOrderId: Number,

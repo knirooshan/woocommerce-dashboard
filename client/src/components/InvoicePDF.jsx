@@ -237,15 +237,15 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#1E3A8A",
-    paddingVertical: 5,
-    paddingHorizontal: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
     borderBottomColor: "#E5E7EB",
-    paddingVertical: 5,
-    paddingHorizontal: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: "center",
   },
   tableRowAlt: {
@@ -325,8 +325,6 @@ const styles = StyleSheet.create({
     padding: 6,
     backgroundColor: "#EFF6FF",
     borderRadius: 3,
-    borderLeftWidth: 3,
-    borderLeftColor: "#1E3A8A",
   },
   amountWordsLabel: {
     fontSize: 7,
@@ -545,9 +543,14 @@ const InvoicePDF = ({ invoice, settings }) => {
           <View style={styles.detailCell}>
             <Text style={styles.detailLabel}>Date of Delivery</Text>
             <Text style={styles.detailValue}>
-              {formatDate(invoice.invoiceDate || invoice.createdAt, {
-                dateTime: { dateFormat: "MM/DD/YYYY" },
-              })}
+              {formatDate(
+                invoice.deliveryDate ||
+                  invoice.invoiceDate ||
+                  invoice.createdAt,
+                {
+                  dateTime: { dateFormat: "MM/DD/YYYY" },
+                },
+              )}
             </Text>
           </View>
           {invoice.placeOfSupply && (
@@ -791,8 +794,7 @@ const InvoicePDF = ({ invoice, settings }) => {
             </View>
           )}
           <Text style={styles.footerNote}>
-            This is a computer-generated Tax Invoice compliant with IRD Sri
-            Lanka Gazette No. 2481/22. No signature is required.
+            This is a computer-generated Tax Invoice. No signature is required.
           </Text>
         </View>
       </Page>

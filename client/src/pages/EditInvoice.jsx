@@ -81,6 +81,9 @@ const EditInvoice = () => {
             ? invoice.invoiceDate.split("T")[0]
             : "",
           dueDate: invoice.dueDate ? invoice.dueDate.split("T")[0] : "",
+          deliveryDate: invoice.deliveryDate
+            ? invoice.deliveryDate.split("T")[0]
+            : "",
           paymentMethod: invoice.paymentMethod || "Bank Transfer",
           taxRate: invoice.taxRate || settings?.tax?.rate || 0,
           discount: invoice.discount || 0,
@@ -251,6 +254,16 @@ const EditInvoice = () => {
                 value={formData.dueDate}
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <DateInput
+                label="Date of Delivery"
+                name="deliveryDate"
+                value={formData.deliveryDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, deliveryDate: e.target.value })
                 }
               />
             </div>

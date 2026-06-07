@@ -198,54 +198,54 @@ const drawLine = (doc, y, color = "#E5E7EB", lineWidth = 1) => {
 // Helper to add table header (gazette-compliant columns)
 const addTableHeader = (doc, y, settings) => {
   doc
-    .rect(50, y, 500, 22)
+    .rect(50, y, 500, 26)
     .fill("#1E3A8A")
     .fillColor("#FFFFFF")
     .fontSize(8)
     .font("Helvetica-Bold")
-    .text("#", 55, y + 7, { width: 20, align: "left" })
-    .text("DESCRIPTION OF GOODS / SERVICES", 78, y + 7, {
+    .text("#", 55, y + 9, { width: 20, align: "left" })
+    .text("DESCRIPTION OF GOODS / SERVICES", 78, y + 9, {
       width: 210,
       align: "left",
     })
-    .text("QTY", 290, y + 7, { width: 50, align: "right" })
-    .text("UNIT PRICE", 345, y + 7, { width: 80, align: "right" })
-    .text("AMOUNT EXCL. VAT (Rs.)", 430, y + 7, { width: 115, align: "right" });
+    .text("QTY", 290, y + 9, { width: 50, align: "right" })
+    .text("UNIT PRICE", 345, y + 9, { width: 80, align: "right" })
+    .text("AMOUNT EXCL. VAT (Rs.)", 430, y + 9, { width: 115, align: "right" });
 
-  return y + 22;
+  return y + 26;
 };
 
 // Helper to add table row (gazette-compliant columns)
 const addTableRow = (doc, y, item, settings, isLast = false, rowIndex = 0) => {
   if (rowIndex % 2 === 1) {
-    doc.rect(50, y, 500, 30).fill("#F9FAFB");
+    doc.rect(50, y, 500, 36).fill("#F9FAFB");
   }
 
   doc
     .fillColor("#6B7280")
     .fontSize(9)
     .font("Helvetica")
-    .text((rowIndex + 1).toString(), 55, y + 8, { width: 20, align: "left" });
+    .text((rowIndex + 1).toString(), 55, y + 11, { width: 20, align: "left" });
 
   doc
     .fillColor("#1F2937")
     .fontSize(9)
     .font("Helvetica")
-    .text(item.name, 78, y + 8, { width: 210, align: "left" });
+    .text(item.name, 78, y + 11, { width: 210, align: "left" });
 
   if (item.product?.shortDescription) {
     doc
       .fillColor("#6B7280")
       .fontSize(7)
-      .text(item.product.shortDescription, 78, y + 20, { width: 210 });
+      .text(item.product.shortDescription, 78, y + 23, { width: 210 });
   }
 
   doc
     .fillColor("#1F2937")
     .fontSize(9)
     .font("Helvetica")
-    .text(item.quantity.toString(), 290, y + 8, { width: 50, align: "right" })
-    .text(formatCurrency(item.price, settings), 345, y + 8, {
+    .text(item.quantity.toString(), 290, y + 11, { width: 50, align: "right" })
+    .text(formatCurrency(item.price, settings), 345, y + 11, {
       width: 80,
       align: "right",
     })
@@ -765,7 +765,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           .fillColor("#9CA3AF")
           .fontSize(6.5)
           .text(
-            `This is a computer-generated Tax Invoice compliant with IRD Sri Lanka Gazette No. 2481/22. No signature is required. | Page ${i + 1} of ${range.count}`,
+            `This is a computer-generated Tax Invoice. No signature is required. | Page ${i + 1} of ${range.count}`,
             LEFT,
             doc.page.height - 18,
             { width: PAGE_WIDTH, align: "center" },

@@ -30,6 +30,7 @@ const CreateInvoice = () => {
     notes: "",
     invoiceDate: new Date().toISOString().split("T")[0],
     dueDate: "",
+    deliveryDate: "",
     paymentMethod: "Bank Transfer",
     taxRate: 0,
     discount: 0,
@@ -273,6 +274,16 @@ const CreateInvoice = () => {
                 value={formData.dueDate}
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <DateInput
+                label="Date of Delivery"
+                name="deliveryDate"
+                value={formData.deliveryDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, deliveryDate: e.target.value })
                 }
               />
             </div>
