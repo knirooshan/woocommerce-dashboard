@@ -1,5 +1,49 @@
 const { getTenantModels } = require("../models/tenantModels");
-const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
+const {
+  parseStartOfDay,
+  parseEndOfDay,
+  getTenantTimezone,
+} = require("../utils/dateUtils");
+
+// Generate IRD-compliant Tax Invoice Number: YYMMM_DEPT_SERIAL
+// e.g. 26JUL_BR01_1
+const generateTaxInvoiceNumber = async (Invoice, settings, invoiceDate) => {
+  const date = invoiceDate ? new Date(invoiceDate) : new Date();
+  const yy = date.getFullYear().toString().slice(-2);
+  const months = [
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
+  ];
+  const mmm = months[date.getMonth()];
+  const dept = settings?.ird?.departmentCode || "BR01";
+
+  // Count invoices in the same month/year to get serial
+  const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const endOfMonth = new Date(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+  );
+  const countInMonth = await Invoice.countDocuments({
+    createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+  });
+  const serial = countInMonth + 1;
+
+  return `${yy}${mmm}_${dept}_${serial}`;
+};
 
 // @desc    Get all invoices
 // @route   GET /api/invoices
@@ -34,7 +78,8 @@ const getInvoices = async (req, res) => {
     if (startDate || endDate) {
       const timezone = await getTenantTimezone(req.dbConnection);
       filter.invoiceDate = {};
-      if (startDate) filter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
+      if (startDate)
+        filter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
       if (endDate) filter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
     }
 
@@ -74,7 +119,9 @@ const getInvoiceById = async (req, res) => {
 // @access  Private
 const createInvoice = async (req, res) => {
   try {
-    const { Invoice, Customer, Payment } = getTenantModels(req.dbConnection);
+    const { Invoice, Customer, Payment, Settings } = getTenantModels(
+      req.dbConnection,
+    );
 
     let {
       customer,
@@ -93,6 +140,7 @@ const createInvoice = async (req, res) => {
       paymentMethod,
       status,
       reference,
+      placeOfSupply,
     } = req.body;
 
     // Check if this is a walk-in customer invoice
@@ -134,6 +182,23 @@ const createInvoice = async (req, res) => {
       }
     }
 
+    // Fetch settings to get IRD department code
+    const settings = await Settings.findOne();
+
+    // Generate IRD-compliant Tax Invoice Number
+    const taxInvoiceNumber = await generateTaxInvoiceNumber(
+      Invoice,
+      settings,
+      invoiceDate,
+    );
+
+    // Default placeOfSupply from settings if not provided
+    const resolvedPlaceOfSupply =
+      placeOfSupply ||
+      settings?.ird?.placeOfSupply ||
+      settings?.address?.city ||
+      "";
+
     const invoice = new Invoice({
       customer,
       customerInfo,
@@ -151,6 +216,8 @@ const createInvoice = async (req, res) => {
       paymentMethod,
       status: status || "draft",
       reference,
+      taxInvoiceNumber,
+      placeOfSupply: resolvedPlaceOfSupply,
     });
 
     const createdInvoice = await invoice.save();
@@ -272,7 +339,7 @@ const deleteInvoice = async (req, res) => {
       // Soft delete associated payments
       await Payment.updateMany(
         { invoice: req.params.id },
-        { status: "deleted" }
+        { status: "deleted" },
       );
 
       // Soft delete the invoice

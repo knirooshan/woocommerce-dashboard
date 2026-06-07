@@ -36,6 +36,7 @@ const Settings = () => {
     tax: { rate: 0, label: "Tax", defaultMethod: "exclusive" },
     dateTime: { dateFormat: "MM/DD/YYYY", timeFormat: "12h", timezone: "UTC" },
     terms: { invoice: "", quotation: "", deliveryReceipt: "" },
+    ird: { departmentCode: "BR01", placeOfSupply: "" },
     wooCommerce: { url: "", consumerKey: "", consumerSecret: "" },
     medusa: { url: "", apiKey: "", publishableKey: "" },
     modules: { woocommerce: true, pos: true, medusaSync: false },
@@ -872,6 +873,63 @@ const Settings = () => {
             </div>
           </div>
         )}
+
+        {/* IRD Tax Compliance */}
+        <div className="bg-slate-900 shadow rounded-lg p-6 border border-amber-800/40">
+          <div className="flex items-start gap-3 mb-4 border-b border-slate-800 pb-3">
+            <div className="flex-1">
+              <h2 className="text-lg font-medium text-amber-400 mb-1">
+                🏛️ IRD Tax Compliance (Gazette No. 2481/22)
+              </h2>
+              <p className="text-xs text-slate-400">
+                Mandatory for all Sri Lankan taxpayers effective 1st July 2026.
+                Tax Invoice Numbers are auto-generated in the format:{" "}
+                <span className="font-mono text-amber-300">
+                  YYMMM_DEPT_SERIAL
+                </span>{" "}
+                (e.g.{" "}
+                <span className="font-mono text-amber-300">26JUL_BR01_1</span>)
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Department / Branch Code
+              </label>
+              <input
+                type="text"
+                name="departmentCode"
+                value={formData.ird?.departmentCode || "BR01"}
+                onChange={(e) => handleChange(e, "ird")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-amber-600 focus:border-amber-600 sm:text-sm font-mono uppercase"
+                placeholder="BR01"
+                maxLength={10}
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Used as the DEPT part of the Tax Invoice Number (e.g. BR01,
+                BR03). Max 10 characters.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300">
+                Default Place of Supply
+              </label>
+              <input
+                type="text"
+                name="placeOfSupply"
+                value={formData.ird?.placeOfSupply || ""}
+                onChange={(e) => handleChange(e, "ird")}
+                className="mt-1 block w-full bg-slate-950 border border-slate-700 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-amber-600 focus:border-amber-600 sm:text-sm"
+                placeholder="e.g. Colombo"
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Default place of supply printed on invoices. Can be overridden
+                per invoice.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="flex justify-end">
           <button
