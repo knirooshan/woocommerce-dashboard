@@ -209,6 +209,14 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
             {settings?.contact?.email && (
               <Text style={styles.companyInfo}>{settings.contact.email}</Text>
             )}
+            {settings?.registrationNo && (
+              <Text style={styles.companyInfo}>
+                Reg No: {settings.registrationNo}
+              </Text>
+            )}
+            {settings?.taxIdNo && (
+              <Text style={styles.companyInfo}>Tax ID: {settings.taxIdNo}</Text>
+            )}
           </View>
         </View>
 
@@ -252,7 +260,10 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
             )}
             {invoice.customer?.taxNumber && (
               <Text style={styles.billToSubText}>
-                {settings?.tax?.label && settings.tax.label !== "Tax" ? settings.tax.label : "TIN"}: {invoice.customer.taxNumber}
+                {settings?.tax?.label && settings.tax.label !== "Tax"
+                  ? settings.tax.label
+                  : "TIN"}
+                : {invoice.customer.taxNumber}
               </Text>
             )}
           </View>
@@ -452,7 +463,7 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
                   <View style={{ marginTop: 2 }}>
                     {renderHtmlToPdf(
                       item.description || item.product.shortDescription,
-                      { fontSize: 8, color: "#6B7280" }
+                      { fontSize: 8, color: "#6B7280" },
                     )}
                   </View>
                 )}
