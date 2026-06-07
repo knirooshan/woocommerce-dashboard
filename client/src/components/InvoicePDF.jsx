@@ -138,17 +138,7 @@ const styles = StyleSheet.create({
     color: "#1E3A8A",
     marginTop: 2,
   },
-  statusBadge: {
-    marginTop: 8,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    backgroundColor: "#EFF6FF",
-    borderRadius: 10,
-    color: "#2563EB",
-    fontSize: 8,
-    fontWeight: "bold",
-    alignSelf: "flex-start",
-  },
+
   logo: {
     width: 100,
     height: 44,
@@ -164,45 +154,49 @@ const styles = StyleSheet.create({
   // ── Two-column info grid ─────────────────────────────────
   infoGrid: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    borderWidth: 0.5,
+    borderColor: "#E5E7EB",
+    borderRadius: 2,
     marginBottom: 16,
-    gap: 16,
   },
   infoCol: {
-    width: "48%",
+    width: "50%",
+    padding: 10,
+    borderRightWidth: 0.5,
+    borderRightColor: "#E5E7EB",
   },
   infoColRight: {
-    width: "48%",
-    alignItems: "flex-end",
+    width: "50%",
+    padding: 10,
   },
   sectionLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: "bold",
-    color: "#9CA3AF",
+    color: "#6B7280",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 6,
     borderBottomWidth: 0.5,
     borderBottomColor: "#E5E7EB",
     paddingBottom: 4,
   },
   infoText: {
-    fontSize: 10,
+    fontSize: 8,
     color: "#1F2937",
-    marginBottom: 4,
+    marginBottom: 3,
     lineHeight: 1.4,
   },
   infoTextBold: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: "bold",
     color: "#111827",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   tinText: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: "bold",
-    color: "#1E3A8A",
-    marginBottom: 4,
+    color: "#1F2937",
+    marginBottom: 3,
   },
   // ── Details bar (invoice date, due date, etc.) ───────────
   detailsBar: {
@@ -455,9 +449,6 @@ const InvoicePDF = ({ invoice, settings }) => {
                   Ref: {invoice.invoiceNumber}
                 </Text>
               )}
-            <View style={styles.statusBadge}>
-              <Text>{invoice.status.replace("_", " ").toUpperCase()}</Text>
-            </View>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             {settings?.logo && (
@@ -501,7 +492,7 @@ const InvoicePDF = ({ invoice, settings }) => {
           </View>
 
           {/* Purchaser (right) */}
-          <View style={styles.infoCol}>
+          <View style={styles.infoColRight}>
             <Text style={styles.sectionLabel}>Purchaser</Text>
             <Text style={styles.infoTextBold}>{customerName}</Text>
             {purchaserTIN ? (
