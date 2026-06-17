@@ -414,6 +414,9 @@ const QuotationPDF = ({ quotation, settings }) => {
                 <View style={styles.colItem}>
                   <View>
                     <Text style={styles.tableCell}>{item.name}</Text>
+                    {item.sku ? (
+                      <Text style={styles.tableCellSub}>SKU: {item.sku}</Text>
+                    ) : null}
                     {(item.description || item.product?.shortDescription) && (
                       <View style={{ marginTop: 2 }}>
                         {renderHtmlToPdf(
