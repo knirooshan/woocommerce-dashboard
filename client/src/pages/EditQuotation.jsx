@@ -470,6 +470,8 @@ const EditQuotation = () => {
         onAdd={addItem}
         products={products}
         settings={settings}
+        currency={currency}
+        exchangeRate={exchangeRate}
         initialItem={
           editingItemIndex !== null ? formData.items[editingItemIndex] : null
         }
