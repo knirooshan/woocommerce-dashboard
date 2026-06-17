@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import QuotationPDF from "../components/QuotationPDF";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { urlToBase64 } from "../utils/imageUtils";
 
@@ -162,6 +162,8 @@ const QuotationView = () => {
   if (loading) return <div className="text-white">Loading...</div>;
   if (!quotation) return <div className="text-white">Quotation not found</div>;
 
+  const effectiveSettings = getDocumentCurrencySettings(quotation, settings);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
@@ -218,6 +220,22 @@ const QuotationView = () => {
                 {quotation.status}
               </span>
             </p>
+            {quotation.currency?.code &&
+              quotation.currency.code !== settings?.currency?.code && (
+                <p className="text-slate-600 mt-1">
+                  Currency:{" "}
+                  <span className="font-semibold text-amber-600">
+                    {quotation.currency.code}
+                  </span>
+                  {quotation.exchangeRate?.rate > 0 && (
+                    <span className="text-slate-500 text-sm ml-1">
+                      (1 {quotation.currency.code} ={" "}
+                      {quotation.exchangeRate.rate}{" "}
+                      {quotation.exchangeRate.baseCurrency})
+                    </span>
+                  )}
+                </p>
+              )}
           </div>
           <div className="text-right">
             {settings?.logo && (
@@ -264,20 +282,38 @@ const QuotationView = () => {
                 {quotation.customer.billing.company}
               </p>
             )}
-          <p className="text-slate-600">
-            {quotation.customer?.billing?.address_1}
-          </p>
-          <p className="text-slate-600">
-            {quotation.customer?.billing?.city}
-            {quotation.customer?.billing?.city &&
-              quotation.customer?.billing?.postcode &&
-              ", "}
-            {quotation.customer?.billing?.postcode}
-          </p>
-          <p className="text-slate-600">{quotation.customer?.email}</p>
+          {quotation.customer?.billing?.address_1 && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.address_1}
+            </p>
+          )}
+          {quotation.customer?.billing?.address_2 && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.address_2}
+            </p>
+          )}
+          {(quotation.customer?.billing?.city ||
+            quotation.customer?.billing?.state ||
+            quotation.customer?.billing?.postcode) && (
+            <p className="text-slate-600">
+              {[
+                quotation.customer?.billing?.city,
+                quotation.customer?.billing?.state,
+                quotation.customer?.billing?.postcode,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            </p>
+          )}
+          {quotation.customer?.billing?.country && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.country}
+            </p>
+          )}
           {quotation.customer?.billing?.phone && (
             <p className="text-slate-600">{quotation.customer.billing.phone}</p>
           )}
+          <p className="text-slate-600">{quotation.customer?.email}</p>
           {quotation.customer?.taxNumber && (
             <p className="text-slate-600 font-medium">
               {settings?.tax?.label && settings.tax.label !== "Tax"
@@ -332,7 +368,7 @@ const QuotationView = () => {
                       Discount: -
                       {item.discountType === "percentage"
                         ? `${item.discount}%`
-                        : formatCurrency(item.discount, settings)}
+                        : formatCurrency(item.discount, effectiveSettings)}
                     </div>
                   )}
                   {item.isTaxable && (
@@ -342,13 +378,13 @@ const QuotationView = () => {
                   )}
                 </td>
                 <td className="text-right py-3 text-slate-600">
-                  {formatCurrency(item.price, settings)}
+                  {formatCurrency(item.price, effectiveSettings)}
                 </td>
                 <td className="text-right py-3 text-slate-600">
                   {item.quantity}
                 </td>
                 <td className="text-right py-3 text-slate-900 font-medium">
-                  {formatCurrency(item.total, settings)}
+                  {formatCurrency(item.total, effectiveSettings)}
                 </td>
               </tr>
             ))}
@@ -360,7 +396,7 @@ const QuotationView = () => {
           <div className="flex justify-between w-64">
             <span className="text-slate-600">Subtotal:</span>
             <span className="font-medium text-slate-900">
-              {formatCurrency(quotation.subtotal, settings)}
+              {formatCurrency(quotation.subtotal, effectiveSettings)}
             </span>
           </div>
           {quotation.tax > 0 && (
@@ -369,7 +405,7 @@ const QuotationView = () => {
                 {settings?.tax?.label || "Tax"}:
               </span>
               <span className="font-medium text-slate-900">
-                {formatCurrency(quotation.tax, settings)}
+                {formatCurrency(quotation.tax, effectiveSettings)}
               </span>
             </div>
           )}
@@ -377,7 +413,7 @@ const QuotationView = () => {
             <div className="flex justify-between w-64">
               <span className="text-slate-600">Discount:</span>
               <span className="font-medium text-slate-900">
-                -{formatCurrency(quotation.discount, settings)}
+                -{formatCurrency(quotation.discount, effectiveSettings)}
               </span>
             </div>
           )}
@@ -385,13 +421,13 @@ const QuotationView = () => {
             <div className="flex justify-between w-64">
               <span className="text-slate-600">Delivery Charge:</span>
               <span className="font-medium text-slate-900">
-                {formatCurrency(quotation.deliveryCharge, settings)}
+                {formatCurrency(quotation.deliveryCharge, effectiveSettings)}
               </span>
             </div>
           )}
           <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t border-slate-200 text-slate-900">
             <span>Total:</span>
-            <span>{formatCurrency(quotation.total, settings)}</span>
+            <span>{formatCurrency(quotation.total, effectiveSettings)}</span>
           </div>
         </div>
 

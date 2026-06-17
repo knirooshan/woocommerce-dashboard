@@ -142,6 +142,8 @@ const createInvoice = async (req, res) => {
       status,
       reference,
       placeOfSupply,
+      currency,
+      exchangeRate,
     } = req.body;
 
     // Check if this is a walk-in customer invoice
@@ -220,6 +222,8 @@ const createInvoice = async (req, res) => {
       reference,
       taxInvoiceNumber,
       placeOfSupply: resolvedPlaceOfSupply,
+      currency,
+      exchangeRate,
     });
 
     const createdInvoice = await invoice.save();

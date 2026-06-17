@@ -51,6 +51,15 @@ const quotationSchema = new mongoose.Schema(
     terms: String,
     quotationDate: { type: Date, default: Date.now },
     validUntil: Date,
+    currency: {
+      code: { type: String },
+      symbol: { type: String },
+      position: { type: String, default: "before", enum: ["before", "after"] },
+    },
+    exchangeRate: {
+      rate: { type: Number, default: 1 },
+      baseCurrency: { type: String },
+    },
   },
   {
     timestamps: true,

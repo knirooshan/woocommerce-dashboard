@@ -91,6 +91,15 @@ const invoiceSchema = new mongoose.Schema(
     notes: String,
     terms: String,
     woocommerceOrderId: Number,
+    currency: {
+      code: { type: String },
+      symbol: { type: String },
+      position: { type: String, default: "before", enum: ["before", "after"] },
+    },
+    exchangeRate: {
+      rate: { type: Number, default: 1 },
+      baseCurrency: { type: String },
+    },
   },
   {
     timestamps: true,

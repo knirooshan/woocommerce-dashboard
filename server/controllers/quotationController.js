@@ -86,6 +86,8 @@ const createQuotation = async (req, res) => {
       terms,
       quotationDate,
       validUntil,
+      currency,
+      exchangeRate,
     } = req.body;
 
     const quotation = new Quotation({
@@ -101,6 +103,8 @@ const createQuotation = async (req, res) => {
       terms,
       quotationDate,
       validUntil,
+      currency,
+      exchangeRate,
     });
 
     const createdQuotation = await quotation.save();
