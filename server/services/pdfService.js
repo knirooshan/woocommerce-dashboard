@@ -273,9 +273,12 @@ const generateInvoicePDF = async (invoice, settings) => {
         margin: 36,
         bufferPages: true,
         info: {
-          Title: `Tax Invoice ${invoice.taxInvoiceNumber || invoice.invoiceNumber}`,
+          Title: `${invoice.invoiceType === "proforma" ? "Proforma Invoice" : "Tax Invoice"} ${invoice.taxInvoiceNumber || invoice.invoiceNumber}`,
           Author: settings?.storeName || "MerchPilot",
-          Subject: "Tax Invoice - IRD Sri Lanka Gazette 2481/22",
+          Subject:
+            invoice.invoiceType === "proforma"
+              ? "Proforma Invoice"
+              : "Tax Invoice - IRD Sri Lanka Gazette 2481/22",
         },
       });
 
@@ -292,22 +295,27 @@ const generateInvoicePDF = async (invoice, settings) => {
       const PAGE_WIDTH = RIGHT_EDGE - LEFT;
 
       // ── HEADER ──────────────────────────────────────────────────────────
-      // TAX INVOICE title (left)
+      // Invoice title (left)
+      const isProforma = invoice.invoiceType === "proforma";
+      const invoiceTitleText = isProforma ? "PROFORMA INVOICE" : "TAX INVOICE";
       doc
-        .fillColor("#1E3A8A")
+        .fillColor(isProforma ? "#065F46" : "#1E3A8A")
         .fontSize(18)
         .font("Helvetica-Bold")
-        .text("TAX INVOICE", LEFT, 36, { characterSpacing: 2 });
+        .text(invoiceTitleText, LEFT, 36, { characterSpacing: 2 });
 
-      // Tax Invoice Number below title
+      // Invoice Number below title
       const taxInvNo = invoice.taxInvoiceNumber || invoice.invoiceNumber;
+      const invoiceNoLabel = isProforma
+        ? "Proforma Invoice No."
+        : "Tax Invoice No.";
       doc
         .fillColor("#6B7280")
         .fontSize(9)
         .font("Helvetica")
-        .text("Tax Invoice No.", LEFT, 60);
+        .text(invoiceNoLabel, LEFT, 60);
       doc
-        .fillColor("#1E3A8A")
+        .fillColor(isProforma ? "#065F46" : "#1E3A8A")
         .fontSize(11)
         .font("Helvetica-Bold")
         .text(taxInvNo, LEFT, 71);
@@ -751,7 +759,7 @@ const generateInvoicePDF = async (invoice, settings) => {
           .fillColor("#9CA3AF")
           .fontSize(6.5)
           .text(
-            `This is a computer-generated Tax Invoice. No signature is required. | Page ${i + 1} of ${range.count}`,
+            `This is a computer-generated ${invoice.invoiceType === "proforma" ? "Proforma Invoice" : "Tax Invoice"}. No signature is required. | Page ${i + 1} of ${range.count}`,
             LEFT,
             doc.page.height - 18,
             { width: PAGE_WIDTH, align: "center" },
