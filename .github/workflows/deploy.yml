@@ -37,7 +37,7 @@ jobs:
 
             echo "Restarting backend..."
             # Use deploy user's own PM2 daemon (managed by pm2-deploy.service).
-            # Never use "sudo pm2" — that targets root's daemon which does NOT
+            # Never use "sudo pm2" - that targets root's daemon which does NOT
             # own port 5000 and will silently do nothing useful.
             pm2 restart merchpilot-api
             pm2 save
