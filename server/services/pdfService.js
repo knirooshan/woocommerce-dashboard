@@ -432,13 +432,21 @@ const generateInvoicePDF = async (invoice, settings) => {
       const address1 = invoice.customer?.billing?.address_1;
       if (address1) purchaserDetails.push(address1);
 
+      const address2 = invoice.customer?.billing?.address_2;
+      if (address2) purchaserDetails.push(address2);
+
       const purchaserCityPost = [
         invoice.customer?.billing?.city,
+        invoice.customer?.billing?.state,
         invoice.customer?.billing?.postcode,
       ]
         .filter(Boolean)
         .join(", ");
       if (purchaserCityPost) purchaserDetails.push(purchaserCityPost);
+
+      const purchaserCountry =
+        invoice.customer?.billing?.country || invoice.customerInfo?.country;
+      if (purchaserCountry) purchaserDetails.push(purchaserCountry);
 
       const purchaserPhone =
         invoice.customer?.billing?.phone || invoice.customerInfo?.phone;
