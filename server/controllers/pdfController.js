@@ -17,17 +17,16 @@ const {
 const getInvoicePDF = async (req, res) => {
   try {
     const { Invoice, Settings } = getTenantModels(req.dbConnection);
-    const invoiceRaw = await Invoice.findById(req.params.id).lean();
     const invoice = await Invoice.findById(req.params.id)
       .populate("customer")
-      .populate("items.product");
+      .populate("items.product")
+      .lean();
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
 
-    // Supplement with raw fields that may be excluded by cached Mongoose schema
-    invoice.invoiceType =
-      invoiceRaw?.invoiceType || invoice.invoiceType || "tax";
+    // Ensure invoiceType defaults to "tax" if missing
+    if (!invoice.invoiceType) invoice.invoiceType = "tax";
 
     const settings = await Settings.findOne();
 

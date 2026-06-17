@@ -127,6 +127,12 @@ const styles = StyleSheet.create({
     color: "#1E3A8A",
     letterSpacing: 2,
   },
+  titleTextProforma: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#065F46",
+    letterSpacing: 2,
+  },
   taxInvNoLabel: {
     fontSize: 9,
     color: "#6B7280",
@@ -136,6 +142,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "bold",
     color: "#1E3A8A",
+    marginTop: 2,
+  },
+  taxInvNoValueProforma: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#065F46",
     marginTop: 2,
   },
 
@@ -149,6 +161,11 @@ const styles = StyleSheet.create({
   headerDivider: {
     height: 2,
     backgroundColor: "#1E3A8A",
+    marginBottom: 20,
+  },
+  headerDividerProforma: {
+    height: 2,
+    backgroundColor: "#065F46",
     marginBottom: 20,
   },
   // ── Two-column info grid ─────────────────────────────────
@@ -401,6 +418,7 @@ const hasContent = (html) => {
 };
 
 const InvoicePDF = ({ invoice, settings }) => {
+  const isProforma = invoice?.invoiceType === "proforma";
   const effectiveSettings = getDocumentCurrencySettings(invoice, settings);
   const amountPaid = invoice.amountPaid || 0;
   const balanceDue =
@@ -448,9 +466,19 @@ const InvoicePDF = ({ invoice, settings }) => {
         {/* ── Header ── */}
         <View style={styles.headerRow}>
           <View style={styles.titleBlock}>
-            <Text style={styles.titleText}>TAX INVOICE</Text>
-            <Text style={styles.taxInvNoLabel}>Tax Invoice No.</Text>
-            <Text style={styles.taxInvNoValue}>
+            <Text
+              style={isProforma ? styles.titleTextProforma : styles.titleText}
+            >
+              {isProforma ? "PROFORMA INVOICE" : "TAX INVOICE"}
+            </Text>
+            <Text style={styles.taxInvNoLabel}>
+              {isProforma ? "Proforma Invoice No." : "Tax Invoice No."}
+            </Text>
+            <Text
+              style={
+                isProforma ? styles.taxInvNoValueProforma : styles.taxInvNoValue
+              }
+            >
               {invoice.taxInvoiceNumber || invoice.invoiceNumber}
             </Text>
             {invoice.invoiceNumber &&
@@ -468,7 +496,11 @@ const InvoicePDF = ({ invoice, settings }) => {
           </View>
         </View>
 
-        <View style={styles.headerDivider} />
+        <View
+          style={
+            isProforma ? styles.headerDividerProforma : styles.headerDivider
+          }
+        />
 
         {/* ── Supplier & Purchaser Info ── */}
         <View style={styles.infoGrid}>
@@ -563,17 +595,18 @@ const InvoicePDF = ({ invoice, settings }) => {
               <Text style={styles.detailValue}>{invoice.reference}</Text>
             </View>
           )}
-          {invoice.currency?.code && invoice.currency.code !== settings?.currency?.code && (
-            <View style={styles.detailCell}>
-              <Text style={styles.detailLabel}>Currency</Text>
-              <Text style={[styles.detailValue, { color: "#d97706" }]}>
-                {invoice.currency.code}
-                {invoice.exchangeRate?.rate > 0
-                  ? `  (1 ${invoice.currency.code} = ${invoice.exchangeRate.rate} ${invoice.exchangeRate.baseCurrency})`
-                  : ""}
-              </Text>
-            </View>
-          )}
+          {invoice.currency?.code &&
+            invoice.currency.code !== settings?.currency?.code && (
+              <View style={styles.detailCell}>
+                <Text style={styles.detailLabel}>Currency</Text>
+                <Text style={[styles.detailValue, { color: "#d97706" }]}>
+                  {invoice.currency.code}
+                  {invoice.exchangeRate?.rate > 0
+                    ? `  (1 ${invoice.currency.code} = ${invoice.exchangeRate.rate} ${invoice.exchangeRate.baseCurrency})`
+                    : ""}
+                </Text>
+              </View>
+            )}
           {invoice.dueDate === undefined || !invoice.placeOfSupply ? (
             /* Fill empty cell to keep alignment tidy */
             <View style={styles.detailCell} />
@@ -820,7 +853,9 @@ const InvoicePDF = ({ invoice, settings }) => {
             </View>
           )}
           <Text style={styles.footerNote}>
-            This is a computer-generated Tax Invoice. No signature is required.
+            {isProforma
+              ? "This is a computer-generated Proforma Invoice. No signature is required."
+              : "This is a computer-generated Tax Invoice. No signature is required."}
           </Text>
         </View>
       </Page>
