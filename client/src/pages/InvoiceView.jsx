@@ -269,7 +269,11 @@ const InvoiceView = () => {
         {/* Header */}
         <div className="flex justify-between border-b border-slate-200 pb-8 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">INVOICE</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              {invoice.invoiceType === "proforma"
+                ? "PROFORMA INVOICE"
+                : "TAX INVOICE"}
+            </h1>
             <p className="text-slate-600">#{invoice.invoiceNumber}</p>
             <p className="text-slate-600">
               Date: {formatDate(invoice.createdAt, settings)}
@@ -296,19 +300,21 @@ const InvoiceView = () => {
                 {invoice.status.replace("_", " ")}
               </span>
             </p>
-            {invoice.currency?.code && invoice.currency.code !== settings?.currency?.code && (
-              <p className="text-slate-600 mt-1">
-                Currency:{" "}
-                <span className="font-semibold text-amber-600">
-                  {invoice.currency.code}
-                </span>
-                {invoice.exchangeRate?.rate > 0 && (
-                  <span className="text-slate-500 text-sm ml-1">
-                    (1 {invoice.currency.code} = {invoice.exchangeRate.rate} {invoice.exchangeRate.baseCurrency})
+            {invoice.currency?.code &&
+              invoice.currency.code !== settings?.currency?.code && (
+                <p className="text-slate-600 mt-1">
+                  Currency:{" "}
+                  <span className="font-semibold text-amber-600">
+                    {invoice.currency.code}
                   </span>
-                )}
-              </p>
-            )}
+                  {invoice.exchangeRate?.rate > 0 && (
+                    <span className="text-slate-500 text-sm ml-1">
+                      (1 {invoice.currency.code} = {invoice.exchangeRate.rate}{" "}
+                      {invoice.exchangeRate.baseCurrency})
+                    </span>
+                  )}
+                </p>
+              )}
           </div>
           <div className="text-right">
             {settings?.logo && (
@@ -326,7 +332,9 @@ const InvoiceView = () => {
             <p className="text-slate-600">{settings?.address?.city}</p>
             <p className="text-slate-600">{settings?.contact?.email}</p>
             {settings?.registrationNo && (
-              <p className="text-slate-600">Reg No: {settings.registrationNo}</p>
+              <p className="text-slate-600">
+                Reg No: {settings.registrationNo}
+              </p>
             )}
             {settings?.taxIdNo && (
               <p className="text-slate-600">Tax ID: {settings.taxIdNo}</p>
@@ -484,7 +492,9 @@ const InvoiceView = () => {
           </div>
           <div className="flex justify-between w-64 text-slate-600">
             <span>Amount Paid:</span>
-            <span>{formatCurrency(invoice.amountPaid || 0, effectiveSettings)}</span>
+            <span>
+              {formatCurrency(invoice.amountPaid || 0, effectiveSettings)}
+            </span>
           </div>
           <div className="flex justify-between w-64 text-lg font-semibold text-red-600">
             <span>Balance Due:</span>
