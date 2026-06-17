@@ -1,5 +1,9 @@
 const { getTenantModels } = require("../models/tenantModels");
-const { parseStartOfDay, parseEndOfDay, getTenantTimezone } = require("../utils/dateUtils");
+const {
+  parseStartOfDay,
+  parseEndOfDay,
+  getTenantTimezone,
+} = require("../utils/dateUtils");
 const {
   generateInvoicePDF,
   generateQuotationPDF,
@@ -13,12 +17,17 @@ const {
 const getInvoicePDF = async (req, res) => {
   try {
     const { Invoice, Settings } = getTenantModels(req.dbConnection);
+    const invoiceRaw = await Invoice.findById(req.params.id).lean();
     const invoice = await Invoice.findById(req.params.id)
       .populate("customer")
       .populate("items.product");
     if (!invoice) {
       return res.status(404).json({ message: "Invoice not found" });
     }
+
+    // Supplement with raw fields that may be excluded by cached Mongoose schema
+    invoice.invoiceType =
+      invoiceRaw?.invoiceType || invoice.invoiceType || "tax";
 
     const settings = await Settings.findOne();
 
@@ -81,11 +90,13 @@ const getSalesReportPDF = async (req, res) => {
       endDate,
     } = { ...req.query, ...req.body };
 
-    const timezone = startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
+    const timezone =
+      startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
-      if (startDate) dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (startDate)
+        dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
       if (endDate) dateFilter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
@@ -144,8 +155,13 @@ const getSalesReportPDF = async (req, res) => {
     const invoiceDateFilter = {};
     if (startDate || endDate) {
       invoiceDateFilter.invoiceDate = {};
-      if (startDate) invoiceDateFilter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
-      if (endDate) invoiceDateFilter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
+      if (startDate)
+        invoiceDateFilter.invoiceDate.$gte = parseStartOfDay(
+          startDate,
+          timezone,
+        );
+      if (endDate)
+        invoiceDateFilter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
     }
 
     const productBreakdown = await Invoice.aggregate([
@@ -199,11 +215,13 @@ const getProfitLossReportPDF = async (req, res) => {
       endDate,
     } = { ...req.query, ...req.body };
 
-    const timezone = startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
+    const timezone =
+      startDate || endDate ? await getTenantTimezone(req.dbConnection) : "UTC";
     const dateFilter = {};
     if (startDate || endDate) {
       dateFilter.date = {};
-      if (startDate) dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
+      if (startDate)
+        dateFilter.date.$gte = parseStartOfDay(startDate, timezone);
       if (endDate) dateFilter.date.$lte = parseEndOfDay(endDate, timezone);
     }
 
