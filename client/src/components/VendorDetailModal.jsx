@@ -210,7 +210,7 @@ const VendorDetailModal = ({ vendorId, onClose }) => {
   const { monthlyExpenses, categoryChartData, topExpenses } = useMemo(() => {
     if (!data) return {};
 
-    // Monthly expenses — group by year-month
+    // Monthly expenses - group by year-month
     const monthMap = {};
     data.expenses.forEach((exp) => {
       if (!exp.date) return;

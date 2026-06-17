@@ -184,7 +184,7 @@ const pushProduct = async (product, medusaConfig) => {
       const { data } = await client.post(`/products/${existingId}`, body);
       medusaProduct = data.product;
     } else {
-      // Truly new — create
+      // Truly new - create
       const { data } = await client.post("/products", body);
       medusaProduct = data.product;
     }

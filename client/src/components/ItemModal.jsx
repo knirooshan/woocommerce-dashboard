@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, Package, PlusCircle } from "lucide-react";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { calculateItemTax, getDiscountAmount } from "../utils/taxCalculations";
 import RichTextEditor from "./RichTextEditor";
 
@@ -11,12 +11,34 @@ const ItemModal = ({
   products,
   settings,
   initialItem = null,
+  currency = null,
+  exchangeRate = null,
 }) => {
   const [activeTab, setActiveTab] = useState("existing"); // 'existing' or 'custom'
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const taxRate = settings?.tax?.rate || 0;
   const defaultTaxMethod = settings?.tax?.defaultMethod || "exclusive";
+
+  // Determine if we're working in a foreign currency with a valid exchange rate
+  const baseCurrencyCode = settings?.currency?.code || "LKR";
+  const isForeign =
+    currency?.code &&
+    currency.code !== baseCurrencyCode &&
+    exchangeRate?.rate > 0;
+  const effectiveSettings = getDocumentCurrencySettings({ currency }, settings);
+
+  // Convert a base-currency price to the document currency
+  const toDocCurrency = (basePrice) => {
+    if (!isForeign) return basePrice;
+    return Math.round((basePrice / exchangeRate.rate) * 10000) / 10000;
+  };
+
+  // Convert a document-currency price back to base (for display hint)
+  const toBaseCurrency = (docPrice) => {
+    if (!isForeign) return docPrice;
+    return Math.round(docPrice * exchangeRate.rate * 100) / 100;
+  };
 
   const [customItem, setCustomItem] = useState({
     name: "",
@@ -98,7 +120,7 @@ const ItemModal = ({
     setCustomItem({
       ...customItem,
       name: product.name,
-      price: product.price || 0,
+      price: toDocCurrency(product.price || 0),
       sku: product.sku || "",
       description: product.shortDescription || "",
     });
@@ -200,7 +222,15 @@ const ItemModal = ({
                       </div>
                     </div>
                     <div className="text-blue-400 font-bold">
-                      {formatCurrency(p.price, settings)}
+                      {formatCurrency(
+                        toDocCurrency(p.price),
+                        effectiveSettings,
+                      )}
+                      {isForeign && (
+                        <div className="text-slate-500 text-xs font-normal">
+                          {formatCurrency(p.price, settings)}
+                        </div>
+                      )}
                     </div>
                   </button>
                 ))}
@@ -276,6 +306,11 @@ const ItemModal = ({
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">
                     Price
+                    {isForeign && (
+                      <span className="ml-1 text-amber-500">
+                        ({currency.code})
+                      </span>
+                    )}
                   </label>
                   <input
                     type="number"
@@ -288,6 +323,23 @@ const ItemModal = ({
                       })
                     }
                   />
+                  {isForeign && customItem.price > 0 && (
+                    <div className="text-xs text-slate-500 mt-1">
+                      ≈{" "}
+                      {formatCurrency(
+                        toBaseCurrency(customItem.price),
+                        settings,
+                      )}{" "}
+                      base
+                    </div>
+                  )}
+                  {currency?.code &&
+                    currency.code !== baseCurrencyCode &&
+                    !exchangeRate?.rate && (
+                      <div className="text-xs text-amber-600 mt-1">
+                        Enter exchange rate above to auto-convert prices
+                      </div>
+                    )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-400 mb-1">
@@ -332,7 +384,9 @@ const ItemModal = ({
                       className="bg-slate-950 border border-slate-700 rounded-md py-2 px-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 w-20"
                     >
                       <option value="fixed">
-                        {settings?.currency?.symbol || "$"}
+                        {effectiveSettings?.currency?.symbol ||
+                          settings?.currency?.symbol ||
+                          "$"}
                       </option>
                       <option value="percentage">%</option>
                     </select>
@@ -342,8 +396,18 @@ const ItemModal = ({
                   <div className="text-right">
                     <div className="text-slate-400 text-xs mb-1">Total</div>
                     <div className="text-white text-xl font-bold">
-                      {formatCurrency(previewCalc.total, settings)}
+                      {formatCurrency(previewCalc.total, effectiveSettings)}
                     </div>
+                    {isForeign && (
+                      <div className="text-slate-500 text-xs">
+                        ≈{" "}
+                        {formatCurrency(
+                          toBaseCurrency(previewCalc.total),
+                          settings,
+                        )}{" "}
+                        base
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -391,7 +455,7 @@ const ItemModal = ({
                 {customItem.isTaxable && previewCalc.itemTax > 0 && (
                   <div className="text-xs text-slate-400 ml-auto">
                     {settings?.tax?.label || "Tax"}:{" "}
-                    {formatCurrency(previewCalc.itemTax, settings)}
+                    {formatCurrency(previewCalc.itemTax, effectiveSettings)}
                     {customItem.taxMethod === "inclusive" && " (included)"}
                   </div>
                 )}

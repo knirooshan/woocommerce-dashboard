@@ -89,11 +89,11 @@ const CurrencySelector = ({ settings, currency, exchangeRate, onChange }) => {
             className="bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 min-w-[180px]"
           >
             <option value={baseCurrencyCode}>
-              {baseCurrencyCode} (Base — no conversion)
+              {baseCurrencyCode} (Base - no conversion)
             </option>
             {CURRENCIES.filter((c) => c.code !== baseCurrencyCode).map((c) => (
               <option key={c.code} value={c.code}>
-                {c.code} — {c.name} ({c.symbol})
+                {c.code} - {c.name} ({c.symbol})
               </option>
             ))}
           </select>
