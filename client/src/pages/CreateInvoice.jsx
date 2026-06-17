@@ -42,6 +42,7 @@ const CreateInvoice = () => {
     terms: "",
     status: "draft",
     placeOfSupply: "",
+    invoiceType: "tax",
   });
 
   useEffect(() => {
@@ -489,6 +490,21 @@ const CreateInvoice = () => {
         {/* Additional Info */}
         <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Invoice Type
+              </label>
+              <select
+                value={formData.invoiceType}
+                onChange={(e) =>
+                  setFormData({ ...formData, invoiceType: e.target.value })
+                }
+                className="block w-full bg-slate-950 border border-slate-700 text-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="tax">Tax Invoice</option>
+                <option value="proforma">Proforma Invoice</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Payment Method
