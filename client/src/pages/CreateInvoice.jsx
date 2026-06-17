@@ -4,9 +4,10 @@ import { ENDPOINTS } from "../config/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Plus, Trash, Save, Edit2 } from "lucide-react";
 import { useSelector } from "react-redux";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { calculateTotals as calcTotals } from "../utils/taxCalculations";
 import CustomerForm from "../components/CustomerForm";
+import CurrencySelector from "../components/CurrencySelector";
 import DateInput from "../components/DateInput";
 import RichTextEditor from "../components/RichTextEditor";
 import ItemModal from "../components/ItemModal";
@@ -22,6 +23,8 @@ const CreateInvoice = () => {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
+  const [currency, setCurrency] = useState(null);
+  const [exchangeRate, setExchangeRate] = useState(null);
 
   const [formData, setFormData] = useState({
     customer: "",
@@ -81,6 +84,8 @@ const CreateInvoice = () => {
             terms,
             deliveryNote,
             deliveryCharge,
+            currency: quotationCurrency,
+            exchangeRate: quotationExchangeRate,
           } = location.state.quotationData;
 
           // Calculate tax rate from tax amount if possible, or use default
@@ -124,6 +129,12 @@ const CreateInvoice = () => {
             discount: discount || 0,
             deliveryCharge: deliveryCharge || 0,
           }));
+
+          // Carry over currency from quotation
+          if (quotationCurrency?.code) {
+            setCurrency(quotationCurrency);
+            setExchangeRate(quotationExchangeRate || null);
+          }
         }
 
         setLoading(false);
@@ -184,6 +195,8 @@ const CreateInvoice = () => {
           tax: totals.tax,
           taxRate: formData.taxRate,
           total: totals.total,
+          currency: currency || undefined,
+          exchangeRate: exchangeRate || undefined,
         },
         config,
       );
@@ -212,6 +225,7 @@ const CreateInvoice = () => {
   };
 
   const { subtotal, tax, total } = calculateTotals();
+  const effectiveSettings = getDocumentCurrencySettings({ currency }, settings);
 
   if (loading) return <div className="text-white">Loading...</div>;
 
@@ -316,6 +330,19 @@ const CreateInvoice = () => {
               />
             </div>
           </div>
+
+          {/* Currency Selector */}
+          <div className="mt-4">
+            <CurrencySelector
+              settings={settings}
+              currency={currency}
+              exchangeRate={exchangeRate}
+              onChange={({ currency: c, exchangeRate: er }) => {
+                setCurrency(c);
+                setExchangeRate(er);
+              }}
+            />
+          </div>
         </div>
 
         {/* Items List */}
@@ -360,7 +387,7 @@ const CreateInvoice = () => {
                 <div className="w-24 text-right">
                   <div className="text-xs text-slate-500 mb-1">Price</div>
                   <div className="text-white">
-                    {formatCurrency(item.price, settings)}
+                    {formatCurrency(item.price, effectiveSettings)}
                   </div>
                 </div>
                 <div className="w-16 text-center">
@@ -373,13 +400,13 @@ const CreateInvoice = () => {
                     {item.discount > 0
                       ? item.discountType === "percentage"
                         ? `${item.discount}%`
-                        : formatCurrency(item.discount, settings)
+                        : formatCurrency(item.discount, effectiveSettings)
                       : "-"}
                   </div>
                 </div>
                 <div className="w-24 text-right font-medium text-white">
                   <div className="text-xs text-slate-500 mb-1">Total</div>
-                  {formatCurrency(item.total, settings)}
+                  {formatCurrency(item.total, effectiveSettings)}
                 </div>
                 <div className="flex gap-2 self-center">
                   <button
@@ -411,7 +438,7 @@ const CreateInvoice = () => {
             <div className="flex justify-between w-72">
               <span className="text-slate-400">Subtotal:</span>
               <span className="font-medium text-white">
-                {formatCurrency(subtotal, settings)}
+                {formatCurrency(subtotal, effectiveSettings)}
               </span>
             </div>
             {tax > 0 && (
@@ -420,7 +447,7 @@ const CreateInvoice = () => {
                   {settings?.tax?.label || "Tax"} ({formData.taxRate}%):
                 </span>
                 <span className="font-medium text-white">
-                  {formatCurrency(tax, settings)}
+                  {formatCurrency(tax, effectiveSettings)}
                 </span>
               </div>
             )}
@@ -454,7 +481,7 @@ const CreateInvoice = () => {
             </div>
             <div className="flex justify-between w-72 text-lg font-bold pt-2 border-t">
               <span>Total:</span>
-              <span>{formatCurrency(total, settings)}</span>
+              <span>{formatCurrency(total, effectiveSettings)}</span>
             </div>
           </div>
         </div>

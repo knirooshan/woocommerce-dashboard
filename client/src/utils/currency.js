@@ -51,3 +51,24 @@ export const getCurrencySymbol = (settings) => {
 export const getCurrencyCode = (settings) => {
   return settings?.currency?.code || "USD";
 };
+
+/**
+ * Get effective currency settings for a document (quotation/invoice).
+ * If the document has its own currency stored, use it; otherwise fall back to global settings.
+ * @param {object} document - Quotation or Invoice object (may have .currency field)
+ * @param {object} settings - Global store settings
+ * @returns {object} Settings-like object with { currency: { code, symbol, position } }
+ */
+export const getDocumentCurrencySettings = (document, settings) => {
+  if (document?.currency?.code) {
+    return {
+      ...settings,
+      currency: {
+        code: document.currency.code,
+        symbol: document.currency.symbol || document.currency.code,
+        position: document.currency.position || "before",
+      },
+    };
+  }
+  return settings;
+};

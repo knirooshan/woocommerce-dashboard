@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 import InvoicePDF from "../components/InvoicePDF";
 import DeliveryReceiptPDF from "../components/DeliveryReceiptPDF";
 import PaymentModal from "../components/PaymentModal";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { urlToBase64 } from "../utils/imageUtils";
 
@@ -206,6 +206,8 @@ const InvoiceView = () => {
   if (loading) return <div className="text-white">Loading...</div>;
   if (!invoice) return <div>Invoice not found</div>;
 
+  const effectiveSettings = getDocumentCurrencySettings(invoice, settings);
+
   const balanceDue =
     invoice.balanceDue !== undefined
       ? invoice.balanceDue
@@ -294,6 +296,19 @@ const InvoiceView = () => {
                 {invoice.status.replace("_", " ")}
               </span>
             </p>
+            {invoice.currency?.code && invoice.currency.code !== settings?.currency?.code && (
+              <p className="text-slate-600 mt-1">
+                Currency:{" "}
+                <span className="font-semibold text-amber-600">
+                  {invoice.currency.code}
+                </span>
+                {invoice.exchangeRate?.rate > 0 && (
+                  <span className="text-slate-500 text-sm ml-1">
+                    (1 {invoice.currency.code} = {invoice.exchangeRate.rate} {invoice.exchangeRate.baseCurrency})
+                  </span>
+                )}
+              </p>
+            )}
           </div>
           <div className="text-right">
             {settings?.logo && (
@@ -406,7 +421,7 @@ const InvoiceView = () => {
                       Discount: -
                       {item.discountType === "percentage"
                         ? `${item.discount}%`
-                        : formatCurrency(item.discount, settings)}
+                        : formatCurrency(item.discount, effectiveSettings)}
                     </div>
                   )}
                   {item.isTaxable && (
@@ -416,13 +431,13 @@ const InvoiceView = () => {
                   )}
                 </td>
                 <td className="text-right py-3 text-slate-600">
-                  {formatCurrency(item.price, settings)}
+                  {formatCurrency(item.price, effectiveSettings)}
                 </td>
                 <td className="text-right py-3 text-slate-600">
                   {item.quantity}
                 </td>
                 <td className="text-right py-3 text-slate-900 font-medium">
-                  {formatCurrency(item.total, settings)}
+                  {formatCurrency(item.total, effectiveSettings)}
                 </td>
               </tr>
             ))}
@@ -434,7 +449,7 @@ const InvoiceView = () => {
           <div className="flex justify-between w-64">
             <span className="text-slate-600">Subtotal:</span>
             <span className="text-slate-900">
-              {formatCurrency(invoice.subtotal, settings)}
+              {formatCurrency(invoice.subtotal, effectiveSettings)}
             </span>
           </div>
           {invoice.tax > 0 && (
@@ -443,7 +458,7 @@ const InvoiceView = () => {
                 {settings?.tax?.label || "Tax"}:
               </span>
               <span className="text-slate-900">
-                {formatCurrency(invoice.tax, settings)}
+                {formatCurrency(invoice.tax, effectiveSettings)}
               </span>
             </div>
           )}
@@ -451,7 +466,7 @@ const InvoiceView = () => {
             <div className="flex justify-between w-64">
               <span className="text-slate-600">Discount:</span>
               <span className="text-slate-900">
-                -{formatCurrency(invoice.discount, settings)}
+                -{formatCurrency(invoice.discount, effectiveSettings)}
               </span>
             </div>
           )}
@@ -459,21 +474,21 @@ const InvoiceView = () => {
             <div className="flex justify-between w-64">
               <span className="text-slate-600">Delivery Charge:</span>
               <span className="text-slate-900">
-                {formatCurrency(invoice.deliveryCharge, settings)}
+                {formatCurrency(invoice.deliveryCharge, effectiveSettings)}
               </span>
             </div>
           )}
           <div className="flex justify-between w-64 text-xl font-bold pt-4 border-t border-slate-200 text-slate-900">
             <span>Total:</span>
-            <span>{formatCurrency(invoice.total, settings)}</span>
+            <span>{formatCurrency(invoice.total, effectiveSettings)}</span>
           </div>
           <div className="flex justify-between w-64 text-slate-600">
             <span>Amount Paid:</span>
-            <span>{formatCurrency(invoice.amountPaid || 0, settings)}</span>
+            <span>{formatCurrency(invoice.amountPaid || 0, effectiveSettings)}</span>
           </div>
           <div className="flex justify-between w-64 text-lg font-semibold text-red-600">
             <span>Balance Due:</span>
-            <span>{formatCurrency(balanceDue, settings)}</span>
+            <span>{formatCurrency(balanceDue, effectiveSettings)}</span>
           </div>
         </div>
 
@@ -503,7 +518,7 @@ const InvoiceView = () => {
                       {payment.reference || "-"}
                     </td>
                     <td className="text-right py-2 text-slate-900 font-medium">
-                      {formatCurrency(payment.amount, settings)}
+                      {formatCurrency(payment.amount, effectiveSettings)}
                     </td>
                   </tr>
                 ))}

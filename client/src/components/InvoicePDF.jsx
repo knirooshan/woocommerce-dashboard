@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { renderHtmlToPdf } from "../utils/pdfUtils.jsx";
 
@@ -401,6 +401,7 @@ const hasContent = (html) => {
 };
 
 const InvoicePDF = ({ invoice, settings }) => {
+  const effectiveSettings = getDocumentCurrencySettings(invoice, settings);
   const amountPaid = invoice.amountPaid || 0;
   const balanceDue =
     invoice.balanceDue !== undefined
@@ -562,6 +563,17 @@ const InvoicePDF = ({ invoice, settings }) => {
               <Text style={styles.detailValue}>{invoice.reference}</Text>
             </View>
           )}
+          {invoice.currency?.code && invoice.currency.code !== settings?.currency?.code && (
+            <View style={styles.detailCell}>
+              <Text style={styles.detailLabel}>Currency</Text>
+              <Text style={[styles.detailValue, { color: "#d97706" }]}>
+                {invoice.currency.code}
+                {invoice.exchangeRate?.rate > 0
+                  ? `  (1 ${invoice.currency.code} = ${invoice.exchangeRate.rate} ${invoice.exchangeRate.baseCurrency})`
+                  : ""}
+              </Text>
+            </View>
+          )}
           {invoice.dueDate === undefined || !invoice.placeOfSupply ? (
             /* Fill empty cell to keep alignment tidy */
             <View style={styles.detailCell} />
@@ -623,7 +635,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                     Discount:{" "}
                     {item.discountType === "percentage"
                       ? `${item.discount}%`
-                      : formatCurrency(item.discount, settings)}
+                      : formatCurrency(item.discount, effectiveSettings)}
                   </Text>
                 )}
               </View>
@@ -634,7 +646,7 @@ const InvoicePDF = ({ invoice, settings }) => {
               </View>
               <View style={styles.colUnit}>
                 <Text style={[styles.tdText, { textAlign: "right" }]}>
-                  {formatCurrency(item.price, settings)}
+                  {formatCurrency(item.price, effectiveSettings)}
                 </Text>
               </View>
               <View style={styles.colTotal}>
@@ -644,7 +656,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                     { textAlign: "right", fontWeight: "bold" },
                   ]}
                 >
-                  {formatCurrency(item.total, settings)}
+                  {formatCurrency(item.total, effectiveSettings)}
                 </Text>
               </View>
             </View>
@@ -658,7 +670,7 @@ const InvoicePDF = ({ invoice, settings }) => {
             <View style={styles.totalRow}>
               <Text style={styles.totalLabelText}>Total Value of Supply</Text>
               <Text style={styles.totalValueText}>
-                {formatCurrency(invoice.subtotal, settings)}
+                {formatCurrency(invoice.subtotal, effectiveSettings)}
               </Text>
             </View>
 
@@ -669,7 +681,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                   {settings?.tax?.label || "Tax"}
                 </Text>
                 <Text style={styles.totalValueText}>
-                  {formatCurrency(invoice.tax, settings)}
+                  {formatCurrency(invoice.tax, effectiveSettings)}
                 </Text>
               </View>
             )}
@@ -679,7 +691,7 @@ const InvoicePDF = ({ invoice, settings }) => {
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabelText}>Discount</Text>
                 <Text style={[styles.totalValueText, { color: "#EF4444" }]}>
-                  -{formatCurrency(invoice.discount, settings)}
+                  -{formatCurrency(invoice.discount, effectiveSettings)}
                 </Text>
               </View>
             )}
@@ -689,7 +701,7 @@ const InvoicePDF = ({ invoice, settings }) => {
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabelText}>Delivery Charge</Text>
                 <Text style={styles.totalValueText}>
-                  {formatCurrency(invoice.deliveryCharge, settings)}
+                  {formatCurrency(invoice.deliveryCharge, effectiveSettings)}
                 </Text>
               </View>
             )}
@@ -698,7 +710,7 @@ const InvoicePDF = ({ invoice, settings }) => {
             <View style={styles.grandTotalRow}>
               <Text style={styles.grandTotalLabel}>Total Amount</Text>
               <Text style={styles.grandTotalValue}>
-                {formatCurrency(invoice.total, settings)}
+                {formatCurrency(invoice.total, effectiveSettings)}
               </Text>
             </View>
 
@@ -708,7 +720,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabelText}>Amount Paid</Text>
                   <Text style={styles.totalValueText}>
-                    {formatCurrency(amountPaid, settings)}
+                    {formatCurrency(amountPaid, effectiveSettings)}
                   </Text>
                 </View>
                 <View style={[styles.totalRow, { borderBottomWidth: 0 }]}>
@@ -721,7 +733,7 @@ const InvoicePDF = ({ invoice, settings }) => {
                     Balance Due
                   </Text>
                   <Text style={[styles.totalValueText, { fontWeight: "bold" }]}>
-                    {formatCurrency(balanceDue, settings)}
+                    {formatCurrency(balanceDue, effectiveSettings)}
                   </Text>
                 </View>
               </>
@@ -733,7 +745,7 @@ const InvoicePDF = ({ invoice, settings }) => {
         <View style={styles.amountWords}>
           <Text style={styles.amountWordsLabel}>Total Amount in Words</Text>
           <Text style={styles.amountWordsText}>
-            {amountInWords(invoice.total, settings)}
+            {amountInWords(invoice.total, effectiveSettings)}
           </Text>
         </View>
 

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { renderHtmlToPdf } from "../utils/pdfUtils.jsx";
 
@@ -201,7 +201,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const QuotationPDF = ({ quotation, settings }) => (
+const QuotationPDF = ({ quotation, settings }) => {
+  const effectiveSettings = getDocumentCurrencySettings(quotation, settings);
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -315,6 +317,26 @@ const QuotationPDF = ({ quotation, settings }) => (
               </Text>
             </View>
           )}
+          {quotation.currency?.code && quotation.currency.code !== settings?.currency?.code && (
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}
+            >
+              <Text style={styles.text}>Currency:</Text>
+              <Text style={[styles.text, { fontWeight: "bold", color: "#d97706" }]}>
+                {quotation.currency.code}
+              </Text>
+            </View>
+          )}
+          {quotation.exchangeRate?.rate > 0 && quotation.currency?.code !== settings?.currency?.code && (
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Text style={styles.text}>Exchange Rate:</Text>
+              <Text style={styles.text}>
+                1 {quotation.currency.code} = {quotation.exchangeRate.rate} {quotation.exchangeRate.baseCurrency}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -367,14 +389,14 @@ const QuotationPDF = ({ quotation, settings }) => (
                       Discount: -
                       {item.discountType === "percentage"
                         ? `${item.discount}%`
-                        : formatCurrency(item.discount, settings)}
+                        : formatCurrency(item.discount, effectiveSettings)}
                     </Text>
                   )}
                 </View>
               </View>
               <View style={styles.colPrice}>
                 <Text style={styles.tableCell}>
-                  {formatCurrency(item.price, settings)}
+                  {formatCurrency(item.price, effectiveSettings)}
                 </Text>
               </View>
               <View style={styles.colQty}>
@@ -382,7 +404,7 @@ const QuotationPDF = ({ quotation, settings }) => (
               </View>
               <View style={styles.colTotal}>
                 <Text style={[styles.tableCell, { fontWeight: "bold" }]}>
-                  {formatCurrency(item.total, settings)}
+                  {formatCurrency(item.total, effectiveSettings)}
                 </Text>
               </View>
             </View>
@@ -395,7 +417,7 @@ const QuotationPDF = ({ quotation, settings }) => (
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Subtotal</Text>
           <Text style={styles.totalValue}>
-            {formatCurrency(quotation.subtotal, settings)}
+            {formatCurrency(quotation.subtotal, effectiveSettings)}
           </Text>
         </View>
         {quotation.tax > 0 && (
@@ -404,7 +426,7 @@ const QuotationPDF = ({ quotation, settings }) => (
               {settings?.tax?.label || "Tax"}
             </Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(quotation.tax, settings)}
+              {formatCurrency(quotation.tax, effectiveSettings)}
             </Text>
           </View>
         )}
@@ -412,7 +434,7 @@ const QuotationPDF = ({ quotation, settings }) => (
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Discount</Text>
             <Text style={[styles.totalValue, { color: "#EF4444" }]}>
-              -{formatCurrency(quotation.discount, settings)}
+              -{formatCurrency(quotation.discount, effectiveSettings)}
             </Text>
           </View>
         )}
@@ -420,14 +442,14 @@ const QuotationPDF = ({ quotation, settings }) => (
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Delivery Charge</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(quotation.deliveryCharge, settings)}
+              {formatCurrency(quotation.deliveryCharge, effectiveSettings)}
             </Text>
           </View>
         )}
         <View style={styles.grandTotal}>
           <Text style={styles.grandTotalLabel}>Total</Text>
           <Text style={styles.grandTotalValue}>
-            {formatCurrency(quotation.total, settings)}
+            {formatCurrency(quotation.total, effectiveSettings)}
           </Text>
         </View>
       </View>
@@ -486,6 +508,7 @@ const QuotationPDF = ({ quotation, settings }) => (
       </View>
     </Page>
   </Document>
-);
+  );
+};
 
 export default QuotationPDF;
