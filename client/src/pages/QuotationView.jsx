@@ -220,19 +220,22 @@ const QuotationView = () => {
                 {quotation.status}
               </span>
             </p>
-            {quotation.currency?.code && quotation.currency.code !== settings?.currency?.code && (
-              <p className="text-slate-600 mt-1">
-                Currency:{" "}
-                <span className="font-semibold text-amber-600">
-                  {quotation.currency.code}
-                </span>
-                {quotation.exchangeRate?.rate > 0 && (
-                  <span className="text-slate-500 text-sm ml-1">
-                    (1 {quotation.currency.code} = {quotation.exchangeRate.rate} {quotation.exchangeRate.baseCurrency})
+            {quotation.currency?.code &&
+              quotation.currency.code !== settings?.currency?.code && (
+                <p className="text-slate-600 mt-1">
+                  Currency:{" "}
+                  <span className="font-semibold text-amber-600">
+                    {quotation.currency.code}
                   </span>
-                )}
-              </p>
-            )}
+                  {quotation.exchangeRate?.rate > 0 && (
+                    <span className="text-slate-500 text-sm ml-1">
+                      (1 {quotation.currency.code} ={" "}
+                      {quotation.exchangeRate.rate}{" "}
+                      {quotation.exchangeRate.baseCurrency})
+                    </span>
+                  )}
+                </p>
+              )}
           </div>
           <div className="text-right">
             {settings?.logo && (
@@ -279,20 +282,38 @@ const QuotationView = () => {
                 {quotation.customer.billing.company}
               </p>
             )}
-          <p className="text-slate-600">
-            {quotation.customer?.billing?.address_1}
-          </p>
-          <p className="text-slate-600">
-            {quotation.customer?.billing?.city}
-            {quotation.customer?.billing?.city &&
-              quotation.customer?.billing?.postcode &&
-              ", "}
-            {quotation.customer?.billing?.postcode}
-          </p>
-          <p className="text-slate-600">{quotation.customer?.email}</p>
+          {quotation.customer?.billing?.address_1 && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.address_1}
+            </p>
+          )}
+          {quotation.customer?.billing?.address_2 && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.address_2}
+            </p>
+          )}
+          {(quotation.customer?.billing?.city ||
+            quotation.customer?.billing?.state ||
+            quotation.customer?.billing?.postcode) && (
+            <p className="text-slate-600">
+              {[
+                quotation.customer?.billing?.city,
+                quotation.customer?.billing?.state,
+                quotation.customer?.billing?.postcode,
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            </p>
+          )}
+          {quotation.customer?.billing?.country && (
+            <p className="text-slate-600">
+              {quotation.customer.billing.country}
+            </p>
+          )}
           {quotation.customer?.billing?.phone && (
             <p className="text-slate-600">{quotation.customer.billing.phone}</p>
           )}
+          <p className="text-slate-600">{quotation.customer?.email}</p>
           {quotation.customer?.taxNumber && (
             <p className="text-slate-600 font-medium">
               {settings?.tax?.label && settings.tax.label !== "Tax"
