@@ -459,6 +459,11 @@ const DeliveryReceiptPDF = ({ invoice, settings }) => {
             <View style={styles.tableRow} key={index}>
               <View style={styles.tableColDescription}>
                 <Text style={styles.tableCell}>{item.name}</Text>
+                {item.sku ? (
+                  <Text style={{ fontSize: 8, color: "#6B7280", marginTop: 2 }}>
+                    SKU: {item.sku}
+                  </Text>
+                ) : null}
                 {(item.description || item.product?.shortDescription) && (
                   <View style={{ marginTop: 2 }}>
                     {renderHtmlToPdf(

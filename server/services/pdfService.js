@@ -217,8 +217,13 @@ const addTableHeader = (doc, y, settings) => {
 
 // Helper to add table row (gazette-compliant columns)
 const addTableRow = (doc, y, item, settings, isLast = false, rowIndex = 0) => {
+  let extraHeight = 0;
+  if (item.sku) extraHeight += 10;
+  if (item.product?.shortDescription) extraHeight += 10;
+  const rowHeight = Math.max(28, 20 + extraHeight);
+
   if (rowIndex % 2 === 1) {
-    doc.rect(50, y, 500, 36).fill("#F9FAFB");
+    doc.rect(50, y, 500, rowHeight).fill("#F9FAFB");
   }
 
   doc
@@ -233,11 +238,21 @@ const addTableRow = (doc, y, item, settings, isLast = false, rowIndex = 0) => {
     .font("Helvetica")
     .text(item.name, 78, y + 11, { width: 210, align: "left" });
 
+  let textY = y + 23;
+
+  if (item.sku) {
+    doc
+      .fillColor("#6B7280")
+      .fontSize(7)
+      .text(`SKU: ${item.sku}`, 78, textY, { width: 210 });
+    textY += 10;
+  }
+
   if (item.product?.shortDescription) {
     doc
       .fillColor("#6B7280")
       .fontSize(7)
-      .text(item.product.shortDescription, 78, y + 23, { width: 210 });
+      .text(item.product.shortDescription, 78, textY, { width: 210 });
   }
 
   doc
@@ -254,8 +269,6 @@ const addTableRow = (doc, y, item, settings, isLast = false, rowIndex = 0) => {
       width: 115,
       align: "right",
     });
-
-  const rowHeight = item.product?.shortDescription ? 35 : 28;
 
   if (!isLast) {
     drawLine(doc, y + rowHeight, "#E5E7EB", 0.5);
@@ -432,13 +445,21 @@ const generateInvoicePDF = async (invoice, settings) => {
       const address1 = invoice.customer?.billing?.address_1;
       if (address1) purchaserDetails.push(address1);
 
+      const address2 = invoice.customer?.billing?.address_2;
+      if (address2) purchaserDetails.push(address2);
+
       const purchaserCityPost = [
         invoice.customer?.billing?.city,
+        invoice.customer?.billing?.state,
         invoice.customer?.billing?.postcode,
       ]
         .filter(Boolean)
         .join(", ");
       if (purchaserCityPost) purchaserDetails.push(purchaserCityPost);
+
+      const purchaserCountry =
+        invoice.customer?.billing?.country || invoice.customerInfo?.country;
+      if (purchaserCountry) purchaserDetails.push(purchaserCountry);
 
       const purchaserPhone =
         invoice.customer?.billing?.phone || invoice.customerInfo?.phone;

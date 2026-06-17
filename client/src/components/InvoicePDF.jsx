@@ -441,12 +441,15 @@ const InvoicePDF = ({ invoice, settings }) => {
   const customerAddress = [
     invoice.customer?.billing?.company || invoice.customerInfo?.company || "",
     invoice.customer?.billing?.address_1 || "",
+    invoice.customer?.billing?.address_2 || "",
     [
       invoice.customer?.billing?.city || "",
+      invoice.customer?.billing?.state || "",
       invoice.customer?.billing?.postcode || "",
     ]
       .filter(Boolean)
       .join(", "),
+    invoice.customer?.billing?.country || invoice.customerInfo?.country || "",
   ]
     .filter(Boolean)
     .join("\n");
