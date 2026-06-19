@@ -378,7 +378,7 @@ const generateInvoicePDF = async (invoice, settings) => {
       }
 
       const supplierDetails = [];
-      if (settings?.taxIdNo) supplierDetails.push(`TIN: ${settings.taxIdNo}`);
+      if (settings?.taxIdNo) supplierDetails.push(`TIN/VAT: ${settings.taxIdNo}`);
       if (settings?.registrationNo)
         supplierDetails.push(`Reg: ${settings.registrationNo}`);
       if (settings?.address?.street)
@@ -436,11 +436,12 @@ const generateInvoicePDF = async (invoice, settings) => {
       const purchaserDetails = [];
       const purchaserTIN =
         invoice.customer?.taxNumber || invoice.customerInfo?.taxNumber;
-      if (purchaserTIN) purchaserDetails.push(`TIN: ${purchaserTIN}`);
 
       const company =
         invoice.customer?.billing?.company || invoice.customerInfo?.company;
       if (company) purchaserDetails.push(company);
+
+      if (purchaserTIN) purchaserDetails.push(`TIN/VAT: ${purchaserTIN}`);
 
       const address1 = invoice.customer?.billing?.address_1;
       if (address1) purchaserDetails.push(address1);
