@@ -512,7 +512,7 @@ const InvoicePDF = ({ invoice, settings }) => {
             <Text style={styles.sectionLabel}>Supplier</Text>
             <Text style={styles.infoTextBold}>{settings?.storeName || ""}</Text>
             {supplierTIN ? (
-              <Text style={styles.tinText}>TIN: {supplierTIN}</Text>
+              <Text style={styles.tinText}>TIN/VAT: {supplierTIN}</Text>
             ) : null}
             {settings?.registrationNo ? (
               <Text style={styles.infoText}>
@@ -541,11 +541,11 @@ const InvoicePDF = ({ invoice, settings }) => {
           <View style={styles.infoColRight}>
             <Text style={styles.sectionLabel}>Purchaser</Text>
             <Text style={styles.infoTextBold}>{customerName}</Text>
-            {purchaserTIN ? (
-              <Text style={styles.tinText}>TIN: {purchaserTIN}</Text>
-            ) : null}
             {customerAddress ? (
               <Text style={styles.infoText}>{customerAddress}</Text>
+            ) : null}
+            {purchaserTIN ? (
+              <Text style={styles.tinText}>TIN/VAT: {purchaserTIN}</Text>
             ) : null}
             {(invoice.customer?.billing?.phone ||
               invoice.customerInfo?.phone) && (
