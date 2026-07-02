@@ -51,6 +51,10 @@ const createPayment = async (req, res) => {
           invoice.status = "partially_paid";
         }
 
+        if (invoice.invoiceType === "proforma") {
+          invoice.invoiceType = "tax";
+        }
+
         await invoice.save();
       }
     }
@@ -171,6 +175,10 @@ const updatePayment = async (req, res) => {
             invoice.status = "partially_paid";
           } else {
             invoice.status = "sent"; // Revert to sent if no payment
+          }
+
+          if (paid > 0 && invoice.invoiceType === "proforma") {
+            invoice.invoiceType = "tax";
           }
 
           await invoice.save();

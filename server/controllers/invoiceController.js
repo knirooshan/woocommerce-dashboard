@@ -247,6 +247,9 @@ const createInvoice = async (req, res) => {
       createdInvoice.amountPaid = total;
       createdInvoice.balanceDue = 0;
       createdInvoice.payments = [payment._id];
+      if (createdInvoice.invoiceType === "proforma") {
+        createdInvoice.invoiceType = "tax";
+      }
       await createdInvoice.save();
     }
 
