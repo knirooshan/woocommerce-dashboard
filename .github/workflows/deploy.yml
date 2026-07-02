@@ -25,8 +25,16 @@ jobs:
             # ── Pull latest code ──────────────────────────────────────
             # All files under /var/www/merchpilot are owned by the deploy
             # user. CI/CD SSHes in as that same deploy user, so no sudo needed.
+            mkdir -p /var/www/merchpilot
             git config --global --add safe.directory /var/www/merchpilot
             cd /var/www/merchpilot
+            
+            if [ ! -d ".git" ]; then
+              echo "Initializing git repository..."
+              git init
+              git remote add origin https://github.com/${{ github.repository }}.git
+            fi
+            
             git fetch --all
             git reset --hard origin/main
 
