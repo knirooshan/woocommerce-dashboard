@@ -17,13 +17,14 @@ import {
   DollarSign,
   BarChart3,
   Image,
+  Truck,
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const Layout = () => {
   const { user } = useSelector((state) => state.auth);
   const { loaded: settingsLoaded, data: settings } = useSelector(
-    (state) => state.settings
+    (state) => state.settings,
   );
   const dispatch = useDispatch();
   const location = useLocation();
@@ -42,6 +43,7 @@ const Layout = () => {
     { name: "Products", href: "/products", icon: Package },
     { name: "Quotations", href: "/quotations", icon: FileText },
     { name: "Invoices", href: "/invoices", icon: FileText },
+    { name: "Deliveries", href: "/deliveries", icon: Truck },
     {
       name: "Orders",
       href: "/orders",

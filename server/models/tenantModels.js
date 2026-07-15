@@ -3,6 +3,7 @@ const CustomerSchema = require("./Customer");
 const EmailJobSchema = require("./EmailJob");
 const ExpenseSchema = require("./Expense");
 const InvoiceSchema = require("./Invoice");
+const DeliverySchema = require("./Delivery");
 const MediaSchema = require("./Media");
 const OrderSchema = require("./Order");
 const PaymentSchema = require("./Payment");
@@ -19,6 +20,7 @@ const auditPlugin = require("./plugins/auditPlugin");
   EmailJobSchema,
   ExpenseSchema,
   InvoiceSchema,
+  DeliverySchema,
   MediaSchema,
   OrderSchema,
   PaymentSchema,
@@ -48,6 +50,8 @@ const getTenantModels = (connection) => {
       connection.models.Expense || connection.model("Expense", ExpenseSchema),
     Invoice:
       connection.models.Invoice || connection.model("Invoice", InvoiceSchema),
+    Delivery:
+      connection.models.Delivery || connection.model("Delivery", DeliverySchema),
     Media: connection.models.Media || connection.model("Media", MediaSchema),
     Order: connection.models.Order || connection.model("Order", OrderSchema),
     Payment:
