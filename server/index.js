@@ -45,6 +45,7 @@ async function start() {
   app.use("/api/orders", require("./routes/orderRoutes"));
   app.use("/api/quotations", require("./routes/quotationRoutes"));
   app.use("/api/invoices", require("./routes/invoiceRoutes"));
+  app.use("/api/deliveries", require("./routes/deliveryRoutes"));
   app.use("/api/expenses", require("./routes/expenseRoutes"));
   app.use("/api/email", require("./routes/emailRoutes"));
   app.use("/api/reports", require("./routes/reportRoutes"));
@@ -69,7 +70,7 @@ async function start() {
   // Start email queue processor
   initQueueProcessor();
 
-  app.listen(PORT, () => {});
+  app.listen(PORT, () => { });
 }
 
 start().catch((err) => {

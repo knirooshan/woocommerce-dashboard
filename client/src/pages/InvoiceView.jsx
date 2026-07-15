@@ -19,6 +19,7 @@ import PaymentModal from "../components/PaymentModal";
 import { formatCurrency, getDocumentCurrencySettings } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { urlToBase64 } from "../utils/imageUtils";
+import DeliveryUpdateModal from "../components/DeliveryUpdateModal";
 
 const InvoiceView = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const InvoiceView = () => {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -253,6 +255,13 @@ const InvoiceView = () => {
           >
             <Download className="mr-2 h-5 w-5" />
             {downloadingPDF ? "Generating..." : "Invoice"}
+          </button>
+          <button
+            onClick={() => setIsDeliveryModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-slate-600 text-white rounded hover:bg-slate-700 transition-colors"
+          >
+            <Package className="mr-2 h-5 w-5" />
+            Track Delivery
           </button>
           <button
             onClick={handleDownloadDeliveryReceipt}
@@ -582,6 +591,14 @@ const InvoiceView = () => {
         invoice={invoice}
         totalDue={balanceDue}
       />
+
+      {isDeliveryModalOpen && (
+        <DeliveryUpdateModal
+          isOpen={isDeliveryModalOpen}
+          onClose={() => setIsDeliveryModalOpen(false)}
+          invoiceNumber={invoice.invoiceNumber}
+        />
+      )}
     </div>
   );
 };

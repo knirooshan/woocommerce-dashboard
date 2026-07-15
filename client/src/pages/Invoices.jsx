@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { Plus, FileText, Eye, DollarSign, Trash2, Edit } from "lucide-react";
+import {
+  Plus,
+  FileText,
+  Eye,
+  DollarSign,
+  Trash2,
+  Edit,
+  Truck,
+} from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { formatCurrency } from "../utils/currency";
@@ -9,6 +17,8 @@ import { formatDate } from "../utils/date";
 import PaymentModal from "../components/PaymentModal";
 import SearchBar from "../components/SearchBar";
 import FilterBar from "../components/FilterBar";
+import DeliveryUpdateModal from "../components/DeliveryUpdateModal";
+import ErrorBoundary from "../ErrorBoundary";
 
 const Invoices = () => {
   const { user } = useSelector((state) => state.auth);
@@ -17,7 +27,10 @@ const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedDeliveryInvoiceNo, setSelectedDeliveryInvoiceNo] =
+    useState(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
     status: "all",
@@ -42,7 +55,7 @@ const Invoices = () => {
 
       const invoicesRes = await axios.get(
         `${ENDPOINTS.INVOICES}?${params.toString()}`,
-        config
+        config,
       );
 
       setInvoices(invoicesRes.data);
@@ -90,7 +103,7 @@ const Invoices = () => {
   const handleDelete = async (invoiceId) => {
     if (
       !window.confirm(
-        "Are you sure you want to delete this invoice? This will also delete all associated payment records."
+        "Are you sure you want to delete this invoice? This will also delete all associated payment records.",
       )
     ) {
       return;
@@ -243,8 +256,8 @@ const Invoices = () => {
                         invoice.status === "paid"
                           ? "bg-green-900/50 text-green-400 border border-green-800"
                           : invoice.status === "overdue"
-                          ? "bg-red-900/50 text-red-400 border border-red-800"
-                          : "bg-yellow-900/50 text-yellow-400 border border-yellow-800"
+                            ? "bg-red-900/50 text-red-400 border border-red-800"
+                            : "bg-yellow-900/50 text-yellow-400 border border-yellow-800"
                       }`}
                     >
                       {invoice.status
@@ -281,6 +294,16 @@ const Invoices = () => {
                         <Trash2 className="h-5 w-5" />
                       </button>
                     )}
+                    <button
+                      onClick={() => {
+                        setSelectedDeliveryInvoiceNo(invoice.invoiceNumber);
+                        setIsDeliveryModalOpen(true);
+                      }}
+                      className="text-purple-400 hover:text-purple-300"
+                      title="Update Delivery"
+                    >
+                      <Truck className="h-5 w-5" />
+                    </button>
                     <Link
                       to={`/invoices/${invoice._id}`}
                       className="text-blue-400 hover:text-blue-300"
@@ -316,6 +339,19 @@ const Invoices = () => {
               : selectedInvoice.total - (selectedInvoice.amountPaid || 0)
           }
         />
+      )}
+
+      {isDeliveryModalOpen && (
+        <ErrorBoundary>
+          <DeliveryUpdateModal
+            isOpen={isDeliveryModalOpen}
+            onClose={() => {
+              setIsDeliveryModalOpen(false);
+              setSelectedDeliveryInvoiceNo(null);
+            }}
+            invoiceNumber={selectedDeliveryInvoiceNo}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );

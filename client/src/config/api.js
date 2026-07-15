@@ -63,6 +63,11 @@ export const ENDPOINTS = {
   INVOICES: `${API_URL}/invoices`,
   INVOICE_BY_ID: (id) => `${API_URL}/invoices/${id}`,
 
+  // Deliveries
+  DELIVERY_QUEUE: `${API_URL}/deliveries/queue`,
+  DELIVERY_SEARCH: (invoiceNo) => `${API_URL}/deliveries/search/${invoiceNo}`,
+  DELIVERY_UPDATE: (invoiceId) => `${API_URL}/deliveries/invoice/${invoiceId}`,
+
   // Quotations
   QUOTATIONS: `${API_URL}/quotations`,
   QUOTATION_BY_ID: (id) => `${API_URL}/quotations/${id}`,

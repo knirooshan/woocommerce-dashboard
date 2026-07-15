@@ -38,6 +38,7 @@ import ActivityLog from "./pages/ActivityLog";
 import Payments from "./pages/Payments";
 import Users from "./pages/Users";
 import MediaLibrary from "./pages/MediaLibrary";
+import DeliveryTracking from "./pages/DeliveryTracking";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
@@ -67,7 +68,7 @@ function App() {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     // Request Interceptor for Auth Token
@@ -79,7 +80,7 @@ function App() {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     const checkState = async () => {
@@ -188,6 +189,7 @@ function App() {
               <Route path="/invoices/create" element={<CreateInvoice />} />
               <Route path="/invoices/edit/:id" element={<EditInvoice />} />
               <Route path="/invoices/:id" element={<InvoiceView />} />
+              <Route path="/deliveries" element={<DeliveryTracking />} />
               <Route path="/payments" element={<Payments />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/vendors" element={<Vendors />} />
