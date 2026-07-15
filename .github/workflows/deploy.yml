@@ -54,6 +54,8 @@ jobs:
             echo "Building frontend..."
             cd /var/www/merchpilot/client
             npm ci --legacy-peer-deps
+            # Fix ownership if root accidentally ran a build previously (permission denied guard)
+            sudo chown -R deploy:deploy dist 2>/dev/null || true
             rm -rf dist
             npm run build
 
