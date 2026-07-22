@@ -79,6 +79,7 @@ export const ENDPOINTS = {
   // Expenses
   EXPENSES: `${API_URL}/expenses`,
   EXPENSE_BY_ID: (id) => `${API_URL}/expenses/${id}`,
+  EXPENSE_UPLOAD: `${API_URL}/expenses/upload`,
 
   // Payments
   PAYMENTS: `${API_URL}/payments`,

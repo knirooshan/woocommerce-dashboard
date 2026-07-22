@@ -14,6 +14,7 @@ const expenseSchema = new mongoose.Schema(
     },
     reference: { type: String },
     notes: { type: String },
+    attachmentUrl: { type: String },
     editHistory: [
       {
         editedAt: { type: Date, default: Date.now },

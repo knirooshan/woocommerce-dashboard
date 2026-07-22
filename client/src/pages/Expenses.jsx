@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Trash, DollarSign, Edit, X } from "lucide-react";
+import { Plus, Trash, DollarSign, Edit, X, Eye } from "lucide-react";
 import ReasonModal from "../components/ReasonModal";
 import VendorForm from "../components/VendorForm";
 import SearchBar from "../components/SearchBar";
@@ -18,6 +18,7 @@ const Expenses = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [viewingExpense, setViewingExpense] = useState(null);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState(null);
   const [showVendorModal, setShowVendorModal] = useState(false);
@@ -37,7 +38,10 @@ const Expenses = () => {
     paymentMethod: "Cash",
     reference: "",
     notes: "",
+    attachmentUrl: "",
   });
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const [vendors, setVendors] = useState([]);
 
@@ -72,7 +76,7 @@ const Expenses = () => {
 
       const expensesRes = await axios.get(
         `${ENDPOINTS.EXPENSES}?${params.toString()}`,
-        config
+        config,
       );
       setExpenses(expensesRes.data);
       setLoading(false);
@@ -110,6 +114,32 @@ const Expenses = () => {
       vendor: formData.vendor === "" ? null : formData.vendor,
     };
 
+    setUploading(true);
+    try {
+      if (uploadFile) {
+        const formDataUpload = new FormData();
+        formDataUpload.append("file", uploadFile);
+        const token = user.token;
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        };
+        const uploadRes = await axios.post(
+          ENDPOINTS.EXPENSE_UPLOAD,
+          formDataUpload,
+          config,
+        );
+        submissionData.attachmentUrl = uploadRes.data.url;
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("Error uploading file. Please try again.");
+      setUploading(false);
+      return;
+    }
+
     if (editingExpense) {
       // For edits, show reason modal
       setPendingUpdate(submissionData);
@@ -125,6 +155,8 @@ const Expenses = () => {
         fetchExpenses();
       } catch (error) {
         console.error("Error creating expense:", error);
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -140,7 +172,7 @@ const Expenses = () => {
           editReason: reason,
           editedBy: user.name,
         },
-        config
+        config,
       );
       setShowForm(false);
       setShowReasonModal(false);
@@ -150,6 +182,8 @@ const Expenses = () => {
       fetchExpenses();
     } catch (error) {
       console.error("Error updating expense:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -177,7 +211,9 @@ const Expenses = () => {
       paymentMethod: "Cash",
       reference: "",
       notes: "",
+      attachmentUrl: "",
     });
+    setUploadFile(null);
   };
 
   const handleEdit = (expense) => {
@@ -191,7 +227,9 @@ const Expenses = () => {
       paymentMethod: expense.paymentMethod || "Cash",
       reference: expense.reference || "",
       notes: expense.notes || "",
+      attachmentUrl: expense.attachmentUrl || "",
     });
+    setUploadFile(null);
     setShowForm(true);
   };
 
@@ -373,7 +411,10 @@ const Expenses = () => {
                   <select
                     value={formData.paymentMethod}
                     onChange={(e) =>
-                      setFormData({ ...formData, paymentMethod: e.target.value })
+                      setFormData({
+                        ...formData,
+                        paymentMethod: e.target.value,
+                      })
                     }
                     className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                   >
@@ -449,6 +490,35 @@ const Expenses = () => {
                     className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Proof of Expense (Image)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setUploadFile(e.target.files[0])}
+                    className="w-full bg-slate-950 border border-slate-600 rounded px-3 py-2 text-slate-300 focus:outline-none focus:border-blue-500"
+                  />
+                  {formData.attachmentUrl && !uploadFile && (
+                    <div className="mt-2 text-sm text-slate-400">
+                      Current attachment:{" "}
+                      <a
+                        href={formData.attachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:underline"
+                      >
+                        View Image
+                      </a>
+                    </div>
+                  )}
+                  {uploadFile && (
+                    <div className="mt-2 text-sm text-slate-400">
+                      File selected: {uploadFile.name}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -460,9 +530,14 @@ const Expenses = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  disabled={uploading}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
-                  {editingExpense ? "Update Expense" : "Save Expense"}
+                  {uploading
+                    ? "Saving..."
+                    : editingExpense
+                      ? "Update Expense"
+                      : "Save Expense"}
                 </button>
               </div>
             </form>
@@ -522,6 +597,13 @@ const Expenses = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
                   <button
+                    onClick={() => setViewingExpense(expense)}
+                    className="text-blue-400 hover:text-blue-300"
+                    title="View Expense Details"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </button>
+                  <button
                     onClick={() => handleEdit(expense)}
                     className="text-yellow-400 hover:text-yellow-300"
                     title="Edit Expense"
@@ -565,6 +647,110 @@ const Expenses = () => {
           onClose={() => setShowVendorModal(false)}
           onSave={handleSaveVendor}
         />
+      )}
+
+      {/* Expense Details Modal */}
+      {viewingExpense && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+          <div className="bg-slate-900 rounded-lg shadow-xl w-full max-w-2xl border border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-5 border-b border-slate-700">
+              <h2 className="text-xl font-semibold text-white">
+                Expense Details
+              </h2>
+              <button
+                type="button"
+                onClick={() => setViewingExpense(null)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="block text-slate-400">Date</span>
+                  <span className="text-white font-medium">
+                    {formatDate(viewingExpense.date, settings)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-slate-400">Amount</span>
+                  <span className="text-red-400 font-medium text-lg">
+                    {formatCurrency(viewingExpense.amount, settings)}
+                  </span>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="block text-slate-400">Description</span>
+                  <span className="text-white">
+                    {viewingExpense.description}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-slate-400">Category</span>
+                  <span className="inline-flex px-2 text-xs leading-5 font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700 mt-1">
+                    {viewingExpense.category}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-slate-400">Vendor</span>
+                  <span className="text-white">
+                    {viewingExpense.vendor?.name || "-"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-slate-400">Payment Method</span>
+                  <span className="text-white">
+                    {viewingExpense.paymentMethod || "Cash"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-slate-400">Reference</span>
+                  <span className="text-white">
+                    {viewingExpense.reference || "-"}
+                  </span>
+                </div>
+                {viewingExpense.notes && (
+                  <div className="md:col-span-2">
+                    <span className="block text-slate-400">Notes</span>
+                    <p className="text-white whitespace-pre-wrap mt-1">
+                      {viewingExpense.notes}
+                    </p>
+                  </div>
+                )}
+
+                {viewingExpense.attachmentUrl && (
+                  <div className="md:col-span-2 mt-4 pt-4 border-t border-slate-800">
+                    <span className="block text-slate-400 mb-2">
+                      Proof of Expense
+                    </span>
+                    <div className="bg-slate-950 p-2 rounded border border-slate-800 inline-block max-w-full">
+                      <a
+                        href={viewingExpense.attachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <img
+                          src={viewingExpense.attachmentUrl}
+                          alt="Expense Proof"
+                          className="max-h-64 object-contain rounded cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end p-5 border-t border-slate-700">
+              <button
+                type="button"
+                onClick={() => setViewingExpense(null)}
+                className="px-4 py-2 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
