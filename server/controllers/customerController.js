@@ -71,13 +71,6 @@ const createCustomer = async (req, res) => {
       });
     }
 
-    // If firstName is provided, lastName should also be provided (optional, but matches frontend)
-    if (firstName && !lastName) {
-      return res.status(400).json({
-        message: "Last Name is required if First Name is provided",
-      });
-    }
-
     // Check if customer with email already exists (only if email is provided)
     if (email) {
       const customerExists = await Customer.findOne({ email });
@@ -132,12 +125,6 @@ const updateCustomer = async (req, res) => {
     if (!finalFirstName && !finalCompany) {
       return res.status(400).json({
         message: "Either First Name or Company Name is required",
-      });
-    }
-
-    if (finalFirstName && !finalLastName) {
-      return res.status(400).json({
-        message: "Last Name is required if First Name is provided",
       });
     }
 
