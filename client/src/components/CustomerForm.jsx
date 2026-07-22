@@ -63,11 +63,6 @@ const CustomerForm = ({ customer, onClose, onSave }) => {
       return;
     }
 
-    if (hasFirstName && !hasLastName) {
-      setError("Last Name is required if First Name is provided");
-      return;
-    }
-
     setError("");
     onSave(formData);
   };
