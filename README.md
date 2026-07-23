@@ -1,21 +1,18 @@
-# WooCommerce Dashboard
+# Merchpilot
 
-This repository contains a self-hosted WooCommerce dashboard application - a lightweight POS / invoicing / reporting system built to work with WooCommerce stores and as a standalone small business dashboard.
+This repository contains a cloud-based multi-tenant Merchpilot application - a lightweight POS / invoicing / reporting system built to work with WooCommerce and Medusa stores, and as a cloud-based small business dashboard.
 
-This README explains the project, architecture, installation, deployment, and a feature-by-feature overview so you (or other contributors) can quickly understand how the system works and what each part does.
+This README provides a feature-by-feature overview and architecture summary so you can quickly understand how the system works and what each part does.
 
 ---
 
 ## Quick summary
 
-- Project: WooCommerce Dashboard
-- Stack: React (Vite) client + Node.js server (Express-like), MongoDB for storage. Hosted on an Ubuntu VPS in production.
+- Project: Merchpilot
+- Stack: React (Vite) client + Node.js server (Express-like), MongoDB for storage.
 - Repo layout (top-level):
   - `client/` - React + Vite front-end application.
   - `server/` - Node server, controllers, models, routes, services, and docs.
-  - `server/docs/` - deployment and hosting documentation (including `AUTOMATED-DEPLOYMENT.md`).
-
-See `server/docs/AUTOMATED-DEPLOYMENT.md` for recommended automated deploy setup (GitHub Actions → VPS).
 
 ---
 
@@ -54,7 +51,15 @@ The app provides a complete small-business dashboard. Each feature below include
 
 - Orders
 
-  - Basic order handling and integration with WooCommerce (if configured). Server: `server/controllers/orderController.js` and `server/services/wooService.js`.
+  - Basic order handling and integration with external platforms (WooCommerce and Medusa) if configured. Server: `server/controllers/orderController.js`, `server/services/wooService.js` and `server/services/medusaService.js`.
+
+- Deliveries
+
+  - Track and manage deliveries associated with orders. Server: `server/controllers/deliveryController.js`. Client: `DeliveryTracking.jsx` and `DeliveryReceiptPDF.jsx`.
+
+- Multi-Tenancy (Tenants)
+
+  - Support for multiple tenants using a central database for tenant resolution. Server: `server/controllers/tenantController.js` and `server/models/central/Tenant.js`. Client: `Tenants.jsx`.
 
 - Payments
 
@@ -76,9 +81,9 @@ The app provides a complete small-business dashboard. Each feature below include
 
   - Sales and expense reports with date filters and aggregates. Server: `server/controllers/reportController.js` and client reports UI.
 
-- Settings
+- Settings & Setup
 
-  - App-level settings (store info, currency, tax settings) managed via `server/controllers/settingsController.js` and client `Settings` page.
+  - App-level settings (store info, currency, tax settings) managed via `server/controllers/settingsController.js` and client `Settings` page. Also includes a first-time setup wizard (`SetupPage.jsx`, `FirstTimeSetup.jsx`) and admin settings (`adminSettingsController.js`).
 
 - Email & Notifications
 
@@ -101,142 +106,5 @@ The app provides a complete small-business dashboard. Each feature below include
   - `server/routes/` - express-style route files.
   - `server/controllers/` - request handlers for resources.
   - `server/models/` - Mongoose models.
-  - `server/services/` - helper services (email, PDF, WooCommerce integration).
+  - `server/services/` - helper services (email, PDF, WooCommerce and Medusa integrations).
   - `server/middleware/` - authentication and logging middleware.
-
----
-
-## Installation - local development
-
-Prerequisites:
-
-- Node.js (LTS, e.g. 18+)
-- npm or yarn
-- MongoDB (local or Atlas connection)
-
-Clone the repo and install dependencies:
-
-```bash
-git clone https://github.com/<your-org>/woocommerce-dashboard.git
-cd woocommerce-dashboard
-
-# Server deps
-cd server
-npm install
-
-# In a separate terminal: client deps
-cd ../client
-npm install
-```
-
-Create environment files. The project expects environment variables for DB, JWT and optionally SMTP. Create `server/.env` with at least:
-
-```
-MONGODB_URI=your_mongo_connection_string
-JWT_SECRET=your_jwt_secret
-PORT=3000
-# Optional SMTP vars used by email service
-SMTP_HOST=...
-SMTP_PORT=...
-SMTP_USER=...
-SMTP_PASS=...
-```
-
-Also create client environment if needed (check `client/.env.example`), for example to set API base URL.
-
-Running locally:
-
-```bash
-# From server/
-npm run dev      # or `npm start` depending on package.json
-
-# From client/
-npm run dev      # runs Vite dev server (usually https://localhost:5173)
-```
-
-Open the client app (Vite) in the browser and ensure the server API endpoint is reachable.
-
----
-
-## Deployment summary
-
-See `server/docs/AUTOMATED-DEPLOYMENT.md` for a complete A→Z guide covering:
-
-- Creating a `deploy` user on your Ubuntu VPS
-- Generating an SSH key and storing it in GitHub Secrets
-- A `deploy.sh` script example that pulls latest code, installs deps, builds the client and restarts the service
-- A sample `systemd` unit and a GitHub Actions workflow to run the remote deploy script on push to `main`.
-
-Short commands to deploy manually on VPS (example):
-
-```bash
-# as deploy user on VPS (after cloning into ~/woocommerce-dashboard)
-cd ~/woocommerce-dashboard
-git fetch origin main
-git reset --hard origin/main
-cd server
-npm ci
-cd ../client
-npm ci
-npm run build
-# copy dist/ to server/public (or let nginx serve client)
-cp -r dist/* ../server/public/
-sudo systemctl restart woocommerce-dashboard.service
-```
-
----
-
-## Environment variables (common)
-
-Use the example above; these are common keys - check `server` code and `server/.env.example` (if present) for exact names.
-
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - JWT signing secret for authentication
-- `PORT` - server port
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` - email sending credentials
-- Any other app-specific keys should be in `server/.env` and not committed to Git.
-
----
-
-## Backups, rollback & monitoring
-
-- Backup your MongoDB regularly - use `mongodump` or managed snapshots in Atlas.
-- The deploy script in `server/docs/AUTOMATED-DEPLOYMENT.md` writes a log. Keep logs in a persistent location if needed.
-- Rollback: on the VPS `git reset --hard <previous-commit>` and restart service. Use tags/releases for safer rollbacks.
-- Add a simple health-check endpoint (e.g. `/health`) to allow uptime checks.
-
----
-
-## Troubleshooting
-
-- If Actions cannot SSH: check public key in `/home/deploy/.ssh/authorized_keys`, check `KNOWN_HOSTS` entry or allow interactive host verification then update secret.
-- If service fails to start: `sudo journalctl -u woocommerce-dashboard.service -n 200` and `sudo systemctl status woocommerce-dashboard.service`.
-- If client doesn’t load after build: verify `client/dist` was copied to the server directory served by the Node server or nginx.
-
----
-
-## Contributing
-
-Contributions are welcome. Common tasks:
-
-- Bug fixes and tests
-- Improve documentation
-- Add features or improve UI components in `client/src/components`
-
-Please open an issue describing the feature or bug before sending a big pull request.
-
----
-
-## Security notes
-
-- Never commit secrets or `.env` files to git. Use GitHub Secrets for CI/CD.
-- Restrict SSH access on your VPS (use keys, `ufw`, and optionally `fail2ban`).
-
----
-
-If you want, I can also:
-
-- Add a short `CONTRIBUTING.md` with contribution guidelines and branching rules.
-- Create a `server/.env.example` based on the variables used in server code (I can scan the repo and list all env keys).
-
-If you want me to create either of the above, say which one and I'll add it.

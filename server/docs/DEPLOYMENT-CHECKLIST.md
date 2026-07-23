@@ -54,7 +54,7 @@
 ### DirectAdmin
 
 - [ ] Install PM2: `npm install -g pm2`
-- [ ] Start app: `pm2 start api/index.js --name woocommerce-dashboard`
+- [ ] Start app: `pm2 start api/index.js --name merchpilot`
 - [ ] Save process: `pm2 save`
 - [ ] Setup startup: `pm2 startup`
 - [ ] Configure reverse proxy in Apache/Nginx
@@ -180,10 +180,10 @@ cd server && npm install --production
 pm2 status
 
 # View logs
-pm2 logs woocommerce-dashboard
+pm2 logs merchpilot
 
 # Restart app
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 ```
 
 ---

@@ -3,7 +3,7 @@ REM Pre-deployment Build Script for Windows
 REM Run this before uploading to production server
 
 echo ========================================
-echo WooCommerce Dashboard - Build Script
+echo Merchpilot - Build Script
 echo ========================================
 echo.
 

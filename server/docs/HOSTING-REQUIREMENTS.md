@@ -1,4 +1,4 @@
-# Hosting Requirements for WooCommerce Dashboard Application
+# Hosting Requirements for Merchpilot Application
 
 **Subject:** Hosting Requirements for Node.js + React Application
 

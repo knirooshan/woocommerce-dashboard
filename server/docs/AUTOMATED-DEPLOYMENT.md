@@ -124,7 +124,7 @@ Create `server/deploy.sh` (executable) with the following example. Adjust paths 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-REPO_DIR="$HOME/woocommerce-dashboard"
+REPO_DIR="$HOME/merchpilot"
 BRANCH="main"
 LOGFILE="/tmp/deploy-$(date +%Y%m%d%H%M%S).log"
 
@@ -154,7 +154,7 @@ if [ -d client ]; then
 fi
 
 # Restart service (systemd example)
-sudo systemctl restart woocommerce-dashboard.service
+sudo systemctl restart merchpilot.service
 
 echo "=== Deploy finished at $(date) ===" | tee -a "$LOGFILE"
 
@@ -174,18 +174,18 @@ Notes:
 
 ## E - `systemd` service example
 
-Create `/etc/systemd/system/woocommerce-dashboard.service`:
+Create `/etc/systemd/system/merchpilot.service`:
 
 ```
 [Unit]
-Description=WooCommerce Dashboard Node App
+Description=Merchpilot Node App
 After=network.target
 
 [Service]
 User=deploy
-WorkingDirectory=/home/deploy/woocommerce-dashboard/server
+WorkingDirectory=/home/deploy/merchpilot/server
 Environment=NODE_ENV=production
-# If you store env vars in a file: EnvironmentFile=/home/deploy/woocommerce-dashboard/server/.env
+# If you store env vars in a file: EnvironmentFile=/home/deploy/merchpilot/server/.env
 ExecStart=/usr/bin/node index.js
 Restart=on-failure
 RestartSec=5
@@ -199,9 +199,9 @@ Commands to enable and start the service:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable woocommerce-dashboard.service
-sudo systemctl start woocommerce-dashboard.service
-sudo journalctl -u woocommerce-dashboard.service -f
+sudo systemctl enable merchpilot.service
+sudo systemctl start merchpilot.service
+sudo journalctl -u merchpilot.service -f
 ```
 
 If you use `pm2`, use `pm2 start` and `pm2 startup` instead.
@@ -240,7 +240,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
         run: |
-          ssh -o StrictHostKeyChecking=yes -p ${VPS_PORT:-22} ${VPS_USER}@${VPS_HOST} 'bash -lc "cd ~/woocommerce-dashboard && ./server/deploy.sh"'
+          ssh -o StrictHostKeyChecking=yes -p ${VPS_PORT:-22} ${VPS_USER}@${VPS_HOST} 'bash -lc "cd ~/merchpilot && ./server/deploy.sh"'
 ```
 
 Notes:
@@ -257,7 +257,7 @@ Notes:
 
 ```bash
 ls -t /tmp/deploy-*.log | head -n1
-sudo journalctl -u woocommerce-dashboard.service -n 200 --no-pager
+sudo journalctl -u merchpilot.service -n 200 --no-pager
 ```
 
 4. Validate the app URL in a browser.
@@ -269,10 +269,10 @@ sudo journalctl -u woocommerce-dashboard.service -n 200 --no-pager
 Quick rollback example on the VPS:
 
 ```bash
-cd ~/woocommerce-dashboard
+cd ~/merchpilot
 git log --oneline -n 5
 git reset --hard <previous-commit-hash>
-sudo systemctl restart woocommerce-dashboard.service
+sudo systemctl restart merchpilot.service
 ```
 
 Better: tag releases and deploy by tag to make rollbacks simpler.
@@ -307,7 +307,7 @@ Example steps (high level):
 ## K - Troubleshooting tips
 
 - SSH fails from Actions: check `authorized_keys`, `KNOWN_HOSTS`, and GitHub Secret values.
-- Service fails: `sudo systemctl status woocommerce-dashboard.service` and `sudo journalctl -u woocommerce-dashboard.service -n 200`.
+- Service fails: `sudo systemctl status merchpilot.service` and `sudo journalctl -u merchpilot.service -n 200`.
 - Client issues: verify built assets were copied into `server/public` (or your nginx root) and that `client/dist` exists after build.
 
 ---
@@ -322,13 +322,13 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # Clone repo as deploy user (example)
-sudo -i -u deploy bash -c 'git clone https://github.com/<your-org>/woocommerce-dashboard.git ~/woocommerce-dashboard'
+sudo -i -u deploy bash -c 'git clone https://github.com/<your-org>/merchpilot.git ~/merchpilot'
 
 # Check service logs
-sudo journalctl -u woocommerce-dashboard.service -n 200 --no-pager
+sudo journalctl -u merchpilot.service -n 200 --no-pager
 
 # Trigger manual deploy (SSH into VPS)
-cd ~/woocommerce-dashboard && ./server/deploy.sh
+cd ~/merchpilot && ./server/deploy.sh
 ```
 
 ---

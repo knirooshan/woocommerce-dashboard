@@ -74,7 +74,7 @@ Commands (switch to deploy or use sudo -u deploy):
 ```bash
 sudo -i -u deploy bash
 cd /var/www
-git clone https://github.com/knirooshan/woocommerce-dashboard.git dashboard.ceyloncanecrafts.lk
+git clone https://github.com/knirooshan/merchpilot.git dashboard.ceyloncanecrafts.lk
 cd dashboard.ceyloncanecrafts.lk
 
 # Create production environment file (example)
@@ -93,7 +93,7 @@ npm run build
 
 # Start the app with PM2 (adjust entrypoint if different)
 cd /var/www/dashboard.ceyloncanecrafts.lk
-pm2 start server/index.js --name woocommerce-dashboard --update-env
+pm2 start server/index.js --name merchpilot --update-env
 pm2 save
 pm2 startup systemd -u deploy --hp /home/deploy
 ```
@@ -127,7 +127,7 @@ npm run build
 
 # Restart pm2 process (or start if missing)
 cd /var/www/dashboard.ceyloncanecrafts.lk
-pm2 restart woocommerce-dashboard || pm2 start server/index.js --name woocommerce-dashboard --update-env
+pm2 restart merchpilot || pm2 start server/index.js --name merchpilot --update-env
 pm2 save
 
 echo "deploy finished"
@@ -149,7 +149,7 @@ PowerShell (example):
 
 ```powershell
 # Generate CI keypair (no passphrase for CI simplicity)
-ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\ci_deploy_key -C "github-actions@woocommerce-dashboard" -N ""
+ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\ci_deploy_key -C "github-actions@merchpilot" -N ""
 
 # Copy the public key to the VPS (upload then append)
 scp -P 22 $env:USERPROFILE\.ssh\ci_deploy_key.pub deploy@dashboard.ceyloncanecrafts.lk:/tmp/ci_deploy_key.pub
@@ -181,10 +181,10 @@ Using `gh` CLI (optional):
 
 ```bash
 # Example (on your local machine with gh authenticated)
-cat ~/.ssh/ci_deploy_key | gh secret set VPS_SSH_KEY --repo knirooshan/woocommerce-dashboard
-gh secret set VPS_HOST --body "dashboard.ceyloncanecrafts.lk" --repo knirooshan/woocommerce-dashboard
-gh secret set VPS_USER --body "deploy" --repo knirooshan/woocommerce-dashboard
-gh secret set VPS_SSH_PORT --body "22" --repo knirooshan/woocommerce-dashboard
+cat ~/.ssh/ci_deploy_key | gh secret set VPS_SSH_KEY --repo knirooshan/merchpilot
+gh secret set VPS_HOST --body "dashboard.ceyloncanecrafts.lk" --repo knirooshan/merchpilot
+gh secret set VPS_USER --body "deploy" --repo knirooshan/merchpilot
+gh secret set VPS_SSH_PORT --body "22" --repo knirooshan/merchpilot
 ```
 
 7. Add or verify GitHub Actions workflow
@@ -236,7 +236,7 @@ Useful debug commands on the VPS:
 sudo cat /home/deploy/.ssh/authorized_keys
 
 # Check PM2 logs
-pm2 logs woocommerce-dashboard --lines 200
+pm2 logs merchpilot --lines 200
 
 # Run deploy script manually as deploy
 sudo -i -u deploy /var/www/dashboard.ceyloncanecrafts.lk/server/scripts/deploy.sh
@@ -259,7 +259,7 @@ git reflog
 git reset --hard <previous-sha>
 cd server && npm ci --production
 cd client && npm ci && npm run build
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 ```
 
 10. Security notes
