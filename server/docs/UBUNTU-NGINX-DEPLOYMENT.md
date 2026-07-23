@@ -1,6 +1,6 @@
-# WooCommerce Dashboard - Ubuntu 24 + Nginx Production Deployment Guide
+# Merchpilot - Ubuntu 24 + Nginx Production Deployment Guide
 
-Complete step-by-step guide to deploy the WooCommerce Dashboard application on Ubuntu 24.04 LTS with Nginx from scratch.
+Complete step-by-step guide to deploy the Merchpilot application on Ubuntu 24.04 LTS with Nginx from scratch.
 
 ## Table of Contents
 
@@ -410,7 +410,7 @@ cd /var/www/dashboard.ceyloncanecrafts.lk
 cd /var/www/dashboard.ceyloncanecrafts.lk
 
 # Clone repository
-git clone https://github.com/knirooshan/woocommerce-dashboard.git .
+git clone https://github.com/knirooshan/merchpilot.git .
 
 # Or if already cloned, pull latest changes
 git pull origin main
@@ -422,7 +422,7 @@ From your local machine:
 
 ```bash
 # Upload from local machine
-scp -r /path/to/woocommerce-dashboard/* deploy@YOUR_VPS_IP:/var/www/dashboard.ceyloncanecrafts.lk/
+scp -r /path/to/merchpilot/* deploy@YOUR_VPS_IP:/var/www/dashboard.ceyloncanecrafts.lk/
 
 # Or use FileZilla/WinSCP for GUI-based upload
 ```
@@ -762,13 +762,13 @@ SSL certificates auto-renew every 60 days.
 cd /var/www/dashboard.ceyloncanecrafts.lk/server
 
 # Start application with PM2
-pm2 start index.js --name woocommerce-dashboard
+pm2 start index.js --name merchpilot
 
 # Check status
 pm2 status
 
 # View logs
-pm2 logs woocommerce-dashboard
+pm2 logs merchpilot
 
 # To stop logs, press Ctrl+C
 ```
@@ -795,7 +795,7 @@ After reboot, reconnect and verify:
 # Check if app is running
 pm2 status
 
-# Should show woocommerce-dashboard as online
+# Should show merchpilot as online
 ```
 
 ### Step 27: PM2 Monitoring Setup
@@ -808,13 +808,13 @@ pm2 logs
 pm2 monit
 
 # View detailed info
-pm2 info woocommerce-dashboard
+pm2 info merchpilot
 
 # Restart app (useful after code updates)
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Reload app (zero-downtime restart)
-pm2 reload woocommerce-dashboard
+pm2 reload merchpilot
 ```
 
 ### Step 28: Configure Log Rotation
@@ -985,7 +985,7 @@ sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.access.log
 sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.error.log
 
 # PM2 logs
-pm2 logs woocommerce-dashboard
+pm2 logs merchpilot
 
 # MongoDB logs
 sudo tail -f /var/log/mongodb/mongod.log
@@ -1296,7 +1296,7 @@ mongosh --eval "db.version()"
 **Check PM2 logs:**
 
 ```bash
-pm2 logs woocommerce-dashboard --lines 100
+pm2 logs merchpilot --lines 100
 ```
 
 **Common causes:**
@@ -1340,7 +1340,7 @@ cat /var/www/dashboard.ceyloncanecrafts.lk/server/.env
 pm2 status
 
 # Restart app
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Check Nginx error logs
 sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.error.log
@@ -1458,13 +1458,13 @@ pm2 monit
 
 ```bash
 # Restart application
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Limit PM2 memory
-pm2 start index.js --name woocommerce-dashboard --max-memory-restart 500M
+pm2 start index.js --name merchpilot --max-memory-restart 500M
 
 # Check for memory leaks in application logs
-pm2 logs woocommerce-dashboard --lines 500
+pm2 logs merchpilot --lines 500
 ```
 
 ---
@@ -1490,10 +1490,10 @@ npm install
 npm run build
 
 # Restart application with zero downtime
-pm2 reload woocommerce-dashboard
+pm2 reload merchpilot
 
 # Or restart (with brief downtime)
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Verify application is running
 pm2 status
@@ -1553,22 +1553,22 @@ sudo tail -f /var/log/nginx/dashboard.ceyloncanecrafts.lk.error.log
 pm2 list
 
 # View logs
-pm2 logs woocommerce-dashboard
+pm2 logs merchpilot
 
 # Monitor resources
 pm2 monit
 
 # Restart
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Reload (zero downtime)
-pm2 reload woocommerce-dashboard
+pm2 reload merchpilot
 
 # Stop
-pm2 stop woocommerce-dashboard
+pm2 stop merchpilot
 
 # Delete from PM2
-pm2 delete woocommerce-dashboard
+pm2 delete merchpilot
 ```
 
 ### MongoDB Commands
@@ -1752,7 +1752,7 @@ free -h
 
 ## Conclusion
 
-Your WooCommerce Dashboard application is now deployed on Ubuntu 24 with Nginx!
+Your Merchpilot application is now deployed on Ubuntu 24 with Nginx!
 
 ### What You've Accomplished
 

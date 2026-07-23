@@ -1,4 +1,4 @@
-# WooCommerce Dashboard & POS System
+# Merchpilot & POS System
 
 A comprehensive dashboard and Point of Sale system that integrates with WooCommerce.
 

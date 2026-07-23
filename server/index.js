@@ -60,7 +60,7 @@ async function start() {
 
   // Serve static files from uploads directory
   app.get("/", (req, res) => {
-    res.send("WooCommerce Dashboard API is running");
+    res.send("Merchpilot API is running");
   });
 
   const { initQueueProcessor } = require("./services/emailQueueProcessor");

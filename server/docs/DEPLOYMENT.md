@@ -1,4 +1,4 @@
-# WooCommerce Dashboard - Deployment Guide
+# Merchpilot - Deployment Guide
 
 ## Table of Contents
 
@@ -52,7 +52,7 @@ PORT=5000
 NODE_ENV=production
 
 # MongoDB Atlas
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/woocommerce-dashboard?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/merchpilot?retryWrites=true&w=majority
 
 # JWT Secret (generate a strong random string)
 JWT_SECRET=your_very_long_random_secret_key_here_min_32_chars
@@ -287,7 +287,7 @@ npm install -g pm2
 
 # Start application
 cd /home/username/domains/yourdomain.com/public_html/api
-pm2 start index.js --name woocommerce-dashboard
+pm2 start index.js --name merchpilot
 
 # Save PM2 process list
 pm2 save
@@ -298,11 +298,11 @@ pm2 startup
 
 **Option B: Using systemd service**
 
-Create `/etc/systemd/system/woocommerce-dashboard.service`:
+Create `/etc/systemd/system/merchpilot.service`:
 
 ```ini
 [Unit]
-Description=WooCommerce Dashboard
+Description=Merchpilot
 After=network.target
 
 [Service]
@@ -320,8 +320,8 @@ WantedBy=multi-user.target
 Enable and start:
 
 ```bash
-systemctl enable woocommerce-dashboard
-systemctl start woocommerce-dashboard
+systemctl enable merchpilot
+systemctl start merchpilot
 ```
 
 ### Step 4: Configure Apache/Nginx Reverse Proxy
@@ -576,10 +576,10 @@ node --version
 npm --version
 
 # View application logs (PM2)
-pm2 logs woocommerce-dashboard
+pm2 logs merchpilot
 
 # Restart application (PM2)
-pm2 restart woocommerce-dashboard
+pm2 restart merchpilot
 
 # Check application status
 pm2 status
@@ -606,7 +606,7 @@ netstat -tulpn | grep 5000
 
 - **Frontend**: `https://yourdomain.com`
 - **API**: `https://yourdomain.com/api`
-- **API Health**: `https://yourdomain.com/api` (should show "WooCommerce Dashboard API is running")
+- **API Health**: `https://yourdomain.com/api` (should show "Merchpilot API is running")
 
 ### Important Files
 
