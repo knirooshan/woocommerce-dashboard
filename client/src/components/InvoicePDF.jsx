@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E5E7EB",
     paddingVertical: 8,
     paddingHorizontal: 6,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   tableRowAlt: {
     backgroundColor: "#F9FAFB",

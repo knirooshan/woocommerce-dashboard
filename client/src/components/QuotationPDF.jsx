@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     paddingVertical: 8,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   tableHeader: {
     flexDirection: "row",
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     width: "35%",
     paddingLeft: 4,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   colImage: { width: "10%", paddingLeft: 4 },
   colPrice: { width: "20%", textAlign: "right" },
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   totalValue: {
-    width: 100,
+    width: 150,
     fontSize: 10,
     color: "#111827",
     textAlign: "right",
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   grandTotalValue: {
-    width: 100,
+    width: 150,
     fontSize: 14,
     fontWeight: "bold",
     color: "#2563EB",

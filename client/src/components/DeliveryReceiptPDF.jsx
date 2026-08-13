@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   tableHeader: {
     flexDirection: "row",
