@@ -88,6 +88,30 @@ router.get("/stats", protect, async (req, res) => {
     const totalCustomers = await Customer.countDocuments();
     const totalProducts = await Product.countDocuments();
 
+    // Outstanding receivables (all-time snapshot, not period-filtered)
+    const outstandingStatuses = ["overdue", "partially_paid", "sent", "draft"];
+    const outstandingInvoices = await Invoice.find({
+      status: { $in: outstandingStatuses },
+    })
+      .select("total amountPaid balanceDue status dueDate")
+      .lean();
+
+    const now = new Date();
+    let totalOutstanding = 0;
+    let overdueOutstanding = 0;
+    let overdueCount = 0;
+    for (const inv of outstandingInvoices) {
+      const balanceDue = inv.balanceDue ?? inv.total - (inv.amountPaid || 0);
+      totalOutstanding += balanceDue;
+      const isOverdue =
+        inv.status === "overdue" ||
+        (inv.dueDate && new Date(inv.dueDate) < now);
+      if (isOverdue) {
+        overdueOutstanding += balanceDue;
+        overdueCount += 1;
+      }
+    }
+
     res.json({
       periodSales,
       periodOrders,
@@ -95,6 +119,9 @@ router.get("/stats", protect, async (req, res) => {
       periodNetProfit,
       totalCustomers,
       totalProducts,
+      totalOutstanding,
+      overdueOutstanding,
+      overdueCount,
     });
   } catch (error) {
     console.error("Dashboard Stats Error:", error);

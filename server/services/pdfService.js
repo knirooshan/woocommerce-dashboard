@@ -378,7 +378,8 @@ const generateInvoicePDF = async (invoice, settings) => {
       }
 
       const supplierDetails = [];
-      if (settings?.taxIdNo) supplierDetails.push(`TIN/VAT: ${settings.taxIdNo}`);
+      if (settings?.taxIdNo)
+        supplierDetails.push(`TIN/VAT: ${settings.taxIdNo}`);
       if (settings?.registrationNo)
         supplierDetails.push(`Reg: ${settings.registrationNo}`);
       if (settings?.address?.street)
@@ -1524,6 +1525,343 @@ const generateSalesReportPDF = (
   });
 };
 
+const generateOutstandingReportPDF = (
+  invoices,
+  customerSummary,
+  summary,
+  settings,
+  dateRange = {},
+) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const doc = new PDFDocument({
+        margin: 50,
+        size: "A4",
+        bufferPages: true,
+        info: {
+          Title: "Outstanding Invoices Report",
+          Author: settings?.storeName || "MerchPilot",
+          Subject: "Financial Report",
+        },
+      });
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+
+      // Header
+      if (settings?.logo) {
+        await embedLogo(doc, settings.logo, 450, 45, 100, 50);
+      }
+
+      doc
+        .fillColor("#111827")
+        .fontSize(20)
+        .font("Helvetica-Bold")
+        .text("Outstanding Invoices Report", 50, 50);
+
+      doc
+        .fontSize(10)
+        .font("Helvetica")
+        .fillColor("#6B7280")
+        .text(
+          `Generated on: ${formatDate(new Date(), settings)} ${formatTime(
+            new Date(),
+            settings,
+          )}`,
+          50,
+          75,
+        );
+
+      const reportId = `OR-${Date.now().toString().slice(-6)}`;
+      doc.text(`Report ID: ${reportId}`, 50, 90);
+
+      doc.text(
+        `Period: ${dateRange.startDate || "All Time"} to ${
+          dateRange.endDate || "Present"
+        }`,
+        50,
+        105,
+      );
+
+      // Company Info
+      if (settings?.storeName) {
+        doc
+          .fillColor("#111827")
+          .fontSize(12)
+          .font("Helvetica-Bold")
+          .text(settings.storeName, 50, 130);
+
+        const addressParts = [
+          settings.address?.street,
+          settings.address?.city,
+          settings.address?.zip,
+          settings.address?.country,
+        ].filter(Boolean);
+
+        doc
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor("#4B5563")
+          .text(addressParts.join(", "), 50, 145)
+          .text(
+            `${settings.contact?.email || ""} ${
+              settings.contact?.phone ? "| " + settings.contact.phone : ""
+            }`,
+            50,
+            157,
+          );
+      }
+
+      drawLine(doc, 190);
+
+      // Currency Statement
+      doc
+        .fillColor("#6B7280")
+        .fontSize(8)
+        .font("Helvetica-Oblique")
+        .text(
+          `All amounts are in ${settings?.currency?.code || "USD"} (${
+            settings?.currency?.symbol || "$"
+          })`,
+          50,
+          200,
+          { align: "right" },
+        );
+
+      // Summary
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Summary", 50, 215);
+
+      const cardWidth = 118;
+      const cardGap = 8;
+      const cardY = 240;
+      const cards = [
+        {
+          label: "TOTAL OUTSTANDING",
+          value: formatCurrency(summary.totalOutstanding || 0, settings),
+          color: "#DC2626",
+        },
+        {
+          label: "OVERDUE INVOICES",
+          value: String(summary.overdueCount || 0),
+          color: "#EA580C",
+        },
+        {
+          label: "PARTIALLY PAID",
+          value: String(summary.partiallyPaidCount || 0),
+          color: "#D97706",
+        },
+        {
+          label: "CUSTOMERS OWING",
+          value: String(summary.customersWithDebt || 0),
+          color: "#2563EB",
+        },
+      ];
+      cards.forEach((card, i) => {
+        const x = 50 + i * (cardWidth + cardGap);
+        doc.rect(x, cardY, cardWidth, 55).fill("#F9FAFB");
+        doc
+          .fillColor("#4B5563")
+          .fontSize(7.5)
+          .font("Helvetica")
+          .text(card.label, x + 10, cardY + 12, { width: cardWidth - 20 });
+        doc
+          .fillColor(card.color)
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text(card.value, x + 10, cardY + 28, { width: cardWidth - 20 });
+      });
+
+      // Detailed Invoice Table
+      let y = cardY + 80;
+      doc
+        .fillColor("#111827")
+        .fontSize(14)
+        .font("Helvetica-Bold")
+        .text("Outstanding Invoices", 50, y);
+      y += 25;
+
+      const drawInvoiceHeader = (yy) => {
+        doc
+          .rect(50, yy, 500, 22)
+          .fill("#F3F4F6")
+          .fillColor("#4B5563")
+          .fontSize(8)
+          .font("Helvetica-Bold")
+          .text("INVOICE #", 55, yy + 7, { width: 65 })
+          .text("CUSTOMER", 120, yy + 7, { width: 100 })
+          .text("DUE DATE", 220, yy + 7, { width: 60 })
+          .text("TOTAL", 285, yy + 7, { width: 65, align: "right" })
+          .text("PAID", 355, yy + 7, { width: 65, align: "right" })
+          .text("BALANCE", 425, yy + 7, { width: 65, align: "right" })
+          .text("OVERDUE", 495, yy + 7, { width: 50, align: "right" });
+        return yy + 22;
+      };
+
+      y = drawInvoiceHeader(y);
+
+      doc.font("Helvetica").fontSize(8);
+      invoices.forEach((inv, index) => {
+        if (y > 740) {
+          doc.addPage();
+          y = 50;
+          y = drawInvoiceHeader(y);
+          doc.font("Helvetica").fontSize(8);
+        }
+        const bgColor = index % 2 === 0 ? "#FFFFFF" : "#F9FAFB";
+        doc.rect(50, y, 500, 20).fill(bgColor);
+
+        const custName = inv.customer
+          ? `${inv.customer.firstName || ""} ${inv.customer.lastName || ""}`.trim() ||
+            inv.customerInfo?.company ||
+            "Unknown"
+          : inv.customerInfo?.firstName
+            ? `${inv.customerInfo.firstName} ${inv.customerInfo.lastName || ""}`.trim()
+            : "Unknown";
+
+        doc
+          .fillColor("#111827")
+          .text(inv.invoiceNumber || "N/A", 55, y + 6, { width: 65 })
+          .text(custName, 120, y + 6, { width: 100 })
+          .text(
+            inv.dueDate ? formatDate(inv.dueDate, settings) : "-",
+            220,
+            y + 6,
+            {
+              width: 60,
+            },
+          )
+          .text(formatCurrency(inv.total, settings), 285, y + 6, {
+            width: 65,
+            align: "right",
+          })
+          .text(formatCurrency(inv.amountPaid || 0, settings), 355, y + 6, {
+            width: 65,
+            align: "right",
+          })
+          .fillColor("#DC2626")
+          .text(formatCurrency(inv.balanceDue, settings), 425, y + 6, {
+            width: 65,
+            align: "right",
+          })
+          .fillColor("#111827")
+          .text(inv.daysOverdue > 0 ? `${inv.daysOverdue}d` : "-", 495, y + 6, {
+            width: 50,
+            align: "right",
+          });
+        y += 20;
+      });
+
+      // Totals row
+      doc.rect(50, y, 500, 22).fill("#F3F4F6");
+      doc
+        .fillColor("#111827")
+        .fontSize(9)
+        .font("Helvetica-Bold")
+        .text("TOTAL OUTSTANDING", 220, y + 7, { width: 195, align: "right" })
+        .fillColor("#DC2626")
+        .text(
+          formatCurrency(summary.totalOutstanding || 0, settings),
+          425,
+          y + 7,
+          {
+            width: 65,
+            align: "right",
+          },
+        );
+      y += 40;
+
+      // Customer Summary
+      if (customerSummary && customerSummary.length > 0) {
+        if (y > 680) {
+          doc.addPage();
+          y = 50;
+        }
+        doc
+          .fillColor("#111827")
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .text("Customer Balance Summary", 50, y);
+        y += 25;
+
+        doc
+          .rect(50, y, 500, 22)
+          .fill("#F3F4F6")
+          .fillColor("#4B5563")
+          .fontSize(8)
+          .font("Helvetica-Bold")
+          .text("CUSTOMER", 55, y + 7, { width: 220 })
+          .text("INVOICES", 280, y + 7, { width: 70, align: "right" })
+          .text("OVERDUE", 355, y + 7, { width: 70, align: "right" })
+          .text("BALANCE DUE", 430, y + 7, { width: 115, align: "right" });
+        y += 22;
+
+        doc.font("Helvetica").fontSize(8);
+        customerSummary.forEach((cust, index) => {
+          if (y > 750) {
+            doc.addPage();
+            y = 50;
+          }
+          const bgColor = index % 2 === 0 ? "#FFFFFF" : "#F9FAFB";
+          doc.rect(50, y, 500, 20).fill(bgColor);
+          doc
+            .fillColor("#111827")
+            .text(cust.customerName || "Unknown", 55, y + 6, { width: 220 })
+            .text(String(cust.invoiceCount || 0), 280, y + 6, {
+              width: 70,
+              align: "right",
+            })
+            .text(String(cust.overdueCount || 0), 355, y + 6, {
+              width: 70,
+              align: "right",
+            })
+            .fillColor("#DC2626")
+            .text(
+              formatCurrency(cust.totalOutstanding || 0, settings),
+              430,
+              y + 6,
+              {
+                width: 115,
+                align: "right",
+              },
+            );
+          y += 20;
+        });
+      }
+
+      // Add page numbers
+      const range = doc.bufferedPageRange();
+      for (let i = range.start; i < range.start + range.count; i++) {
+        doc.switchToPage(i);
+        const oldBottomMargin = doc.page.margins.bottom;
+        doc.page.margins.bottom = 0;
+        doc
+          .fontSize(8)
+          .fillColor("#9CA3AF")
+          .text(`Page ${i + 1} of ${range.count}`, 50, doc.page.height - 30, {
+            align: "center",
+          });
+        doc
+          .fontSize(7)
+          .text(
+            "This is a computer-generated document. No signature is required.",
+            50,
+            doc.page.height - 20,
+            { align: "center" },
+          );
+        doc.page.margins.bottom = oldBottomMargin;
+      }
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 const generateProfitLossReportPDF = (
   reportData,
   payments,
@@ -1779,4 +2117,5 @@ module.exports = {
   generateQuotationPDF,
   generateSalesReportPDF,
   generateProfitLossReportPDF,
+  generateOutstandingReportPDF,
 };

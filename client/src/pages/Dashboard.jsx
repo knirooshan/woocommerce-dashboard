@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { ENDPOINTS } from "../config/api";
-import { DollarSign, ShoppingBag, Users, Package } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingBag,
+  Users,
+  Package,
+  AlertCircle,
+} from "lucide-react";
 import StatsCard from "../components/StatsCard";
 import SalesChart from "../components/SalesChart";
 import { formatCurrency } from "../utils/currency";
@@ -169,7 +176,7 @@ const Dashboard = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatsCard
           title={`Sales (${periodLabel})`}
           value={formatCurrency(stats?.periodSales || 0, settings)}
@@ -181,6 +188,12 @@ const Dashboard = () => {
           value={stats?.periodOrders || 0}
           icon={ShoppingBag}
           color="text-blue-500 bg-blue-500"
+        />
+        <StatsCard
+          title="Outstanding"
+          value={formatCurrency(stats?.totalOutstanding || 0, settings)}
+          icon={AlertCircle}
+          color="text-red-500 bg-red-500"
         />
         <StatsCard
           title="Customers"
@@ -215,6 +228,22 @@ const Dashboard = () => {
               <span className="font-semibold text-red-500">
                 {formatCurrency(stats?.periodExpenses || 0, settings)}
               </span>
+            </div>
+            <div className="flex justify-between items-center pb-2 border-b border-slate-800">
+              <span className="text-slate-400">
+                Outstanding Receivables
+                {stats?.overdueCount > 0 && (
+                  <span className="ml-2 text-xs text-orange-400">
+                    ({stats.overdueCount} overdue)
+                  </span>
+                )}
+              </span>
+              <Link
+                to="/outstanding-invoices"
+                className="font-semibold text-red-500 hover:underline"
+              >
+                {formatCurrency(stats?.totalOutstanding || 0, settings)}
+              </Link>
             </div>
             <div className="flex justify-between items-center pt-2">
               <span className="text-white font-medium">

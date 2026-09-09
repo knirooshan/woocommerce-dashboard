@@ -39,6 +39,7 @@ import Payments from "./pages/Payments";
 import Users from "./pages/Users";
 import MediaLibrary from "./pages/MediaLibrary";
 import DeliveryTracking from "./pages/DeliveryTracking";
+import OutstandingInvoices from "./pages/OutstandingInvoices";
 
 function App() {
   const [isFirstRun, setIsFirstRun] = useState(null);
@@ -198,6 +199,10 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/media-library" element={<MediaLibrary />} />
               <Route path="/activity-log" element={<ActivityLog />} />
+              <Route
+                path="/outstanding-invoices"
+                element={<OutstandingInvoices />}
+              />
               <Route path="/tenants" element={<Tenants />} />
               <Route
                 path="/admin/settings"
