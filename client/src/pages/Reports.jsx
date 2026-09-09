@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { ENDPOINTS } from "../config/api";
 import {
   BarChart,
@@ -256,7 +257,7 @@ const Reports = () => {
       {activeTab === "sales" ? (
         <div className="space-y-6">
           {/* Sales Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800">
               <h3 className="text-slate-400 text-sm font-medium">
                 Total Sales Volume
@@ -276,6 +277,17 @@ const Reports = () => {
                 )}
               </p>
             </div>
+            <Link
+              to="/outstanding-invoices"
+              className="bg-slate-900 p-6 rounded-lg shadow border border-slate-800 hover:border-red-800/50 transition-colors"
+            >
+              <h3 className="text-slate-400 text-sm font-medium">
+                Outstanding Receivables
+              </h3>
+              <p className="text-3xl font-bold text-red-400">
+                {formatCurrency(stats.totalOutstanding || 0, settings)}
+              </p>
+            </Link>
           </div>
 
           {/* Sales Chart & Product Breakdown Side by Side */}

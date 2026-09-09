@@ -9,6 +9,7 @@ const {
   generateQuotationPDF,
   generateSalesReportPDF,
   generateProfitLossReportPDF,
+  generateOutstandingReportPDF,
 } = require("../services/pdfService");
 
 // @desc    Generate and stream Invoice PDF
@@ -315,9 +316,127 @@ const getProfitLossReportPDF = async (req, res) => {
   }
 };
 
+// @desc    Generate and stream Outstanding Invoices Report PDF
+// @route   POST /api/pdf/outstanding-report
+// @access  Private
+const getOutstandingReportPDF = async (req, res) => {
+  try {
+    const { Invoice, Settings } = getTenantModels(req.dbConnection);
+    const { startDate, endDate, status, customer } = {
+      ...req.query,
+      ...req.body,
+    };
+
+    const allowedStatuses = ["overdue", "partially_paid", "sent", "draft"];
+    const filter = {
+      status:
+        status && allowedStatuses.includes(status)
+          ? status
+          : { $in: allowedStatuses },
+    };
+
+    if (customer && customer !== "all") {
+      const mongoose = require("mongoose");
+      filter.customer = new mongoose.Types.ObjectId(customer);
+    }
+
+    if (startDate || endDate) {
+      const timezone = await getTenantTimezone(req.dbConnection);
+      filter.invoiceDate = {};
+      if (startDate)
+        filter.invoiceDate.$gte = parseStartOfDay(startDate, timezone);
+      if (endDate) filter.invoiceDate.$lte = parseEndOfDay(endDate, timezone);
+    }
+
+    const rawInvoices = await Invoice.find(filter)
+      .populate("customer", "firstName lastName email billing")
+      .sort({ dueDate: 1 });
+
+    const now = new Date();
+    const invoices = rawInvoices.map((inv) => {
+      const balanceDue = inv.balanceDue ?? inv.total - (inv.amountPaid || 0);
+      const dueDateVal = inv.dueDate ? new Date(inv.dueDate) : null;
+      const daysOverdue =
+        dueDateVal && dueDateVal < now
+          ? Math.floor((now - dueDateVal) / (1000 * 60 * 60 * 24))
+          : 0;
+      return {
+        invoiceNumber: inv.invoiceNumber,
+        customer: inv.customer,
+        customerInfo: inv.customerInfo,
+        invoiceDate: inv.invoiceDate,
+        dueDate: inv.dueDate,
+        total: inv.total,
+        amountPaid: inv.amountPaid || 0,
+        balanceDue,
+        status: inv.status,
+        daysOverdue,
+      };
+    });
+
+    const customerMap = {};
+    for (const inv of invoices) {
+      const custId = inv.customer?._id?.toString() || "unknown";
+      const custName = inv.customer
+        ? `${inv.customer.firstName || ""} ${inv.customer.lastName || ""}`.trim() ||
+          inv.customerInfo?.company ||
+          "Unknown"
+        : inv.customerInfo?.firstName
+          ? `${inv.customerInfo.firstName} ${inv.customerInfo.lastName || ""}`.trim()
+          : "Unknown";
+      if (!customerMap[custId]) {
+        customerMap[custId] = {
+          customerId: custId,
+          customerName: custName,
+          totalOutstanding: 0,
+          invoiceCount: 0,
+          overdueCount: 0,
+        };
+      }
+      customerMap[custId].totalOutstanding += inv.balanceDue;
+      customerMap[custId].invoiceCount += 1;
+      if (inv.daysOverdue > 0) customerMap[custId].overdueCount += 1;
+    }
+    const customerSummary = Object.values(customerMap).sort(
+      (a, b) => b.totalOutstanding - a.totalOutstanding,
+    );
+
+    const summary = {
+      totalOutstanding: invoices.reduce((s, i) => s + i.balanceDue, 0),
+      overdueCount: invoices.filter(
+        (i) => i.status === "overdue" || i.daysOverdue > 0,
+      ).length,
+      partiallyPaidCount: invoices.filter((i) => i.status === "partially_paid")
+        .length,
+      customersWithDebt: customerSummary.length,
+      totalInvoices: invoices.length,
+    };
+
+    const settings = await Settings.findOne();
+
+    const pdfBuffer = await generateOutstandingReportPDF(
+      invoices,
+      customerSummary,
+      summary,
+      settings,
+      { startDate, endDate },
+    );
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Outstanding_Invoices_Report.pdf"`,
+    );
+    res.send(pdfBuffer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getInvoicePDF,
   getQuotationPDF,
   getSalesReportPDF,
   getProfitLossReportPDF,
+  getOutstandingReportPDF,
 };

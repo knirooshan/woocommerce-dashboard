@@ -18,6 +18,7 @@ import {
   BarChart3,
   Image,
   Truck,
+  AlertCircle,
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
@@ -55,6 +56,11 @@ const Layout = () => {
     { name: "Expenses", href: "/expenses", icon: DollarSign },
     { name: "Media Library", href: "/media-library", icon: Image },
     { name: "Reports", href: "/reports", icon: BarChart3 },
+    {
+      name: "Outstanding Invoices",
+      href: "/outstanding-invoices",
+      icon: AlertCircle,
+    },
     ...(user?.role === "admin"
       ? [
           { name: "Users", href: "/users", icon: Users },

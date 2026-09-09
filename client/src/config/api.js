@@ -99,6 +99,7 @@ export const ENDPOINTS = {
   REPORTS_DASHBOARD: `${API_URL}/reports/dashboard`,
   REPORTS_SALES: `${API_URL}/reports/sales`,
   REPORTS_PROFIT_LOSS: `${API_URL}/reports/profit-loss`,
+  REPORTS_OUTSTANDING: `${API_URL}/reports/outstanding`,
 
   // Images
   IMAGES_TO_BASE64: `${API_URL}/images/to-base64`,
@@ -116,6 +117,7 @@ export const ENDPOINTS = {
   PDF_QUOTATION: (id) => `${API_URL}/pdf/quotation/${id}`,
   PDF_SALES_REPORT: `${API_URL}/pdf/sales-report`,
   PDF_PROFIT_LOSS_REPORT: `${API_URL}/pdf/profit-loss-report`,
+  PDF_OUTSTANDING_REPORT: `${API_URL}/pdf/outstanding-report`,
 
   //Activity Log
   ACTIVITY_LOGS: `${API_URL}/activity-logs`,

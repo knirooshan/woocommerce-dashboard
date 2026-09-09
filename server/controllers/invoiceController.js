@@ -270,6 +270,10 @@ const updateInvoiceStatus = async (req, res) => {
 
     if (invoice) {
       invoice.status = status;
+      // Keep amountPaid/balanceDue consistent when manually marking as paid
+      if (status === "paid") {
+        invoice.amountPaid = invoice.total;
+      }
       const updatedInvoice = await invoice.save();
       res.json(updatedInvoice);
     } else {
